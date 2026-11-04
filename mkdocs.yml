@@ -1,0 +1,6 @@
+site_name: Vyapaar Labs Documentation
+site_url: https://docs.vyapaar-labs.io
+theme:
+  name: material
+nav:
+  - Overview: index.md
