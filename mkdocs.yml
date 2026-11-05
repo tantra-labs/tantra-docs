@@ -1,6 +1,133 @@
 site_name: Vyapaar Labs Documentation
 site_url: https://docs.vyapaar-labs.io
+repo_url: https://github.com/vyapaar-labs/vyapaar-docs
+repo_name: vyapaar-labs/vyapaar-docs
+
 theme:
   name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - .
+        - docs
+      check_paths: true
+      auto_append: []
+
+plugins:
+  - search
+
 nav:
-  - Overview: index.md
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - First Backtest: getting-started/first-backtest.md
+      - Loading Data: getting-started/loading-data.md
+  - Architecture:
+      - architecture/index.md
+      - Overview: architecture/overview.md
+      - System Design & Bounded Contexts: design/architecture.md
+      - Crate Hierarchy: architecture/crate_hierarchy.md
+      - Message Flow: architecture/message_flow.md
+      - Domain-Driven Design (DDD): architecture/domain_driven_design.md
+      - Python-First Architecture: architecture/python_first.md
+      - Strategy Tester & Enhancer: architecture/strategy_tester_and_enhancer.md
+      - AI Engine & Quant Researcher: architecture/ai_engine.md
+      - Actor Runtime & Event Loop: architecture/event_loop.md
+      - Adapter Interface & Feeds: architecture/adapter_interface.md
+      - Money, Currency & Indian Costs: architecture/money.md
+      - Order Reject & Cancel: architecture/order_reject_cancel.md
+      - WASM Indicators: architecture/wasm_indicators.md
+      - Contracts from Rust: architecture/contracts_from_rust.md
+      - Algo Designer & Simulator: architecture/algo_designer_and_simulator.md
+      - Using the Simulator: architecture/simulator_usage.md
+      - vyapaar-ui Simulator Port: architecture/kao_simulator_port.md
+      - vyapaar-ui Strategy Studio: architecture/strategy_studio.md
+      - Risk Migration Plan: architecture/migration_plan_kokoro_risk_to_mon.md
+      - Tradebook (Journal & Replay): architecture/tradebook.md
+  - Indian Markets:
+      - india/index.md
+      - Brokers: india/brokers.md
+      - Adapter Configuration: india/adapter_configuration.md
+      - Options: india/options.md
+      - Mutual Funds: india/mutual_funds.md
+      - Universes: india/universes.md
+      - Cost Model: india/cost_model.md
+      - Market Calendar: india/market_calendar.md
+  - Strategies:
+      - strategies/index.md
+      - Writing Strategies: strategies/writing_strategies.md
+      - Indicators: strategies/indicators.md
+      - Strategy Styles: strategies/strategy_styles.md
+      - Portfolio Construction: strategies/portfolio_construction.md
+      - Position Management: strategies/position_management.md
+      - Step Manifests and Chaining: strategies/step_manifests_and_chaining.md
+  - Backtesting:
+      - backtesting/index.md
+      - Three-Tier Pipeline: backtesting/three_tier_pipeline.md
+      - Statistical Validation: backtesting/statistical_validation.md
+      - Cost Modeling: backtesting/cost_modeling.md
+      - Latency Modeling: backtesting/latency_modeling.md
+      - Avoiding Backtest Biases: backtesting/avoiding_backtest_biases.md
+      - Pitfalls in Examples: backtesting/pitfalls_in_examples.md
+  - AI & Quant Research:
+      - ai/index.md
+      - Research Loop: ai/research_loop.md
+      - RL Training: ai/rl_training.md
+      - MCP Gateway: ai/mcp_gateway.md
+      - NL Verification: ai/nl_verification.md
+  - Tutorials:
+      - tutorials/index.md
+      - First NIFTY50 Strategy: tutorials/first-nifty50-strategy.md
+      - BankNIFTY Options Backtest: tutorials/banknifty-options-backtest.md
+      - SIP Backtest: tutorials/sip-backtest.md
+      - Alpha30 Factor Model: tutorials/alpha30-factor-model.md
+      - Autoresearch Loop: tutorials/autoresearch-loop.md
+  - Examples:
+      - examples/index.md
+      - Known Issues: examples/known_issues.md
+  - Contributing:
+      - contributing/index.md
+      - Development Setup: contributing/development_setup.md
+      - Adding Adapters: contributing/adding_adapters.md
+      - Adding Indicators: contributing/adding_indicators.md
+      - Dependency Rules: contributing/dependency_rules.md
+  - API Reference:
+      - Python Ecosystem: api/python/index.md
+      - Python SDK (Client): api/python-sdk.md
+      - Adapters (Typed Registry): api/adapters.md
+      - REST API: api/rest.md
+      - API Specification: api/api-reference.md
+  - Governance & Migration:
+      - Platform Conformance Matrix: conformance_matrix.md
+      - Roadmap: roadmap/roadmap.md
+      - Migration Guide: migration-guide.md
