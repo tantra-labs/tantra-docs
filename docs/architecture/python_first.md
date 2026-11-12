@@ -1,8 +1,8 @@
-# Python-First Architecture in Vyapaar
+# Python-First Architecture in Tantra
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-ffi`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-ffi`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Design Principle**: Python-First developer ergonomics with bare-metal Rust performance under the hood. Inspired by the architectural triumphs of **NautilusTrader**, **Jesse**, and modern **StockSharp**, Vyapaar provides an intuitive, highly expressive Python strategy framework where all computationally intensive, concurrent, and safety-critical execution is delegated to an unyielding Rust actor core.
+> **Design Principle**: Python-First developer ergonomics with bare-metal Rust performance under the hood. Inspired by the architectural triumphs of **NautilusTrader**, **Jesse**, and modern **StockSharp**, Tantra provides an intuitive, highly expressive Python strategy framework where all computationally intensive, concurrent, and safety-critical execution is delegated to an unyielding Rust actor core.
 
 ---
 
@@ -13,27 +13,27 @@ In quantitative finance, Python is the undisputed lingua franca for data science
 * **Floating-Point Inaccuracy**: Native Python floats produce fractional paisa/cent rounding errors across millions of transactions.
 * **Concurrency Deadlocks**: Multi-threaded Python backtesting or live execution is complex and prone to race conditions.
 
-Vyapaar solves this through a **Python-First, Rust-Underneath Architecture**:
+Tantra solves this through a **Python-First, Rust-Underneath Architecture**:
 
 ```text
  ┌────────────────────────────────────────────────────────────────────────┐
- │                      VYAPAAR PYTHON-FIRST STACK                          │
+ │                      TANTRA PYTHON-FIRST STACK                          │
  ├────────────────────────────────────────────────────────────────────────┤
- │  USER PYTHON LAYER (vyapaar SDK / User Code)                            │
+ │  USER PYTHON LAYER (tantra SDK / User Code)                            │
  │  - Declarative Strategy API (like Jesse & NautilusTrader)              │
  │  - PyTorch / Scikit-learn / LightGBM Machine Learning Models           │
  │  - Polars & PyArrow Vectorized Analysis                                │
  ├────────────────────────────────────────────────────────────────────────┤
- │  ZERO-COPY FFI BRIDGE (vyapaar-ffi)                                 │
- │  - PyO3 Native C-Extension compiling the `vyapaar` package               │
+ │  ZERO-COPY FFI BRIDGE (tantra-ffi)                                 │
+ │  - PyO3 Native C-Extension compiling the `tantra` package               │
  │  - PyArrow Zero-Copy Shared Memory for Ticks, Bars & Depth             │
  │  - Smart GIL Management: Workers run free, acquiring GIL only on hook  │
  ├────────────────────────────────────────────────────────────────────────┤
  │  HIGH-PERFORMANCE MULTI-THREADED RUST CORE                             │
- │  - Central Tokio Actor Pipeline (`vyapaar-runtime`)                           │
- │  - Zero-I/O Domain & Exact 128-bit Decimal Accounting (`vyapaar-ledger`)  │
- │  - Synchronous SEBI Regulatory Pre-Trade Risk Gate (`vyapaar-risk`)       │
- │  - Sub-microsecond Multi-Broker WebSocket Ingestion (`vyapaar-market`)       │
+ │  - Central Tokio Actor Pipeline (`tantra-runtime`)                           │
+ │  - Zero-I/O Domain & Exact 128-bit Decimal Accounting (`tantra-ledger`)  │
+ │  - Synchronous SEBI Regulatory Pre-Trade Risk Gate (`tantra-risk`)       │
+ │  - Sub-microsecond Multi-Broker WebSocket Ingestion (`tantra-market`)       │
  └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -41,12 +41,12 @@ Vyapaar solves this through a **Python-First, Rust-Underneath Architecture**:
 
 ## 2. Python Strategy API & Ergonomics
 
-Vyapaar's strategy interface is clean, expressive, and type-annotated, combining Jesse's declarative simplicity with NautilusTrader's precision:
+Tantra's strategy interface is clean, expressive, and type-annotated, combining Jesse's declarative simplicity with NautilusTrader's precision:
 
 ```python
 from decimal import Decimal
-from vyapaar import Strategy, Parameter, Bar, Tick, OrderEvent, Position
-from vyapaar.indicators import Ema, Rsi, Atr
+from tantra import Strategy, Parameter, Bar, Tick, OrderEvent, Position
+from tantra.indicators import Ema, Rsi, Atr
 
 class MeanReversionNiftyStrategy(Strategy):
     """
@@ -113,16 +113,16 @@ class MeanReversionNiftyStrategy(Strategy):
 
 ---
 
-## 3. The `vyapaar-ffi` FFI Bridge
+## 3. The `tantra-ffi` FFI Bridge
 
-The bridge between Python and Rust is housed exclusively inside `vyapaar-ffi`, compiling into a single native C-extension via **PyO3**:
+The bridge between Python and Rust is housed exclusively inside `tantra-ffi`, compiling into a single native C-extension via **PyO3**:
 
 ```text
 Python Interpreter (CPython 3.12+)
       │
       ▼ PyO3 C-Extension
 ┌────────────────────────────────────────────────────────┐
-│               vyapaar-ffi (Rust)                    │
+│               tantra-ffi (Rust)                    │
 ├────────────────────────────────────────────────────────┤
 │ - GIL Management (py.allow_threads)                    │
 │ - Zero-Copy Arrow Tables (Arrow PyCapsule Protocol)    │
@@ -131,14 +131,14 @@ Python Interpreter (CPython 3.12+)
 └────────────────────────────────────────────────────────┘
       │
       ▼ Pure Rust Engine
-Rust Core (vyapaar-core, vyapaar-runtime, vyapaar-ledger, vyapaar-risk)
+Rust Core (tantra-core, tantra-runtime, tantra-ledger, tantra-risk)
 ```
 
 ### 3.1 Smart GIL Management (`py.allow_threads`)
-Under Vyapaar, the Python GIL is never held during:
+Under Tantra, the Python GIL is never held during:
 * Ingesting high-throughput binary WebSocket ticks from exchanges.
 * Updating order book depth and calculating scrip price bands.
-* Evaluating pre-trade risk compliance rules (`vyapaar-risk`).
+* Evaluating pre-trade risk compliance rules (`tantra-risk`).
 * Reconciling double-entry general ledger accounts and FIFO tax lots.
 * Running event-driven backtesting loops and optimization iterations.
 
@@ -147,14 +147,14 @@ The GIL is acquired **only for the microseconds required to invoke Python callba
 ### 3.2 Zero-Copy PyArrow Memory Bridge
 When dealing with years of historical tick or 1-minute bar data for quantitative research, serializing millions of objects between Python and Rust introduces prohibitive memory overhead.
 
-Vyapaar leverages the **PyArrow PyCapsule Protocol**:
+Tantra leverages the **PyArrow PyCapsule Protocol**:
 * Market data is stored in Apache Arrow format inside Rust.
 * Rust hands memory pointers directly to Python without serialization or data copying.
 * Python strategies can query Polars or Pandas DataFrames instantaneously:
 
 ```python
 import polars as pl
-from vyapaar.data import load_bars
+from tantra.data import load_bars
 
 # Returns a Polars DataFrame backed by zero-copy Arrow memory
 df = load_bars(symbol="NSE:NIFTY50", timeframe="1m", start="2025-01-01", end="2026-01-01")
@@ -163,18 +163,18 @@ print(df.head())
 
 ---
 
-## 4. Feature Comparison: Vyapaar vs NautilusTrader vs Jesse vs StockSharp
+## 4. Feature Comparison: Tantra vs NautilusTrader vs Jesse vs StockSharp
 
-| Capability | Vyapaar | NautilusTrader | Jesse | StockSharp |
+| Capability | Tantra | NautilusTrader | Jesse | StockSharp |
 | :--- | :---: | :---: | :---: | :---: |
 | **Primary Language** | **Python First (Rust Core)** | Python First (Rust Core) | Python Only | C# / Python Wrapper |
 | **Monetary Arithmetic** | **Exact Decimal (128-bit)** | Float / Fixed Int | Float64 | Decimal (C#) |
 | **Pre-Trade Risk Gate** | **SEBI Algo ID, OTR, Circuit Bands** | General Risk Limits | Basic Stop-loss | Comprehensive |
 | **Double-Entry Ledger** | **Full Audit Journal** | Cash Account | Cash Balance | Cash & Portfolio |
 | **Indian Market Microstructure** | **Native (NSE, T+1, STT, ICCL)** | Generic Global | Crypto Only | Global / Broker-specific |
-| **AI-Native & MCP Server** | **Native (`vyapaar-agent`)** | No | No | No |
+| **AI-Native & MCP Server** | **Native (`tantra-agent`)** | No | No | No |
 | **Automatic Strategy Enhancer** | **GA, Bayesian, WFO, DSR** | Basic Optimization | GA Optimization | Genetic & Brute-force |
-| **UI Studio & Simulator** | **Leptos CSR Canvas (`vyapaar-ui`)** | No Official UI | Terminal / Basic Web | WPF Desktop / Web |
+| **UI Studio & Simulator** | **Leptos CSR Canvas (`tantra-ui`)** | No Official UI | Terminal / Basic Web | WPF Desktop / Web |
 
 ---
 

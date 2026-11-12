@@ -21,9 +21,9 @@ A strategy that:
 
 Create `first_strategy.py` in the workspace root:
 
-    from vyapaar import Strategy
-    from vyapaar.indicators import Sma
-    from vyapaar.markets.india.universes import resolve_universe
+    from tantra import Strategy
+    from tantra.indicators import Sma
+    from tantra.markets.india.universes import resolve_universe
 
 
     class SmaCrossover(Strategy):
@@ -80,7 +80,7 @@ Expected output (numbers will differ slightly on synthetic data):
 
 Before believing that Sharpe of 1.18, run the statistical validation:
 
-    vyapaar validate first_strategy.py --trials 1
+    tantra validate first_strategy.py --trials 1
 
 Output:
 

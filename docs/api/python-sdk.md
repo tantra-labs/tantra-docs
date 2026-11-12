@@ -1,12 +1,12 @@
-# Python SDK: `vyapaar.client`
+# Python SDK: `tantra.client`
 
 Typed access to the [REST read API](rest.md). The same `Client` methods work
-over HTTP (against `vyapaar serve`) and in process (no server).
+over HTTP (against `tantra serve`) and in process (no server).
 
 ```python
-from vyapaar.client import Client, NotFoundApiError
+from tantra.client import Client, NotFoundApiError
 
-# HttpTransport: against a running `vyapaar serve --data-dir ./bars`
+# HttpTransport: against a running `tantra serve --data-dir ./bars`
 with Client.http("http://127.0.0.1:8080", timeout=5) as api:
     print(api.health().status)
     for bar in api.bars("TCS.NSE", tf="1m", from_="2024-01-01", to="2024-01-02"):
@@ -66,7 +66,7 @@ Only these routes have methods. Every other route answers 501 and has no client 
 `tf` is `<n><s|m|h|d|w|mo>`, default `1m` on the server. `levels` is 1..=50.
 `Client` is a context manager; `close()` releases the transport.
 
-## Models (`vyapaar.client.models`)
+## Models (`tantra.client.models`)
 
 Ignore unknown fields so a newer server still parses:
 
@@ -75,7 +75,7 @@ Ignore unknown fields so a newer server still parses:
 `TradeJournalOverview`, `ClosedTrade`, `TradeAnnotation`, `PnlCalendar`, `JournalNote`,
 `AccountComparison`, `Portfolio`, `Position`, `Order`, `TradingState`.
 
-`Bar` and `QuoteTick` are the existing `vyapaar.wire.wire` types.
+`Bar` and `QuoteTick` are the existing `tantra.wire.wire` types.
 
 `CompiledStrategy` has `id` (string, `sha256:<hex>`) and `ir` (dict, the verified IR).
 
@@ -119,7 +119,7 @@ for row in rows:
 ## Trade-Performance Journal (Plan 0003)
 
 The trade-performance journal is **distinct** from `/portfolio/accounts` and from the run/backtest
-journals (`/backtests/{id}/journal`). It is backed by `vyapaar-ledger-performance`.
+journals (`/backtests/{id}/journal`). It is backed by `tantra-ledger-performance`.
 
 ```python
 api = Client.inproc("./bars")
@@ -189,7 +189,7 @@ all_strategies = api.strategies()
   `SYMBOL.EXCHANGE.parquet` files in `data_dir` (`NotADirectoryError` if it is
   not a directory). The directory is loaded once per process and cached, so
   files added later are not seen. Its calls reuse the runtime started by
-  [`vyapaar.event_loop`](../architecture/event_loop.md) if there is one.
+  [`tantra.event_loop`](../architecture/event_loop.md) if there is one.
 
 Both return every HTTP-style answer, error statuses included; the client turns
 non-2xx answers into exceptions.
@@ -242,7 +242,7 @@ process when the native call raises `OSError` or `ValueError`, for example a
 data directory that vanished (`code="transport_error"`, `retryable=False`).
 
 ```python
-from vyapaar.client import (
+from tantra.client import (
     Client, NotImplementedApiError, ValidationApiError, RequestValidationError,
 )
 
@@ -264,7 +264,7 @@ finite and >= 0. Only an envelope with `retryable: true` or a connection
 failure is retried; anything else returns at once.
 
 ```python
-from vyapaar.client import Client, RetryPolicy
+from tantra.client import Client, RetryPolicy
 
 api = Client.http("http://127.0.0.1:8080", retry=RetryPolicy.fixed(3, 0.5))
 ```

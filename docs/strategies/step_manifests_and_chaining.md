@@ -8,20 +8,20 @@ importing any Python.
 
 Two repositories carry the pieces:
 
-- `vyapaar-strategies` defines the schema and the validator, and ships a
+- `tantra-strategies` defines the schema and the validator, and ships a
   `step.toml` beside the `config.toml` of every registered strategy.
-- `vyapaar-examples` has a pipeline of screen, filter, size and execute steps
+- `tantra-examples` has a pipeline of screen, filter, size and execute steps
   that implement the same manifest shape, plus a runner that loads a chain from
   a TOML file.
 
-The authoritative references are `vyapaar-strategies/schema/README.md`,
-`vyapaar-strategies/docs/step-manifest-examples.md` and
-`vyapaar-examples/docs/roadmap-chaining.md` (Phase 5). This page is the short
+The authoritative references are `tantra-strategies/schema/README.md`,
+`tantra-strategies/docs/step-manifest-examples.md` and
+`tantra-examples/docs/roadmap-chaining.md` (Phase 5). This page is the short
 version.
 
 !!! note "Status"
     The schema, the validator, the registered `step.toml` files and the
-    `vyapaar-examples` pipeline steps exist today. A GUI that consumes them does
+    `tantra-examples` pipeline steps exist today. A GUI that consumes them does
     not. Several step ids used as illustrations below are marked *future*.
 
 ## The stage model
@@ -71,8 +71,8 @@ Points that are easy to get wrong:
 | `[emits]` | `shape`, `adds` (columns appended), `report` (always shown), `reportable` (extra columns a user may ask for). |
 | `[chain]` | `after` / `before` palette hints. The enforced rule is the kind order above. |
 
-The schema is `vyapaar-strategies/schema/step.schema.json` (JSON Schema, draft
-2020-12). It is separate from `vyapaar.strategies.manifest.StrategyManifest`,
+The schema is `tantra-strategies/schema/step.schema.json` (JSON Schema, draft
+2020-12). It is separate from `tantra.strategies.manifest.StrategyManifest`,
 which is the runtime manifest (subscriptions, warm-up) used by the engine.
 
 ## Pitfalls in a manifest
@@ -135,14 +135,14 @@ that step's `emits.reportable`; asking for anything else is an error.
 
 | Piece | Where | State |
 |---|---|---|
-| Schema and `step.toml` per registered strategy (17) | `vyapaar-strategies` | Exists. `test_step_manifests.py` keeps each manifest in step with its `config.toml` and code. |
-| Chain validator | `vyapaar-strategies/tools/validate_chain.py` | Exists. `validate_chain(steps)` returns a list of error strings; empty means valid. |
+| Schema and `step.toml` per registered strategy (17) | `tantra-strategies` | Exists. `test_step_manifests.py` keeps each manifest in step with its `config.toml` and code. |
+| Chain validator | `tantra-strategies/tools/validate_chain.py` | Exists. `validate_chain(steps)` returns a list of error strings; empty means valid. |
 | Validator rules | same | Shape compatibility, column availability, kind order, `with` values checked against each param's type, bounds, choices and pattern. |
-| `describe()` on pipeline steps | `vyapaar-examples/vyapaar_examples/pipeline/` | Exists for every step except the signal stubs; returns a dict in the `step.toml` shape. |
-| `report=[...]` | screeners and the fundamental-quality filter in `vyapaar-examples` | Exists. Columns: `market_cap`, `dividend_yield_pct`, `pe_ratio`, `pb_ratio`, `roce_pct`, `roe_pct`, `debt_to_equity`, `operating_margin_pct`, `net_margin_pct`, `free_cash_flow`, `eps`. |
-| TOML chain runner | `vyapaar_examples/pipeline/chain.py` and `screening/06_run_chain.py` | Exists. Worked chain: `screening/chains/quality_value.toml`. |
+| `describe()` on pipeline steps | `tantra-examples/tantra_examples/pipeline/` | Exists for every step except the signal stubs; returns a dict in the `step.toml` shape. |
+| `report=[...]` | screeners and the fundamental-quality filter in `tantra-examples` | Exists. Columns: `market_cap`, `dividend_yield_pct`, `pe_ratio`, `pb_ratio`, `roce_pct`, `roe_pct`, `debt_to_equity`, `operating_margin_pct`, `net_margin_pct`, `free_cash_flow`, `eps`. |
+| TOML chain runner | `tantra_examples/pipeline/chain.py` and `screening/06_run_chain.py` | Exists. Worked chain: `screening/chains/quality_value.toml`. |
 | GUI algo designer | not in any repo | Future. |
-| Sizer, screen and filter steps in the strategy catalog | `vyapaar-strategies` | Future. No catalog strategy is a sizer; today a catalog chain is a single trading step. |
+| Sizer, screen and filter steps in the strategy catalog | `tantra-strategies` | Future. No catalog strategy is a sizer; today a catalog chain is a single trading step. |
 
 Report columns are derived point-in-time from the latest fiscal-year
 fundamentals on or before the as-of date. `market_cap` is the as-of close times
@@ -151,8 +151,8 @@ diluted average shares, not the live snapshot. A symbol with no data gets
 
 ## Validated versus runnable
 
-Validation and execution are separate. The chain runner in `vyapaar-examples`
-checks a chain with the `vyapaar-strategies` validator before running it, and
+Validation and execution are separate. The chain runner in `tantra-examples`
+checks a chain with the `tantra-strategies` validator before running it, and
 the validator knows catalog ids (`signal.*`, `execute.*`) as well as the
 pipeline's own `screen.*`, `filter.*`, `size.*` and `execute.sip_backtest`.
 
@@ -163,18 +163,18 @@ the backtest engine, which is future work. Treat a passing validation as "these
 steps fit together", not as "this chain will run here".
 
 ```bash
-# from a vyapaar-examples checkout
+# from a tantra-examples checkout
 python screening/06_run_chain.py --chain screening/chains/quality_value.toml --validate-only
 python screening/06_run_chain.py --chain screening/chains/quality_value.toml --format csv
 python screening/06_run_chain.py --describe        # every step's manifest as JSON
 ```
 
-The validator is found through `$VYAPAAR_STRATEGIES_DIR` or the sibling
-`vyapaar-strategies` checkout.
+The validator is found through `$TANTRA_STRATEGIES_DIR` or the sibling
+`tantra-strategies` checkout.
 
 ## Versioned Manifests & Baskets
 
-Beyond per-strategy `step.toml` files, `vyapaar-strategies` ships
+Beyond per-strategy `step.toml` files, `tantra-strategies` ships
 **versioned strategy manifests** (`StrategyManifest`) and **basket manifests**
 (`BasketManifest`) — plan 0001, all phases implemented:
 
@@ -184,7 +184,7 @@ Beyond per-strategy `step.toml` files, `vyapaar-strategies` ships
 | `BasketManifest` | Multi-strategy basket: member strategy refs, risk budget per member, composite allocation |
 | `PromotionStatus` | Promotion lifecycle: `Draft → Review → Staged → Live → Archived`; `promote()` advances exactly one stage forward with evidence references |
 
-They live under `vyapaar_strategies/manifest/` and are validated against JSON
+They live under `tantra_strategies/manifest/` and are validated against JSON
 schemas in `schema/`. CLI validators `tools/validate_manifests.py` and
 `tools/validate_chain.py` keep each manifest in step with its `config.toml`
 and code. See the [Strategies index](index.md#versioned-strategy-manifests-baskets-plan-0001)
@@ -205,7 +205,7 @@ for details.
   no stop, `turtle_20` and `kdj_cross` stops checked after the bar,
   `rsi2_connors` and `ifr2` having no stop) are listed in the
   [Strategies index](index.md#honest-caveats-in-the-catalog).
-- The Graham and net-net screeners in `vyapaar-examples` are not pipeline steps
+- The Graham and net-net screeners in `tantra-examples` are not pipeline steps
   yet.
 
 ## See also

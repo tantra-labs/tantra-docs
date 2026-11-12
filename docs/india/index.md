@@ -1,8 +1,8 @@
 # Indian Markets
 
 This section documents what is true of the Indian market and false of
-every other market. Everything here lives in the `vyapaar-market` crate
-and the Python `vyapaar.markets.india` module — providing clean, self-contained
+every other market. Everything here lives in the `tantra-market` crate
+and the Python `tantra.markets.india` module — providing clean, self-contained
 market rules that can be tested without a full engine.
 
 ## The Documents
@@ -24,22 +24,22 @@ market rules that can be tested without a full engine.
 - **[Brokers](brokers.md)** — practical differences between the supported
   broker adapters.
 
-## India Data Lakehouse (`vyapaar-data`)
+## India Data Lakehouse (`tantra-data`)
 
-`vyapaar-data` (Tier 6, Python + DuckDB) is the **financial lakehouse** for
+`tantra-data` (Tier 6, Python + DuckDB) is the **financial lakehouse** for
 Indian markets. Implemented capabilities (gaps 0001–0003 closed):
 
 | Capability | Module | Status |
 |------------|--------|--------|
-| Economic calendar ingestion | `vyapaar_data.service.macro_reader` | ✅ Closed (macro series behind `PythonMacroReader`) |
-| Filings ingestion | `vyapaar_data.service.filings` | ✅ Closed (`FilingsReader` / `LakehouseFilingsReader`) |
-| Symbol profile / company fundamentals | `vyapaar_data.service.profile` | ✅ Closed (`LakehouseProfileReader`) |
-| Parquet catalog coverage | `vyapaar_data.store.parquet` | ✅ Closed |
-| Calendar data (earnings, dividends, splits, IPOs) | `vyapaar_data.store.calendar` | Stubbed pending vendor decision |
+| Economic calendar ingestion | `tantra_data.service.macro_reader` | ✅ Closed (macro series behind `PythonMacroReader`) |
+| Filings ingestion | `tantra_data.service.filings` | ✅ Closed (`FilingsReader` / `LakehouseFilingsReader`) |
+| Symbol profile / company fundamentals | `tantra_data.service.profile` | ✅ Closed (`LakehouseProfileReader`) |
+| Parquet catalog coverage | `tantra_data.store.parquet` | ✅ Closed |
+| Calendar data (earnings, dividends, splits, IPOs) | `tantra_data.store.calendar` | Stubbed pending vendor decision |
 
 These feed the `/market-data/calendar` and `/market-data/symbol-profile/{id}`
-REST endpoints in `vyapaar-runtime-api-rest` (Plan 0003 Phase 3 — currently
-serving illustrative sample data pending the `vyapaar-data` → Rust FFI bridge).
+REST endpoints in `tantra-runtime-api-rest` (Plan 0003 Phase 3 — currently
+serving illustrative sample data pending the `tantra-data` → Rust FFI bridge).
 
 
 ## The Two Facts That Change Everything

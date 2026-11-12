@@ -19,7 +19,7 @@ invested.
 AMFI publishes daily NAVs for every scheme in India. Import a decade
 of NAV history:
 
-    from vyapaar.india.mutual_funds import AmfiNavImporter
+    from tantra.india.mutual_funds import AmfiNavImporter
 
     importer = AmfiNavImporter(catalog="./data/catalog")
     importer.import_history(
@@ -31,7 +31,7 @@ of NAV history:
 `120503` is the AMFI scheme code for Axis Bluechip Fund - Direct
 Growth. To find another scheme's code:
 
-    from vyapaar.india.mutual_funds import search_schemes
+    from tantra.india.mutual_funds import search_schemes
 
     results = search_schemes("bluechip", plan="direct")
     for s in results[:5]:
@@ -41,7 +41,7 @@ Growth. To find another scheme's code:
 
 Create `sip_backtest.py`:
 
-    from vyapaar.india.mutual_funds import SipBacktest, Frequency
+    from tantra.india.mutual_funds import SipBacktest, Frequency
 
     bt = SipBacktest(
         scheme=120503,
@@ -107,7 +107,7 @@ The scheme code `120503` is a direct plan. Regular plans carry an
 additional distribution expense of 0.5–1.5% annually. Over 10 years,
 this compounds substantially:
 
-    from vyapaar.india.mutual_funds import Scheme
+    from tantra.india.mutual_funds import Scheme
 
     direct = Scheme.by_code(120503)     # Direct
     regular = Scheme.by_code(120465)    # Regular plan of same fund
@@ -128,7 +128,7 @@ distributor's commission.
 A fund's return is meaningless without a benchmark. Compare against
 the category average and the index:
 
-    from vyapaar.india.mutual_funds import compare_to_category, compare_to_index
+    from tantra.india.mutual_funds import compare_to_category, compare_to_index
 
     category = compare_to_category(
         scheme=120503,
@@ -158,7 +158,7 @@ hardest part of a SIP in practice.
 
 A more honest comparison:
 
-    from vyapaar.india.mutual_funds import SipBacktest, BehavioralModel
+    from tantra.india.mutual_funds import SipBacktest, BehavioralModel
 
     # Model an investor who skips installments during drawdowns
     bt = SipBacktest(
@@ -178,7 +178,7 @@ The behavioral model typically produces a 1–2% lower XIRR than the
 disciplined SIP, because investors who skip installments systematically
 miss the best entry points.
 
-A NAV dated D is not known during D. In the `vyapaar-examples` mutual-fund SIP
+A NAV dated D is not known during D. In the `tantra-examples` mutual-fund SIP
 (`mutual_funds/02_sip_backtest.py`), an instalment dated on a day with no
 published NAV buys the next published NAV, never a past one, and an instalment
 with no NAV within a week is skipped. Check how your own loader treats a
@@ -196,7 +196,7 @@ non-publication day.
 
 - [Mutual Funds](../india/mutual_funds.md)
 - [Cost Model](../india/cost_model.md)
-- [Examples](../examples/index.md): `vyapaar-examples` also has a SIP on a listed
+- [Examples](../examples/index.md): `tantra-examples` also has a SIP on a listed
   instrument (`backtesting/08_sip_buy_and_hold.py`) and a screener-to-SIP chain
   (`backtesting/10_chained_screener_and_sip.py`).
 - [Step Manifests and Chaining](../strategies/step_manifests_and_chaining.md)

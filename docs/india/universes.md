@@ -1,6 +1,6 @@
 # Index Universes
 
-A "universe" in Vyapaar is a named set of instruments with a defined
+A "universe" in Tantra is a named set of instruments with a defined
 selection rule and rebalance schedule. The two most commonly used
 built-in universes for Indian equity strategies are NIFTY 50 and the
 NIFTY 200 Alpha 30.
@@ -15,7 +15,7 @@ and invalidates the result.
 
 ## The Python Universe API
 
-The Python surface for universes lives in `vyapaar.markets.india.universes`:
+The Python surface for universes lives in `tantra.markets.india.universes`:
 
 - `resolve_universe(name, exchange="NSE", as_of=None)`
 - Built-in universe names: `"nifty50"`, `"nifty200_alpha30"` (and alias `"alpha30"`)
@@ -71,7 +71,7 @@ the past: with no history it raises `ValueError`.
 
 ```python
 import datetime as dt
-from vyapaar.markets.india.universes import (
+from tantra.markets.india.universes import (
     Constituent,
     UniverseHistory,
     register_universe_history,
@@ -107,11 +107,11 @@ because the alpha-score tilt is already captured by constituent selection.
 
 Note the split of responsibilities: the Alpha 30 is a **universe** (who is
 eligible); "equal weight, rebalance periodically" is the **strategy**. In
-Vyapaar the strategy is `PortfolioStrategy` with an `EqualWeight` weighting
+Tantra the strategy is `PortfolioStrategy` with an `EqualWeight` weighting
 scheme, and the Alpha 30 enters only as a name:
 
 ```python
-from vyapaar.strategies.portfolio import EqualWeight, EveryNDays, NamedUniverse, PortfolioStrategy
+from tantra.strategies.portfolio import EqualWeight, EveryNDays, NamedUniverse, PortfolioStrategy
 
 strategy = PortfolioStrategy(
     NamedUniverse("nifty200_alpha30"), EqualWeight(), EveryNDays(15)
@@ -119,7 +119,7 @@ strategy = PortfolioStrategy(
 ```
 
 The catalog strategy `equal_weight`
-(`vyapaar-strategies/portfolio/rebalancing/equal_weight`) is exactly this,
+(`tantra-strategies/portfolio/rebalancing/equal_weight`) is exactly this,
 configured from `config.toml`. See
 [Portfolio Construction](../strategies/portfolio_construction.md).
 
@@ -137,8 +137,8 @@ registered.
 Any user-defined set of instruments can be wrapped as a universe:
 
 ```python
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.strategies.portfolio import StaticUniverse
+from tantra.entities.instrument import InstrumentId
+from tantra.strategies.portfolio import StaticUniverse
 
 my_universe = StaticUniverse([
     InstrumentId("RELIANCE", "NSE"),

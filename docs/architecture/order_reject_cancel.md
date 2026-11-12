@@ -1,14 +1,14 @@
 # Order Lifecycle, Rejection & Cancellation Protocol
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-ledger-oms / vyapaar-risk / vyapaar-exec`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-ledger-oms / tantra-risk / tantra-exec`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Microstructure Integrity**: How orders, cancellations, modifications, and rejections transition deterministically across the Order Management System (`vyapaar-ledger-oms`), pre-trade risk engine (`vyapaar-risk`), and broker execution pipelines (`vyapaar-exec`).
+> **Microstructure Integrity**: How orders, cancellations, modifications, and rejections transition deterministically across the Order Management System (`tantra-ledger-oms`), pre-trade risk engine (`tantra-risk`), and broker execution pipelines (`tantra-exec`).
 
 ---
 
 ## 1. Unified State Machine & Order Lifecycle
 
-Every order submitted within Vyapaar passes through a deterministic state machine strictly governed by mathematical reachability:
+Every order submitted within Tantra passes through a deterministic state machine strictly governed by mathematical reachability:
 
 ```mermaid
 stateDiagram-v2
@@ -43,9 +43,9 @@ stateDiagram-v2
 
 ---
 
-## 2. Pre-Trade Risk Rejections (`vyapaar-risk`)
+## 2. Pre-Trade Risk Rejections (`tantra-risk`)
 
-Before an order request is ever serialized or transmitted across the network, it must pass synchronous validation by the pre-trade risk gate (`vyapaar-risk`). If a check fails, the order transitions directly:
+Before an order request is ever serialized or transmitted across the network, it must pass synchronous validation by the pre-trade risk gate (`tantra-risk`). If a check fails, the order transitions directly:
 
 $$\text{PendingNew} \longrightarrow \text{Rejected}$$
 

@@ -1,14 +1,14 @@
 # Ledger Allocation — Portfolio Allocation & Optimization Engine
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-ledger-allocation` crate, Phase 1. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-ledger-allocation` crate, Phase 1. See [Platform Conformance Matrix](../conformance_matrix.md).
 >
-> `vyapaar-ledger-allocation` (Tier 1B, plan 0001) is the **pure portfolio allocation & optimization engine**. It computes target weights (`TargetWeights`) for a universe of instruments given expected returns, a covariance matrix, and weight bounds — all in exact `rust_decimal::Decimal`, zero-I/O, zero-floats.
+> `tantra-ledger-allocation` (Tier 1B, plan 0001) is the **pure portfolio allocation & optimization engine**. It computes target weights (`TargetWeights`) for a universe of instruments given expected returns, a covariance matrix, and weight bounds — all in exact `rust_decimal::Decimal`, zero-I/O, zero-floats.
 
 ---
 
 ## 1. Bounded Context & Responsibility
 
-`vyapaar-ledger-allocation` sits inside `vyapaar-ledger` (Tier 1B, Zero-I/O domain heart). It is a **read-only optimizer**: it never mutates portfolio state, never touches the network or disk, and never calls the wall clock. It takes a `PortfolioState` (built from `vyapaar-ledger-portfolio`) plus return/covariance estimates and produces `TargetWeights`.
+`tantra-ledger-allocation` sits inside `tantra-ledger` (Tier 1B, Zero-I/O domain heart). It is a **read-only optimizer**: it never mutates portfolio state, never touches the network or disk, and never calls the wall clock. It takes a `PortfolioState` (built from `tantra-ledger-portfolio`) plus return/covariance estimates and produces `TargetWeights`.
 
 **Key design invariants:**
 
@@ -46,7 +46,7 @@ Box bounds per instrument, projected via iterative clip-and-renormalize: clip ea
 
 | Method | Meaning |
 |--------|---------|
-| `from_portfolio(portfolio, marks, as_of)` | Build from `vyapaar-ledger-portfolio` aggregate; universe = union of held positions |
+| `from_portfolio(portfolio, marks, as_of)` | Build from `tantra-ledger-portfolio` aggregate; universe = union of held positions |
 | `current_weights` | Market-value-normalized weights |
 | `with_expected_returns(returns)` | Attach expected return estimates |
 | `with_covariance(cov)` | Attach covariance matrix |
@@ -70,8 +70,8 @@ Solves the unconstrained optimum exactly, then projects into the box via iterati
 ## 3. Usage Example
 
 ```rust
-use vyapaar_ledger_allocation::{optimize, AllocationObjective, Constraint, PortfolioState};
-use vyapaar_ledger_portfolio::{AccountState, Price, Money};
+use tantra_ledger_allocation::{optimize, AllocationObjective, Constraint, PortfolioState};
+use tantra_ledger_portfolio::{AccountState, Price, Money};
 use rust_decimal::Decimal;
 
 // 1. Build PortfolioState from the portfolio aggregate
@@ -116,6 +116,6 @@ for (instrument, weight) in &target_weights.weights {
 
 ## 6. Related Documents
 
-* **[Architecture Layers & Topology](architecture_layers.md)** — Full `vyapaar-ledger` bounded context: OMS, portfolio, journal, allocation, performance.
+* **[Architecture Layers & Topology](architecture_layers.md)** — Full `tantra-ledger` bounded context: OMS, portfolio, journal, allocation, performance.
 * **[Ledger Performance](ledger_performance.md)** — Trade-performance journal (sibling crate).
 * **[Platform Conformance Matrix](../conformance_matrix.md)** — Implementation status badge.

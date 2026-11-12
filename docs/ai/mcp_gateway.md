@@ -1,26 +1,26 @@
 # Model Context Protocol (MCP) Gateway
 
-Vyapaar exposes an institutional-grade, Model Context Protocol (MCP) server that transforms the entire Vyapaar trading and analytics engine into first-class tools for AI coding assistants (Claude Code, Cursor, GitHub Copilot, Codex, Gemini CLI) as well as the native `vyapaar-cli` and `vyapaar-tui`.
+Tantra exposes an institutional-grade, Model Context Protocol (MCP) server that transforms the entire Tantra trading and analytics engine into first-class tools for AI coding assistants (Claude Code, Cursor, GitHub Copilot, Codex, Gemini CLI) as well as the native `tantra-cli` and `tantra-tui`.
 
 ---
 
 ## 1. Core Architecture
 
-Unlike standard API servers that overload the LLM context window with hundreds of static JSON schemas, Vyapaar implements a **Two-Tier Gateway Discovery Protocol**:
+Unlike standard API servers that overload the LLM context window with hundreds of static JSON schemas, Tantra implements a **Two-Tier Gateway Discovery Protocol**:
 
 ```mermaid
 flowchart LR
-    Agent["Coding Agent\n(Claude / Cursor)"] -->|"1. vyapaar_search_tools"| GW["MCP Gateway"]
+    Agent["Coding Agent\n(Claude / Cursor)"] -->|"1. tantra_search_tools"| GW["MCP Gateway"]
     GW -->|"Ranked matching tools"| Agent
-    Agent -->|"2. vyapaar_describe_tool"| GW
+    Agent -->|"2. tantra_describe_tool"| GW
     GW -->|"Exact JSON schema & bounds"| Agent
-    Agent -->|"3. vyapaar_call_tool"| Engine["15 Quantitative Engines"]
+    Agent -->|"3. tantra_call_tool"| Engine["15 Quantitative Engines"]
     Engine -->|"Universal Result Envelope (result/v1)"| Agent
 ```
 
 ### Safety Invariants
 1. **Zero Floats Rule**: All prices, margins, ratios, and taxes are strictly exact decimal (`rust_decimal::Decimal`).
-2. **NoFX Untrusted AI Principle**: AI tools are advisory and read-only. AI models propose signals; they can never place unsupervised live orders or bypass the deterministic `vyapaar-risk` engine.
+2. **NoFX Untrusted AI Principle**: AI tools are advisory and read-only. AI models propose signals; they can never place unsupervised live orders or bypass the deterministic `tantra-risk` engine.
 3. **Indian Market Specialization**: Native support for NSE/BSE holidays, IST timezone (`Asia/Kolkata`), SEBI statutory fees (STT, GST, Stamp Duty, Exchange Charges), and F&O contract specifications.
 
 ---
@@ -29,7 +29,7 @@ flowchart LR
 
 By default, the MCP server registers 3 primary gateway tools to keep startup context overhead minimal:
 
-### `vyapaar_search_tools`
+### `tantra_search_tools`
 Searches the quantitative catalog by query and category:
 ```json
 {
@@ -38,19 +38,19 @@ Searches the quantitative catalog by query and category:
 }
 ```
 
-### `vyapaar_describe_tool`
+### `tantra_describe_tool`
 Fetches the full JSON-Schema, bounds, and mathematical specifications on demand:
 ```json
 {
-  "tool_name": "vyapaar_regime_check"
+  "tool_name": "tantra_regime_check"
 }
 ```
 
-### `vyapaar_call_tool`
+### `tantra_call_tool`
 Dynamically dispatches tool calls when dynamic schema invocation is preferred:
 ```json
 {
-  "tool_name": "vyapaar_calc_statutory_costs",
+  "tool_name": "tantra_calc_statutory_costs",
   "arguments": {
     "segment": "equity_delivery",
     "turnover": "100000",
@@ -61,13 +61,13 @@ Dynamically dispatches tool calls when dynamic schema invocation is preferred:
 
 ---
 
-## 3. Universal Result Protocol (`vyapaar/result/v1`)
+## 3. Universal Result Protocol (`tantra/result/v1`)
 
 Every tool execution returns a structured, predictable result envelope:
 
 ```json
 {
-  "schema": "vyapaar/result/v1",
+  "schema": "tantra/result/v1",
   "status": "ok",
   "meta": {
     "elapsed_ms": 12,
@@ -104,18 +104,18 @@ Every tool execution returns a structured, predictable result envelope:
 
 ## 4. Connecting Coding Agents
 
-Vyapaar provides one-click configuration export via the CLI:
+Tantra provides one-click configuration export via the CLI:
 
 ### Claude Code
 ```bash
-vyapaar mcp config --client claude-code
+tantra mcp config --client claude-code
 ```
 Writes to `~/.claude.json`:
 ```json
 {
   "mcpServers": {
-    "vyapaar": {
-      "command": "vyapaar",
+    "tantra": {
+      "command": "tantra",
       "args": ["mcp", "--stdio"]
     }
   }
@@ -124,20 +124,20 @@ Writes to `~/.claude.json`:
 
 ### Cursor
 ```bash
-vyapaar mcp config --client cursor
+tantra mcp config --client cursor
 ```
 Writes to `.cursor/mcp.json` in the current project workspace.
 
 ### VS Code (Copilot Agent Mode)
 ```bash
-vyapaar mcp config --client vscode
+tantra mcp config --client vscode
 ```
 
 ---
 
 ## 5. Quantitative Engines
 
-Vyapaar groups its analytical capabilities into 15 domain engines:
+Tantra groups its analytical capabilities into 15 domain engines:
 - **`market`**: Real-time quotes, OHLCV candles, order books, holiday calendars.
 - **`technicals`**: 200+ indicators (RSI, MACD, Bollinger Bands) and 61 candlestick patterns.
 - **`scanner`**: Screening across 4,000 fields for Indian equities and derivatives.

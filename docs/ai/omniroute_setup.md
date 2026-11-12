@@ -1,14 +1,14 @@
 # Running OmniRoute Locally (Free-Tier LLM Backend)
 
-Vyapaar's AI workloads — the trader loop, chat, research, and report narration —
-speak OpenAI-compatible HTTP through `vyapaar-agent-llm`. The supported free-tier
+Tantra's AI workloads — the trader loop, chat, research, and report narration —
+speak OpenAI-compatible HTTP through `tantra-agent-llm`. The supported free-tier
 backend is **OmniRoute**, a local router that fronts several free-model providers
 behind one endpoint. OmniRoute is the project owner's own tool and is **not
-vendored** into Vyapaar; you run it yourself.
+vendored** into Tantra; you run it yourself.
 
-This guide covers Phase 2 of `vyapaar-agent/docs/plans/0004`:
+This guide covers Phase 2 of `tantra-agent/docs/plans/0004`:
 run OmniRoute locally, restrict it to free-tier-only models, and point
-`vyapaar-agent-llm` at it. No Vyapaar code changes are needed — environment
+`tantra-agent-llm` at it. No Tantra code changes are needed — environment
 variables are the entire wiring.
 
 ---
@@ -23,40 +23,40 @@ npx omniroute
 
 Configure it to **prioritize free-tier models** across its provider list and
 **reject paid ones by default**. Follow OmniRoute's own configuration for your
-provider keys; the important setting for Vyapaar is that the router only ever
-routes to models on Vyapaar's free-tier allowlist (see §3).
+provider keys; the important setting for Tantra is that the router only ever
+routes to models on Tantra's free-tier allowlist (see §3).
 
 Once it is up, OmniRoute exposes an OpenAI-compatible endpoint root such as
 `http://localhost:8080/v1`. Leave it running for the session.
 
 ---
 
-## 2. Point `vyapaar-agent-llm` at it
+## 2. Point `tantra-agent-llm` at it
 
-`vyapaar-agent-llm` reads its provider configuration from three environment
+`tantra-agent-llm` reads its provider configuration from three environment
 variables:
 
 | Variable | Required | Meaning |
 | :--- | :--- | :--- |
-| `VYAPAAR_LLM_BASE_URL` | yes | OpenAI-compatible endpoint root, e.g. `http://localhost:8080/v1` |
-| `VYAPAAR_LLM_MODEL` | yes | Model name to request (must be on the free-tier allowlist, §3) |
-| `VYAPAAR_LLM_API_KEY` | no | Bearer token if the endpoint requires one |
+| `TANTRA_LLM_BASE_URL` | yes | OpenAI-compatible endpoint root, e.g. `http://localhost:8080/v1` |
+| `TANTRA_LLM_MODEL` | yes | Model name to request (must be on the free-tier allowlist, §3) |
+| `TANTRA_LLM_API_KEY` | no | Bearer token if the endpoint requires one |
 
 Example:
 
 ```bash
-export VYAPAAR_LLM_BASE_URL="http://localhost:8080/v1"
-export VYAPAAR_LLM_MODEL="gpt-4o-mini"
-export VYAPAAR_LLM_API_KEY=""   # omit if OmniRoute needs no key
+export TANTRA_LLM_BASE_URL="http://localhost:8080/v1"
+export TANTRA_LLM_MODEL="gpt-4o-mini"
+export TANTRA_LLM_API_KEY=""   # omit if OmniRoute needs no key
 ```
 
 The four workloads pick this up with no code changes:
 
-- **Trader loop** (`vyapaar-agent-trader-loop`) — prompt → generate →
+- **Trader loop** (`tantra-agent-trader-loop`) — prompt → generate →
   `DecisionParser` validation → risk gate.
-- **Chat** (`vyapaar-agent-chat`) — the turn loop and tool dispatch.
-- **Research** (`vyapaar-agent-research`) — the `llm` optional feature.
-- **Report** (`vyapaar-agent-report`) — tearsheet narrative text.
+- **Chat** (`tantra-agent-chat`) — the turn loop and tool dispatch.
+- **Research** (`tantra-agent-research`) — the `llm` optional feature.
+- **Report** (`tantra-agent-report`) — tearsheet narrative text.
 
 ## 3. The free-tier guardrail
 
@@ -85,8 +85,8 @@ you to a paid model.
 
 ```bash
 # Trader-loop workload against the live endpoint:
-cargo test -p vyapaar-agent-trader-loop -- --ignored
+cargo test -p tantra-agent-trader-loop -- --ignored
 ```
 
-If `VYAPAAR_LLM_BASE_URL` / `VYAPAAR_LLM_MODEL` are missing or empty, the
+If `TANTRA_LLM_BASE_URL` / `TANTRA_LLM_MODEL` are missing or empty, the
 provider loader fails fast with a transport error naming the missing variable.

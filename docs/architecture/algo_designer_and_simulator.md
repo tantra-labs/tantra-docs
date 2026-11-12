@@ -1,19 +1,19 @@
-# Vyapaar Algo Designer & Simulator — Phase-Wise Implementation Plan
+# Tantra Algo Designer & Simulator — Phase-Wise Implementation Plan
 
-> **[STATUS: IN-PROGRESS]** — `vyapaar-fe (Algo Designer)`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IN-PROGRESS]** — `tantra-fe (Algo Designer)`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
 **Document ID:** HBD-2026-DES-004
 **Status:** Approved for Implementation
 **Version:** 2.0 (phase-wise plan; supersedes the v1.0 architecture note of the same ID)
 **Last updated:** 2026-10-17
-**Target Systems:** `vyapaar-frontend`, `vyapaar` (Core Engine + Python control plane), `vyapaar-strategies`, `vyapaar-docs`
+**Target Systems:** `tantra-frontend`, `tantra` (Core Engine + Python control plane), `tantra-strategies`, `tantra-docs`
 **Reference Benchmark:** QuantDinger Platform (`/#/ai-asset-analysis`, `/#/strategy-ide`, `/#/indicator-ide`, `/#/backtest-center`)
 
 **Governing decisions**
 
 | Decision | Scope |
 | :--- | :--- |
-| [ADR 0029](https://github.com/vyapaar-labs/vyapaar/blob/main/docs/adr/0029-strategy-graph-and-algodesigner.md) | `StrategyGraph` v1, graph↔code round-trip, `verify_graph`/`verify_and_run`, AI assistant hook, ops console, result views (E9-S1..S7) |
+| [ADR 0029](https://github.com/tantra-labs/tantra/blob/main/docs/adr/0029-strategy-graph-and-algodesigner.md) | `StrategyGraph` v1, graph↔code round-trip, `verify_graph`/`verify_and_run`, AI assistant hook, ops console, result views (E9-S1..S7) |
 | ADR 0017 / 0018 / 0019 | Run lifecycle & `RunId`, risk stage, order-state FSM |
 | ADR 0020 / 0021 | Journal schema v1, run event streaming (SSE) |
 | ADR 0022 / 0024 | AI strategy verifier, overfitting gates (DSR/PBO/holdout/walk-forward) |
@@ -21,17 +21,17 @@
 
 **Companion documents**
 
-- `vyapaar-frontend/docs/AlgoDesigner-PLAN.md` — the canvas-facing plan (Phases 1–8; 1–6 shipped, 7–8 in progress).
-- `vyapaar-docs/docs/architecture/event_loop.md` — the deterministic runtime the Simulator drives.
-- `vyapaar-docs/docs/backtesting/*` — cost, latency and validation models the Simulator surfaces.
+- `tantra-frontend/docs/AlgoDesigner-PLAN.md` — the canvas-facing plan (Phases 1–8; 1–6 shipped, 7–8 in progress).
+- `tantra-docs/docs/architecture/event_loop.md` — the deterministic runtime the Simulator drives.
+- `tantra-docs/docs/backtesting/*` — cost, latency and validation models the Simulator surfaces.
 
 ---
 
 ## 1. Purpose of This Document
 
-The previous revision of this document (v1.0) described the **target architecture** of two consolidated workspaces — the **Vyapaar Algo Designer** and the **Vyapaar Simulator** — and listed a coarse four-phase roadmap. This revision keeps that architecture as the specification of record and **elaborates it into an executable, phase-wise implementation plan**:
+The previous revision of this document (v1.0) described the **target architecture** of two consolidated workspaces — the **Tantra Algo Designer** and the **Tantra Simulator** — and listed a coarse four-phase roadmap. This revision keeps that architecture as the specification of record and **elaborates it into an executable, phase-wise implementation plan**:
 
-- It records the **baseline** (what already ships in `vyapaar-frontend` and `vyapaar`) so no phase re-plans finished work.
+- It records the **baseline** (what already ships in `tantra-frontend` and `tantra`) so no phase re-plans finished work.
 - It corrects one architectural assumption against implementation reality (graph-first, bidirectional sync — see §4.3).
 - It decomposes the remaining work into **ten phases (P0–P9)**, each with objectives, work items pinned to real files/endpoints, dependencies, deliverables, acceptance criteria and verification commands.
 - It adds a **cross-repo workstream table**, a **risk register** and **quality gates** that a phase must clear before the next begins.
@@ -42,7 +42,7 @@ Nothing here is a second source of truth for strategy semantics: the graph docum
 
 ## 2. Executive Summary
 
-Vyapaar is unifying and elevating algorithmic strategy creation, AI co-piloting and institutional simulation by consolidating distinct analytical workflows into two integrated workspaces:
+Tantra is unifying and elevating algorithmic strategy creation, AI co-piloting and institutional simulation by consolidating distinct analytical workflows into two integrated workspaces:
 
 ```
 +-------------------------------------------------------------------------------+
@@ -55,9 +55,9 @@ Vyapaar is unifying and elevating algorithmic strategy creation, AI co-piloting 
                      CONSOLIDATION & UNIFICATION
                                       v
 +-------------------------------------------------------------------------------+
-|                               Vyapaar Ecosystem                                 |
+|                               Tantra Ecosystem                                 |
 +------------------------------------+------------------------------------------+
-|          VYAPAAR ALGO DESIGNER       |             VYAPAAR SIMULATOR              |
+|          TANTRA ALGO DESIGNER       |             TANTRA SIMULATOR              |
 |  * Python Code Editor (Monaco)     |  * Event-driven Backtest Engine          |
 |  * Interactive Strategy Flow Graph |  * Multi-Pane Interactive Chart Preview  |
 |  * AI Strategy Co-Pilot Column     |  * Indicator Visual Sandbox              |
@@ -68,18 +68,18 @@ Vyapaar is unifying and elevating algorithmic strategy creation, AI co-piloting 
 
 Two browser entry points, both already registered in `core/apps.ts`:
 
-1. **Vyapaar Algo Designer** (`algodesigner.html` → `src/apps/algodesigner-app.tsx`) — a four-pane workspace: collapsible **Library drawer**, **Python code editor**, **interactive Strategy Flow canvas**, and an **AI Co-Pilot column**, under one contextual top bar (Save, Library, Verify, Simulate →, Export/Theme).
-2. **Vyapaar Simulator** (`simulator.html` → `src/apps/simulator-app.tsx`) — a full-lifecycle simulation workbench: universe/benchmark/cost controls, multi-pane price + indicator chart with trade markers, and an institutional analytics bench (equity, drawdown, trade journal, monthly heatmap, trust badges).
+1. **Tantra Algo Designer** (`algodesigner.html` → `src/apps/algodesigner-app.tsx`) — a four-pane workspace: collapsible **Library drawer**, **Python code editor**, **interactive Strategy Flow canvas**, and an **AI Co-Pilot column**, under one contextual top bar (Save, Library, Verify, Simulate →, Export/Theme).
+2. **Tantra Simulator** (`simulator.html` → `src/apps/simulator-app.tsx`) — a full-lifecycle simulation workbench: universe/benchmark/cost controls, multi-pane price + indicator chart with trade markers, and an institutional analytics bench (equity, drawdown, trade journal, monthly heatmap, trust badges).
 
 **Delivery model.** Ten phases, ~45 ideal engineering days, sequenced P0 → P9 with P5 (Library) parallelisable against P2–P4 and P8 (analytics) reusable across both apps. Each phase ends in a passing, demonstrable slice; there is no "big bang" cutover except deleting the Simulator placeholder in P9.
 
 ---
 
-## 3. Product Consolidation: QuantDinger → Vyapaar
+## 3. Product Consolidation: QuantDinger → Tantra
 
-Strengths, limitations and Vyapaar's evolution, as established in the v1.0 survey (retained verbatim in intent):
+Strengths, limitations and Tantra's evolution, as established in the v1.0 survey (retained verbatim in intent):
 
-| Dimension | QuantDinger Implementation | Vyapaar Evolution & Target |
+| Dimension | QuantDinger Implementation | Tantra Evolution & Target |
 | :--- | :--- | :--- |
 | **Strategy development** | Standalone Monaco editor in `/#/strategy-ide`; manual tab switching to reach charts/indicators. | **Split-screen dual view**: Python editor and live Strategy Flow always visible together, with the Library one drawer-click away. |
 | **Visual flow** | None — strategies exist only as raw Python. | **Derived, bidirectional flow**: the `StrategyGraphShape` renders as typed nodes/edges; code is generated from it and hand-edits are recognised back (ADR 0029 S2/S3). |
@@ -94,13 +94,13 @@ Strengths, limitations and Vyapaar's evolution, as established in the v1.0 surve
 
 ### 4.1 What already ships
 
-**Algo Designer — canvas track (`vyapaar-frontend/docs/AlgoDesigner-PLAN.md`).**
+**Algo Designer — canvas track (`tantra-frontend/docs/AlgoDesigner-PLAN.md`).**
 
 | Phase | Capability | Status |
 | :--- | :--- | :--- |
 | 1 | Store modernisation: `positions`, selection, `isModified`, revision hashing; freeform canvas (drag/zoom/pan/snap) | Done (`6d1fa5e`) |
-| 2 | Categorised node palette (catalogue-introspected); `BaseVyapaarNode` + 10 specialised node cards | Done |
-| 3 | Port-typed connection validation; `VyapaarInsertableEdge` midpoint splicing | Done |
+| 2 | Categorised node palette (catalogue-introspected); `BaseTantraNode` + 10 specialised node cards | Done |
+| 3 | Port-typed connection validation; `TantraInsertableEdge` midpoint splicing | Done |
 | 4 | Node inspector drawer with dynamic parameter forms; continuous code generation | Done |
 | 5 | In-canvas verify/defect locating; run diagnostics; ADR 0029 trust badges; native SVG equity/drawdown; ops console | Done (`4220b86`) |
 | 6 | JSON export/replace, SHA-256 version snapshots, unit tests | Done |
@@ -109,11 +109,11 @@ Strengths, limitations and Vyapaar's evolution, as established in the v1.0 surve
 
 **Backend contracts already exposed** (generated client, `src/core/api/generated/client.ts`):
 
-- `POST /strategies/verify` → `StrategyManifest` in, `StrategyIr` out (`vyapaar-api/src/verify.rs`).
+- `POST /strategies/verify` → `StrategyManifest` in, `StrategyIr` out (`tantra-api/src/verify.rs`).
 - `POST /backtests`, `GET /backtests/{id}`, `GET /backtests/{id}/journal` → `TradesResponse`.
 - `POST /sweeps`, `GET /sweeps/{id}`.
 - Profile persistence: `putProfileLayoutsByName`, `putProfileModulesById`.
-- Python services: `vyapaar/strategies/graph.py`, `graph_codegen.py`, `graph_recognize.py`, `designer.py` (`verify_graph`, `verify_and_run`, `graph_source_lines`, `diff_graphs`, versions, `trust_badges`), `vyapaar/ai/designer_assistant.py`.
+- Python services: `tantra/strategies/graph.py`, `graph_codegen.py`, `graph_recognize.py`, `designer.py` (`verify_graph`, `verify_and_run`, `graph_source_lines`, `diff_graphs`, versions, `trust_badges`), `tantra/ai/designer_assistant.py`.
 
 **Frontend building blocks already in `package.json`:** `@xyflow/react@12.12`, `openalgo-charts@2.6.4`, `zustand@5`, `lucide-react`, plus the workbench indicator runtime (`core/indicators`, 502 indicators / 16 categories) and `core/data-layer.ts` + `core/bhavcopy-pool.ts` for bars.
 
@@ -220,8 +220,8 @@ This correction is the basis of Phase 3 and is called out here so the rest of th
 
 ### 5.5 Strategy & Indicator Library
 
-- **Source:** `vyapaar-strategies/registry.json` (category + indicator-family tags) surfaced by `GET /strategies`, plus user-saved manifests from the profile API and `localStorage`.
-- **Saved manifest** (compatible with `vyapaar-strategies`):
+- **Source:** `tantra-strategies/registry.json` (category + indicator-family tags) surfaced by `GET /strategies`, plus user-saved manifests from the profile API and `localStorage`.
+- **Saved manifest** (compatible with `tantra-strategies`):
 
 ```typescript
 export interface SavedStrategyManifest {
@@ -266,11 +266,11 @@ export interface SavedStrategyManifest {
 - **Trade markers:** derived by pairing fills from `GET /backtests/{id}/journal` into round trips; tooltip shows execution price, slippage, size, realised PnL, exit reason.
 - **Analytics:** metrics ribbon, equity + underwater, filterable trade journal with CSV export, monthly returns heatmap, and ADR 0029 trust badges (DSR/PBO/holdout/walk-forward) from `ValidationBlock`.
 
-### 5.8 Signals vs. Alerts: QuantDinger Concept Mapping & Vyapaar Architecture
+### 5.8 Signals vs. Alerts: QuantDinger Concept Mapping & Tantra Architecture
 
-A recurring comparison between QuantDinger and Vyapaar is the relationship between **"Signals"** and **"Alerts"**:
+A recurring comparison between QuantDinger and Tantra is the relationship between **"Signals"** and **"Alerts"**:
 
-| Dimension | QuantDinger Concept | Vyapaar Native Architecture |
+| Dimension | QuantDinger Concept | Tantra Native Architecture |
 | :--- | :--- | :--- |
 | **Origin & Definition** | **Signal**: Boolean / discrete event generated when strategy or indicator conditions evaluate to true (e.g., `crosses_above`, `rsi < 30`). | **Strategy Signal**: Emitted by `condition` / `logic` graph nodes via the `signal` boolean port (`PortKind: 'bool'`). Evaluated on bar closes. |
 | **Execution Path** | Directly routes to Order Execution (Trade) or triggers an external notification. | 1. **Order Path**: Wire `signal` port -> `order` node (`Buy` / `Sell`) for automatic position execution.<br>2. **Alert Path**: Publishes to `src/core/alerts/bus.ts` (`AlertSourceFamily: 'strategy'`). |
@@ -282,7 +282,7 @@ In AlgoDesigner, every `ConditionNode` produces a `signal` port. Strategies can 
 ### 5.9 Module layout (current → target)
 
 ```
-vyapaar-frontend/src/
+tantra-frontend/src/
 ├── apps/
 │   ├── algodesigner-app.tsx                 # shell mount; delegates to workspace/
 │   ├── algodesigner/
@@ -320,7 +320,7 @@ vyapaar-frontend/src/
 
 Every phase lists: **Goal**, **Work items** (checkboxed, with file paths and repos), **Dependencies**, **Deliverables**, **Acceptance criteria**, **Verification**.
 
-Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT** = `vyapaar-strategies`, **DOCS** = `vyapaar-docs`.
+Repos are abbreviated: **FE** = `tantra-frontend`, **HB** = `tantra`, **STRAT** = `tantra-strategies`, **DOCS** = `tantra-docs`.
 
 ---
 
@@ -332,7 +332,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 - [ ] Record the baseline: run `npm run typecheck && npm run test` (FE) and `cargo test` + `pytest` (HB); capture coverage of `core/designer/*` and `core/graph/*`.
 - [ ] Freeze fixtures: `defaultGraph()` → `fixtures/graph-sma-cross.json`; a recognised round-trip pair `README-backtest` → graph, for P3 regression.
-- [ ] **FE:** regenerate the client (`npm run codegen` → `make -C ../vyapaar schema client`) and diff against `core/types/generated/domain.ts` (known stale: `cancel_requested`, risk/order codes, response `error`).
+- [ ] **FE:** regenerate the client (`npm run codegen` → `make -C ../tantra schema client`) and diff against `core/types/generated/domain.ts` (known stale: `cancel_requested`, risk/order codes, response `error`).
 - [ ] **HB:** confirm the `POST /strategies/recognize` and assistant-invoke contracts (see §8) — endpoints, request/response shapes and error codes.
 - [ ] **HB:** confirm the run request surface needed by the Simulator: `BacktestRequest` carries `strategy`, `universe`, `start`, `end`, `bar_spec`, `fill_model`, `initial_capital`, `seed`; `ExecutionConfig` carries `fill_model`, `slippage_multiplier`, `cost_model_version`. Document any missing control (e.g. explicit commission) as a contract gap.
 - [ ] **STRAT:** confirm `registry.json` is sufficient to drive the Library (category, tags, description, path) and note any fields the UI needs added.
@@ -344,7 +344,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Acceptance criteria.** Baseline test commands recorded green; `npm run codegen` diff contains no unexplained drift; endpoint contracts agreed in writing.
 
-**Verification.** `npm run typecheck`, `npm run test`, `cd vyapaar && cargo test`, `pytest`.
+**Verification.** `npm run typecheck`, `npm run test`, `cd tantra && cargo test`, `pytest`.
 
 ---
 
@@ -380,7 +380,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Work items**
 
-- [ ] **FE:** add `apps/algodesigner/code-editor-pane.tsx` — lazy Monaco wrapper; Python language, Vyapaar SDK autocomplete (`self.buy`, `self.sell`, `bar.close`, `bar.volume`, `self.indicators.*`), `editor.defineTheme` against Vyapaar theme tokens.
+- [ ] **FE:** add `apps/algodesigner/code-editor-pane.tsx` — lazy Monaco wrapper; Python language, Tantra SDK autocomplete (`self.buy`, `self.sell`, `bar.close`, `bar.volume`, `self.indicators.*`), `editor.defineTheme` against Tantra theme tokens.
 - [ ] **FE:** map verify issues (`VerifyState.issues[].lineno`) to Monaco markers; clear markers on edit.
 - [ ] **FE:** add `apps/algodesigner/params-panel.tsx` — introspects `pythonParams(graph)` (`core/graph/codegen.ts`) into typed controls (number/select/bool) that write back through the existing inspector/params store actions.
 - [ ] **FE:** editor header status strip: `[Ln x, Col y] [AST: clean | pending] [hash: abc1234]`.
@@ -403,7 +403,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Work items**
 
-- [ ] **HB:** add REST `POST /strategies/recognize` wrapping `graph_recognize.recognize()`; response `{ graph | null, spans: [{start_line, end_line, reason}], code_only: boolean }`; 422 with `reason=code_only` is **not** an error — it is a normal result. *(Pending: `vyapaar serve` is Rust-only and has no graph awareness, so this needs a Python-side or Rust-side recogniser; see §12.)*
+- [ ] **HB:** add REST `POST /strategies/recognize` wrapping `graph_recognize.recognize()`; response `{ graph | null, spans: [{start_line, end_line, reason}], code_only: boolean }`; 422 with `reason=code_only` is **not** an error — it is a normal result. *(Pending: `tantra serve` is Rust-only and has no graph awareness, so this needs a Python-side or Rust-side recogniser; see §12.)*
 - [ ] **HB:** expose `graph_source_lines()` for node↔line mapping in the same response (or a sibling endpoint) so both navigation directions use one call. *(Pending; the FE maps ids→lines locally via `diagnostics.nodeLine` meanwhile.)*
 - [x] **FE:** add `core/designer/code-to-graph.ts` — 300 ms debounced call, `AbortController` cancellation, in-flight coalescing. *(Implemented as a client-side recogniser of the generated subset behind a `Recognizer` seam; a remote recogniser drops in unchanged.)*
 - [x] **FE:** store slice: `sync` = `{ status: 'idle'|'pending'|'synced'|'invalid', lastGraph, spans }`; canvas keeps rendering `lastGraph` while `status==='invalid'`. *(Slice name is `sync`; the retained graph is the store's `graph` itself, so nothing flickers.)*
@@ -428,7 +428,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Work items**
 
-- [ ] **HB:** expose the assistant over HTTP (or the existing gateway) — `POST /assistant/propose` wrapping `vyapaar/ai/designer_assistant.py`; request carries graph, generated source, last run summary and the prompt; response is a typed `discussion | candidate | validation_error` payload with findings, decisions and a candidate graph. Route every candidate through the verifier before returning (ADR 0029 S5). *(Pending: no Rust/HTTP surface for the Python assistant yet; see §12.)*
+- [ ] **HB:** expose the assistant over HTTP (or the existing gateway) — `POST /assistant/propose` wrapping `tantra/ai/designer_assistant.py`; request carries graph, generated source, last run summary and the prompt; response is a typed `discussion | candidate | validation_error` payload with findings, decisions and a candidate graph. Route every candidate through the verifier before returning (ADR 0029 S5). *(Pending: no Rust/HTTP surface for the Python assistant yet; see §12.)*
 - [x] **FE:** `apps/algodesigner/ai-chat-column.tsx` — conversation list, prompt composer, chip accelerators (§5.4), streaming/typing indicator.
 - [x] **FE:** replace `proposeAI` in `core/designer/store.ts` with a `client`-backed call; keep the stub behind a feature flag for offline/no-backend runs. *(Feature-detects `client.postAssistantPropose`; falls back to the local keyword engine when absent.)*
 - [x] **FE:** **diff cards** — graph diff chips (`added_nodes`/`modified_nodes`/`removed_nodes`, already computed) plus a **unified code diff** rendered from `generateCode(candidate)` vs `generateCode(current)`. *(LCS diff in `core/designer/code-diff.ts`; the card compares the candidate's stored source against the live code.)*
@@ -453,7 +453,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 **Work items**
 
 - [ ] **STRAT:** extend `registry.json` with any fields the Library needs (indicator families, default universe/params); keep category paths prefix-free per the repo convention. *(Pending — and moot until HB surfaces the registry; see the finding below.)*
-- [x] **HB:** confirm `GET /strategies` returns enough per strategy (name, category, description, tags, path) — extend `CompiledStrategy` if not. **Finding (P5):** it does **not** and should not — `GET /strategies` returns the *session* catalogue of compiled strategies (`CompiledStrategy { id, ir }`), with no name/category/description/tags/path. The `vyapaar-strategies/registry.json` is a separate source that HB does not currently expose. The FE therefore bundles a small template catalogue (`core/designer/strategy-templates.ts`) and treats registry fetch as a tracked HB gap.
+- [x] **HB:** confirm `GET /strategies` returns enough per strategy (name, category, description, tags, path) — extend `CompiledStrategy` if not. **Finding (P5):** it does **not** and should not — `GET /strategies` returns the *session* catalogue of compiled strategies (`CompiledStrategy { id, ir }`), with no name/category/description/tags/path. The `tantra-strategies/registry.json` is a separate source that HB does not currently expose. The FE therefore bundles a small template catalogue (`core/designer/strategy-templates.ts`) and treats registry fetch as a tracked HB gap.
 - [x] **FE:** `core/designer/library-store.ts` — fetch catalogue + user manifests, search/filter state, merge sources (registry, profile API, `localStorage`). *(`mergeLibrary`/`filterLibrary`/`presentCategories` + manifest model; localStorage is the primary store, the profile API is the best-effort cross-device write, and the strategy catalogue is bundled pending the registry route.)*
 - [x] **FE:** `apps/algodesigner/library-drawer.tsx` — search, category filter (All/CTA/Multi-Factor), per-strategy `[Open] [Simulate]`, Custom section, indicator catalogue grouped by family. *(Category filter is driven by the categories actually present — the §5.5 manifest categories — rather than the illustrative All/CTA/Multi-Factor labels.)*
 - [x] **FE:** **Open** loads a strategy: set graph, regenerate code, reset editor/sync state. *(`store.openStrategy` → `setGraph`, which regenerates code and resets the sync slice.)*
@@ -467,7 +467,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Acceptance criteria.** Saving a custom strategy persists it and survives a browser reload; reopening restores code **and** flow; forking a built-in leaves the template unchanged; export round-trips through Replace-from-JSON.
 
-**Verification.** FE: vitest for the library store merge/search and for save → reload → reopen. Manual: profile API write/read against a running `vyapaar serve`.
+**Verification.** FE: vitest for the library store merge/search and for save → reload → reopen. Manual: profile API write/read against a running `tantra serve`.
 
 ---
 
@@ -491,7 +491,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Acceptance criteria.** `Simulate →` opens the Simulator with the Designer strategy loaded and its universe/timeframe pre-filled; a run against NSE history reaches `completed` and populates the store; reload preserves the last run selection.
 
-**Verification.** FE: vitest for the hand-off decode + run-state reducer (mocked client). Manual: Designer → Simulator → Backtest against a running `vyapaar serve`.
+**Verification.** FE: vitest for the hand-off decode + run-state reducer (mocked client). Manual: Designer → Simulator → Backtest against a running `tantra serve`.
 
 ---
 
@@ -550,8 +550,8 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 - [x] **FE:** performance budgets: Flow update < 350 ms after a keystroke; Designer first paint excludes Monaco; Simulator chart renders 1 year of 5 m bars without dropped frames.
 - [x] **FE:** accessibility pass on panes/drawers (focus order, keyboard resize, ARIA on tabs/panes).
 - [x] **FE:** delete `mountPlaceholder('simulator')`; confirm `core/apps.ts` metadata matches the shipped taglines.
-- [x] **HB:** final client regeneration + contract drift check (`cargo test -p vyapaar-ffi-codegen`).
-- [x] **DOCS:** publish this document (nav entry from P0), update `architecture/index.md`, and add a Simulator usage page; sync `vyapaar-frontend/docs/AlgoDesigner-PLAN.md` statuses to shipped.
+- [x] **HB:** final client regeneration + contract drift check (`cargo test -p tantra-ffi-codegen`).
+- [x] **DOCS:** publish this document (nav entry from P0), update `architecture/index.md`, and add a Simulator usage page; sync `tantra-frontend/docs/AlgoDesigner-PLAN.md` statuses to shipped.
 - [ ] **STRAT:** optionally add a benchmark `backtest_result.json` for each Library strategy so the drawer can show baseline metrics. *(Deferred — optional, not actioned in this pass.)*
 
 **Dependencies.** P0–P8.
@@ -560,7 +560,7 @@ Repos are abbreviated: **FE** = `vyapaar-frontend`, **HB** = `vyapaar`, **STRAT*
 
 **Acceptance criteria.** All §10 gates pass; docs build clean; no placeholder route remains.
 
-**Verification.** `npm run typecheck && npm run lint && npm run test` (FE); `cargo test && cargo clippy -- -D warnings && cargo fmt --check` (HB); `cd vyapaar-docs && make build` (DOCS).
+**Verification.** `npm run typecheck && npm run lint && npm run test` (FE); `cargo test && cargo clippy -- -D warnings && cargo fmt --check` (HB); `cd tantra-docs && make build` (DOCS).
 
 ---
 
@@ -613,12 +613,12 @@ gantt
 
 | Repo | Responsibility in this plan | Key artefacts / contracts |
 | :--- | :--- | :--- |
-| `vyapaar-frontend` | All UI: workspace shell, editor, canvas, co-pilot, library, simulator, analytics; stores and tests | `apps/algodesigner/*`, `apps/simulator/*`, `core/designer/*`, `core/graph/*`; consumes the generated client |
-| `vyapaar` | New/changed endpoints; regenerate client; verifier/run/sweeps semantics | **New:** `POST /strategies/recognize` (wraps `graph_recognize.recognize`), assistant invoke (wraps `designer_assistant.py`). **Existing:** `/strategies/verify`, `/backtests*`, `/sweeps*`, profile layout/module routes, `graph_source_lines`, `trust_badges` |
-| `vyapaar-strategies` | Catalogue metadata for the Library; optional baseline metrics | `registry.json` (category + tags + description + path); per-strategy `backtest_result.json` |
-| `vyapaar-docs` | This plan, nav entry, Simulator usage page, status sync | `docs/architecture/algo_designer_and_simulator.md`, `mkdocs.yml`, `architecture/index.md` |
+| `tantra-frontend` | All UI: workspace shell, editor, canvas, co-pilot, library, simulator, analytics; stores and tests | `apps/algodesigner/*`, `apps/simulator/*`, `core/designer/*`, `core/graph/*`; consumes the generated client |
+| `tantra` | New/changed endpoints; regenerate client; verifier/run/sweeps semantics | **New:** `POST /strategies/recognize` (wraps `graph_recognize.recognize`), assistant invoke (wraps `designer_assistant.py`). **Existing:** `/strategies/verify`, `/backtests*`, `/sweeps*`, profile layout/module routes, `graph_source_lines`, `trust_badges` |
+| `tantra-strategies` | Catalogue metadata for the Library; optional baseline metrics | `registry.json` (category + tags + description + path); per-strategy `backtest_result.json` |
+| `tantra-docs` | This plan, nav entry, Simulator usage page, status sync | `docs/architecture/algo_designer_and_simulator.md`, `mkdocs.yml`, `architecture/index.md` |
 
-**Contract-change rule.** Any change to a public `vyapaar` interface (endpoint, generated type, `_vyapaar` binding) must regenerate the frontend client in the same effort; `cargo test -p vyapaar-ffi-codegen` is the drift gate.
+**Contract-change rule.** Any change to a public `tantra` interface (endpoint, generated type, `_tantra` binding) must regenerate the frontend client in the same effort; `cargo test -p tantra-ffi-codegen` is the drift gate.
 
 ### 8.1 Proposed new endpoints (P3/P4 contracts)
 
@@ -667,7 +667,7 @@ The commission/slippage gap was closed in P6 (see §12): both are now versioned 
 | R6 | **Journal is fills, not round trips** — PnL pairing is ambiguous on scale-out. | Medium | Explicit pairing rules + fixture tests covering partial exits (P7); label derived metrics as derived. |
 | R7 | **Chart/strategy parameter divergence** (chart shows different periods than the run). | Medium | Derive overlay parameters from the strategy's graph nodes wherever possible (P7). |
 | R8 | **Scope creep** into live trading from the ops console. | — | Ops console stays as shipped (ADR 0029 S6); this plan only references it. |
-| R9 | **Cross-repo drift** (stale generated client already observed). | High | P0 regeneration + P9 `vyapaar-ffi-codegen` drift gate. |
+| R9 | **Cross-repo drift** (stale generated client already observed). | High | P0 regeneration + P9 `tantra-ffi-codegen` drift gate. |
 | R10 | **Parallel workstreams collide** in `store.ts`. | Medium | Each phase owns a distinct store slice (`layout`, `sync`, `library`, simulator store); land slices behind feature flags where feasible. |
 
 ---
@@ -701,8 +701,8 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 3. **Assistant transport** (P4): dedicated REST route vs the MCP gateway (ADR 0009) — this plan assumes REST for symmetry with `verify`; proposed shape in §8.1. Until then the FE feature-detects `client.postAssistantPropose` and falls back to the local engine.
 4. **Run-parameter coverage** (P6): **resolved for commission/slippage** — `BacktestRequest` now carries `commission_per_fill` and `slippage_bps`, validated by the resolver and applied by the bar-fill venue (§8.2). Margin still has no request field and no P6 control.
 5. **Docs nav:** resolved — the document is listed under Architecture in `mkdocs.yml`.
-6. **Baseline metrics** (P9): whether `vyapaar-strategies` should ship `backtest_result.json` for every catalogue entry to power Library previews. `registry.json` currently carries name/category/path/description/tags only; sufficient for a P5 list, but per-strategy default universe/params would improve previews.
-7. **Which strategies can actually run** (P6 gap): `vyapaar` executes exactly three registered Rust strategies — `buy_and_hold`, `rsi_reversal`, `sma_crossover` — and `StrategyIr` has no interpreter, so a compiled graph runs only if a registered strategy carries its name (otherwise `no_rust_implementation`). Resolved for this plan by aligning one built-in template to `sma_crossover`; the permanent fix (a generic IR interpreter, or a Rust strategy per registered name) is an `vyapaar` decision out of scope for P7/P8.
+6. **Baseline metrics** (P9): whether `tantra-strategies` should ship `backtest_result.json` for every catalogue entry to power Library previews. `registry.json` currently carries name/category/path/description/tags only; sufficient for a P5 list, but per-strategy default universe/params would improve previews.
+7. **Which strategies can actually run** (P6 gap): `tantra` executes exactly three registered Rust strategies — `buy_and_hold`, `rsi_reversal`, `sma_crossover` — and `StrategyIr` has no interpreter, so a compiled graph runs only if a registered strategy carries its name (otherwise `no_rust_implementation`). Resolved for this plan by aligning one built-in template to `sma_crossover`; the permanent fix (a generic IR interpreter, or a Rust strategy per registered name) is an `tantra` decision out of scope for P7/P8.
 
 ---
 
@@ -730,7 +730,7 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 **Phase 2 — Python editor & parameter panel.**
 - Dependencies added: `@monaco-editor/react@^4.7.0`, `monaco-editor@^0.52.2`.
-- `apps/algodesigner/monaco-setup.ts` — bundled Monaco (no CDN), local `editor.worker`, `vyapaar-dark` theme, Python SDK completion provider.
+- `apps/algodesigner/monaco-setup.ts` — bundled Monaco (no CDN), local `editor.worker`, `tantra-dark` theme, Python SDK completion provider.
 - `apps/algodesigner/monaco-python-editor.tsx` — Monaco wrapper (markers + cursor reporting).
 - `apps/algodesigner/code-editor-pane.tsx` — lazy Monaco with `React.lazy` + error boundary, falling back to the `CodePane` textarea; editor status strip (`Ln/Col`, sync status, issue count, hash).
 - `apps/algodesigner/params-panel.tsx` + `core/designer/params.ts` (+ tests) — graph-projected parameter tuner using catalogue metadata and `parameterLayout` for the generated Python parameter name.
@@ -743,7 +743,7 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 ### 2026-10-17 — Phases 3 & 4 (FE)
 
-**Backend feasibility finding.** `vyapaar serve` is Rust (`crates/vyapaar-api-rest`) with no graph awareness — `StrategyGraph`, `graph_recognize` and `designer_assistant` are Python-only, and `POST /strategies/verify` compiles a `StrategyManifest` (Rust), not Python source. There is therefore no cheap path to a Rust `POST /strategies/recognize` or `POST /assistant/propose`: each needs either a Python HTTP surface or a Rust reimplementation. Both endpoint bullets stay open and are the gating HB work for P3/P4; the FE ships the full pipeline behind seams so the endpoints are drop-in.
+**Backend feasibility finding.** `tantra serve` is Rust (`crates/tantra-api-rest`) with no graph awareness — `StrategyGraph`, `graph_recognize` and `designer_assistant` are Python-only, and `POST /strategies/verify` compiles a `StrategyManifest` (Rust), not Python source. There is therefore no cheap path to a Rust `POST /strategies/recognize` or `POST /assistant/propose`: each needs either a Python HTTP surface or a Rust reimplementation. Both endpoint bullets stay open and are the gating HB work for P3/P4; the FE ships the full pipeline behind seams so the endpoints are drop-in.
 
 **Phase 3 — bidirectional code ↔ flow sync (FE).**
 - `core/designer/code-to-graph.ts` — client-side recogniser of the generated subset (marker + `GRAPH = (...)` builder chain), a minimal Python-literal parser, `findUnbalancedLine`, and `createSyncScheduler` (300 ms debounce, `AbortController` cancellation, in-flight coalescing, unchanged-source skip).
@@ -769,7 +769,7 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 ### 2026-10-17 — Phase 5 (FE)
 
-**Finding (registry vs `GET /strategies`).** `GET /strategies` returns the *session* catalogue of compiled strategies (`CompiledStrategy { id, ir }`) — no name/category/description/tags/path — so it is not the `vyapaar-strategies` registry the plan assumed. HB does not expose `registry.json`, so the FE bundles a small template catalogue and the registry fetch is a tracked HB gap.
+**Finding (registry vs `GET /strategies`).** `GET /strategies` returns the *session* catalogue of compiled strategies (`CompiledStrategy { id, ir }`) — no name/category/description/tags/path — so it is not the `tantra-strategies` registry the plan assumed. HB does not expose `registry.json`, so the FE bundles a small template catalogue and the registry fetch is a tracked HB gap.
 
 **Phase 5 — strategy & indicator library, save & versioning (FE).**
 - `core/designer/library-store.ts` — the §5.5 `SavedStrategyManifest`, `StrategyTemplate`, `LibraryEntry`, and pure helpers: `slugify`, `uniqueId`, `toSavedManifest` (id/`default_universe`/`default_params`), `upsertSaved`/`removeSaved`, `mergeLibrary`/`filterLibrary`/`presentCategories`, plus `loadSaved`/`persistSaved` over `localStorage` (best-effort, mirroring the layout slice).
@@ -788,13 +788,13 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 ### 2026-10-17 — Phase 6 (FE)
 
-**Contract finding (run surface).** The plan's `POST /strategies/{id}/backtests` + `GET /tasks/{task_id}` do not exist; the shipped contract is `POST /backtests` (`BacktestRequest { strategy, universe, start?, end?, bar_spec?, fill_model?, initial_capital?, seed? }`) returning a `run_id` + `RunStatus`, with `GET /backtests/{id}` for polling and `GET /backtests/{id}/journal` for fills. The resolver (`crates/vyapaar-api/src/run_resolve.rs`) *requires* `strategy`, `universe`, `start`, `end` and a non-zero `seed`; `bar_spec` is `<n><s|m|h|d|w|mo>`; `fill_model ∈ {bar_fill, bar_fill_through, l2, none}`; and the struct is `deny_unknown_fields`. The FE was implemented against this real contract (as with P3/P4), not the aspirational one.
+**Contract finding (run surface).** The plan's `POST /strategies/{id}/backtests` + `GET /tasks/{task_id}` do not exist; the shipped contract is `POST /backtests` (`BacktestRequest { strategy, universe, start?, end?, bar_spec?, fill_model?, initial_capital?, seed? }`) returning a `run_id` + `RunStatus`, with `GET /backtests/{id}` for polling and `GET /backtests/{id}/journal` for fills. The resolver (`crates/tantra-api/src/run_resolve.rs`) *requires* `strategy`, `universe`, `start`, `end` and a non-zero `seed`; `bar_spec` is `<n><s|m|h|d|w|mo>`; `fill_model ∈ {bar_fill, bar_fill_through, l2, none}`; and the struct is `deny_unknown_fields`. The FE was implemented against this real contract (as with P3/P4), not the aspirational one.
 
 **Phase 6 — Simulator shell, controls & Designer hand-off (FE).**
 - `core/simulator/controls.ts` — `PERIOD_PRESETS`, preset date maths (`presetRange`/`minusMonths` with day clamping), `controlIssues`, and `toBacktestRequest` (panel → `BacktestRequest`, pinned to the resolver's required fields). Commission/slippage are returned as `notModelled`, never fabricated (R5, §8.2).
 - `core/simulator/run.ts` — `foldStatus`/`applyRunResponse`/`applyRunError` reducers and `runBacktest`, a poll-until-terminal loop over injected `RunClient` + `sleep` + `maxPolls` (no real timers in tests; never hangs on `running`).
 - `core/simulator/select.ts` — `resolveSelection` (hand-off → Library slug → first saved → template, each gated by `graphIsRunnable`), plus `controlsForGraph` pre-fill and `universeString` (named universe ▸ explicit subscriptions ▸ panel symbol).
-- `core/simulator/persistence.ts` — last-selection stash (`vyapaar.simulator.selection`) so a reload restores the selection (acceptance criterion).
+- `core/simulator/persistence.ts` — last-selection stash (`tantra.simulator.selection`) so a reload restores the selection (acceptance criterion).
 - `apps/simulator/store/simulator-store.ts` — `createSimulatorStore()` factory (isolated tests) + `useSimulatorStore` singleton; `hydrate`/`setControls`/`select`/`plan`/`execute`/`resetRun`.
 - `apps/simulator/components/simulation-controls.tsx` — symbol via the shared Workbench `SymbolSearchModal`, benchmark, period presets, timeframe, capital, commission/slippage (with the not-sent note), fill model, `[Run Backtest]`, `[Parameter Sweeps]` (engine hand-off deferred to P8).
 - `apps/simulator/components/results-panel.tsx` — status pill, `BacktestMetrics` grid, request-payload preview + R5 note, progress log, idle/failed states.
@@ -814,9 +814,9 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 **Gap A — commission & slippage as versioned request fields (risk R5, §8.2).** The two knobs the P6 panel could not send are now wire fields rather than UI-side defaults:
 
-- **`vyapaar-api`** — `BacktestRequest` gained `commission_per_fill?` and `slippage_bps?`; `BacktestRequest::resolve` validates them (finite and inside `0..=MAX_COMMISSION_PER_FILL` / `0..=MAX_SLIPPAGE_BPS`) and `ResolvedBacktest` carries them, `skip_serializing_if`-zero so a manifest written before the field still round-trips (ADR 0012 rule 1). `MAX_COMMISSION_PER_FILL` mirrors `vyapaar_sim::bar_fill::MAX_FLAT_COST` and is pinned to it by a test in `vyapaar-api-rest`, exactly as `FILL_MODELS` already is.
-- **`vyapaar-api-rest`** — the bar-fill venue is built from `BarFillEngine::with_costs(FillCosts::new(commission_per_fill, 0.0))` and `.with_slippage(SlippageModel::Static { bps, kind: Adverse })` (both only when non-zero, so a zero-cost run stays byte-identical); the two knobs are folded into the run cache key so a changed commission or slippage can never reuse a cached result; and `assumptions()` now reports `applied: { commission_per_fill, slippage_bps }` while dropping `transaction_costs`/`slippage` from `not_modelled` **only** when they are actually modelled (`taxes_and_levies` is always listed).
-- **Regenerated** in the same effort: `schema/domain`, `schema/openapi`, `python/src/vyapaar/wire/generated`, plus the FE `domain.ts` (the typed client is unchanged — it references `BacktestRequest` by name).
+- **`tantra-api`** — `BacktestRequest` gained `commission_per_fill?` and `slippage_bps?`; `BacktestRequest::resolve` validates them (finite and inside `0..=MAX_COMMISSION_PER_FILL` / `0..=MAX_SLIPPAGE_BPS`) and `ResolvedBacktest` carries them, `skip_serializing_if`-zero so a manifest written before the field still round-trips (ADR 0012 rule 1). `MAX_COMMISSION_PER_FILL` mirrors `tantra_sim::bar_fill::MAX_FLAT_COST` and is pinned to it by a test in `tantra-api-rest`, exactly as `FILL_MODELS` already is.
+- **`tantra-api-rest`** — the bar-fill venue is built from `BarFillEngine::with_costs(FillCosts::new(commission_per_fill, 0.0))` and `.with_slippage(SlippageModel::Static { bps, kind: Adverse })` (both only when non-zero, so a zero-cost run stays byte-identical); the two knobs are folded into the run cache key so a changed commission or slippage can never reuse a cached result; and `assumptions()` now reports `applied: { commission_per_fill, slippage_bps }` while dropping `transaction_costs`/`slippage` from `not_modelled` **only** when they are actually modelled (`taxes_and_levies` is always listed).
+- **Regenerated** in the same effort: `schema/domain`, `schema/openapi`, `python/src/tantra/wire/generated`, plus the FE `domain.ts` (the typed client is unchanged — it references `BacktestRequest` by name).
 - **FE** — `controls.ts` transmits both fields, validates them against the resolver's bounds, and `notModelled` is empty; the control is labelled *Commission / fill* so the UI wording matches the wire semantics exactly.
 - **Tests** — resolver accept/reject cases, the ceiling pin (`max_commission_matches_the_simulator_ceiling`), and an executor test asserting costs lower net PnL and show up under `applied` (with both still listed as unmodelled at zero).
 
@@ -824,9 +824,9 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 - `core/designer/manifest.ts` — `toManifest(graph)` extracted from `store.ts`, so the verifier, `runNow` and the Simulator send byte-identical manifests and `source_hash`.
 - `core/designer/compile.ts` — `compileStrategy()` registers the graph and returns the id to run with; it is **feature-detected** (a client without `postStrategies` runs by graph name, as before), never throws, and a rejected compile is reported. Both `runNow` and `simulator-store.execute` now compile first and submit the compiled id; a compile failure surfaces as the run error and blocks the submit.
-- **Architectural limit, unchanged:** `vyapaar` executes exactly three strategies (`buy_and_hold`, `rsi_reversal`, `sma_crossover`, `registry.rs`) and `StrategyIr` is metadata only — there is no interpreter. Any other graph name is refused with `no_rust_implementation`. To make the happy path reach `completed`, the first built-in template is aligned to the registered strategy: id and name `sma_crossover`, graph `SMA 3 / SMA 8` on `TCS.NSE` daily (10 shares) — and because it is templates[0], it is also the Simulator's default selection. The other three templates, and any hand-authored graph, run only once `vyapaar` grows a registered strategy of that name or a generic IR interpreter — recorded as open question 7.
+- **Architectural limit, unchanged:** `tantra` executes exactly three strategies (`buy_and_hold`, `rsi_reversal`, `sma_crossover`, `registry.rs`) and `StrategyIr` is metadata only — there is no interpreter. Any other graph name is refused with `no_rust_implementation`. To make the happy path reach `completed`, the first built-in template is aligned to the registered strategy: id and name `sma_crossover`, graph `SMA 3 / SMA 8` on `TCS.NSE` daily (10 shares) — and because it is templates[0], it is also the Simulator's default selection. The other three templates, and any hand-authored graph, run only once `tantra` grows a registered strategy of that name or a generic IR interpreter — recorded as open question 7.
 
-**Verification run:** `npm run test` **220/220** · `npm run lint` clean · `npm run typecheck` reports no error in any file of this change (a concurrent edit to `apps/algodesigner/canvas.tsx` outside this change was in flight at verification time and is untouched here) · `cargo test -p vyapaar-api -p vyapaar-api-rest` green · `cargo clippy -p vyapaar-api -p vyapaar-api-rest --all-targets -- -D warnings` clean · `cargo fmt --all` applied · `make codegen` regenerating schema/OpenAPI/Python/MCP/docs/FE-types without hand edits.
+**Verification run:** `npm run test` **220/220** · `npm run lint` clean · `npm run typecheck` reports no error in any file of this change (a concurrent edit to `apps/algodesigner/canvas.tsx` outside this change was in flight at verification time and is untouched here) · `cargo test -p tantra-api -p tantra-api-rest` green · `cargo clippy -p tantra-api -p tantra-api-rest --all-targets -- -D warnings` clean · `cargo fmt --all` applied · `make codegen` regenerating schema/OpenAPI/Python/MCP/docs/FE-types without hand edits.
 
 ---
 
@@ -882,7 +882,7 @@ A phase is complete only when its own acceptance criteria and the applicable gat
 
 ### 2026-10-17 — Phase 8 (FE) — deferred dist rebuild closed
 
-The in-flight simulator workbench (the replay engine / multi-chart / portfolio sandbox feature flagged above) landed as `vyapaar-frontend` `4180d6d` and the working tree went clean, so the deferred Phase 8 `dist/` rebuild is now done: `npm run build` (`tsc && vite build`) at `2fd749b` from the clean tree, with the full gate re-run on HEAD — `npm run typecheck` clean · `npm run lint` clean · `npm run test` **337/337**. `dist/` now matches HEAD; the simulator entry is ~76 kB (gzip ~22.7 kB), up from the P7 bundle as the analytics surface, the run-log SSE fold and the workbench join it.
+The in-flight simulator workbench (the replay engine / multi-chart / portfolio sandbox feature flagged above) landed as `tantra-frontend` `4180d6d` and the working tree went clean, so the deferred Phase 8 `dist/` rebuild is now done: `npm run build` (`tsc && vite build`) at `2fd749b` from the clean tree, with the full gate re-run on HEAD — `npm run typecheck` clean · `npm run lint` clean · `npm run test` **337/337**. `dist/` now matches HEAD; the simulator entry is ~76 kB (gzip ~22.7 kB), up from the P7 bundle as the analytics surface, the run-log SSE fold and the workbench join it.
 
 **Still deferred (HB contract):** the typed `SweepReportResponse` (apply-optimal), a periodic return series (`sortino`/mark-to-market equity) and a journal `signal_price`/slippage field.
 
@@ -901,7 +901,7 @@ The in-flight simulator workbench (the replay engine / multi-chart / portfolio s
   - **Simulator handles ~27,000 5-minute bars:** `core/simulator/perf-budget.test.ts`. **Honesty note (a past review flagged overstated performance claims as a serious issue in this plan, so this is stated plainly):** "dropped frames" is a real-browser compositor/paint concept this node-environment suite cannot measure. The test instead times the real hot data-processing path (`chart-data.ts` normalise/resample, `trade-pairing.ts` pairing/markers, `chart-series.ts` spec building, `analytics.ts` derivation) against a synthetic ~27,000-bar fixture and asserts a generous < 500 ms wall-clock budget. This is a **CPU-budget proxy**, not evidence about actual browser frame drops.
 - Accessibility pass on `apps/algodesigner/split-pane.tsx`, `workspace-layout.tsx`, `panels.tsx` and `apps/simulator/components/results-panel.tsx`: the `Splitter` already supported pointer **and** keyboard resize (`role="separator"`, arrow-key nudge) and the Library/Co-Pilot pane toggles already exposed `aria-pressed` — left untouched. Added what was actually missing: `role="tablist"/"tab"/"tabpanel"` with `aria-selected`/`aria-controls` on the Designer's bottom-drawer tab strip and the Simulator results panel's tab strip; `aria-pressed` on `Pane`'s focus-mode toggle and the Ops kill switch (both toggle buttons that previously communicated state only through colour/text).
 - Cutover housekeeping confirmed, no code change: `mountPlaceholder('simulator')` has no call sites (only `researcher-app.tsx`, a different app, still uses the placeholder pattern); `core/apps.ts`'s `algodesigner`/`simulator` taglines ("Visual Flow & Python Strategy Composer" / "Event-driven Tick Backtester & Execution Engine") match the shipped apps.
-- `vyapaar-frontend/docs/AlgoDesigner-PLAN.md` synced: its own Phase 7 (AI Strategy Assistant) and Phase 8 (Sweeps/Walk-Forward) headers moved `[In Progress]` → `[Completed]` with a one-line "shipped" note each (that plan's numbering is independent of this document's P0–P9).
+- `tantra-frontend/docs/AlgoDesigner-PLAN.md` synced: its own Phase 7 (AI Strategy Assistant) and Phase 8 (Sweeps/Walk-Forward) headers moved `[In Progress]` → `[Completed]` with a one-line "shipped" note each (that plan's numbering is independent of this document's P0–P9).
 - Tests: `e2e-designer-simulator.test.ts` (1), `e2e-library.test.ts` (1), `code-to-graph.test.ts` (+1 perf budget), `perf-budget.test.ts` (1).
 
 **Verification run:** `npm run typecheck` clean · `npm run test` **341/341** · `npm run lint` clean · `npm run build` OK (re-verified the Monaco/entry chunk split above; `dist/` rebuilt and committed alongside the a11y source changes that caused it).
@@ -918,9 +918,9 @@ The in-flight simulator workbench (the replay engine / multi-chart / portfolio s
 
 ### 2026-10-17 — Phase 9 (HB + DOCS)
 
-**HB — final client regeneration + contract drift check.** `cargo test -p vyapaar-ffi-codegen` → **131/131 passed** (122 unit + 5 committed-artifact + 2 golden-vector + 2 renderer-golden tests). Regenerating via `make schema client` (the same target `vyapaar-frontend`'s `npm run codegen` calls) and `make check-codegen-ci` produced **zero diff** in either repo — not in `vyapaar`'s own schema/OpenAPI/pyi artifacts, nor in the frontend's generated `domain.ts`/`client.ts`. The P0–P8 contract between `vyapaar` and `vyapaar-frontend` is confirmed in sync; nothing to commit.
+**HB — final client regeneration + contract drift check.** `cargo test -p tantra-ffi-codegen` → **131/131 passed** (122 unit + 5 committed-artifact + 2 golden-vector + 2 renderer-golden tests). Regenerating via `make schema client` (the same target `tantra-frontend`'s `npm run codegen` calls) and `make check-codegen-ci` produced **zero diff** in either repo — not in `tantra`'s own schema/OpenAPI/pyi artifacts, nor in the frontend's generated `domain.ts`/`client.ts`. The P0–P8 contract between `tantra` and `tantra-frontend` is confirmed in sync; nothing to commit.
 
-**DOCS — publish, nav, usage page, plan sync.** This document was already in `mkdocs.yml`'s Architecture nav (P0); added `architecture/simulator_usage.md` — a user-facing walkthrough (loading a strategy, configuring a run, reading the ribbon/equity/journal/heatmap/badges/log, the sweeps hand-off, and the same honestly-labelled limitations this plan documents — Sortino `n/a`, blank slippage column, navigation-only sweeps, no pending-order markers) — and linked both the plan and the new page from `architecture/index.md`. `vyapaar-frontend/docs/AlgoDesigner-PLAN.md`'s own Phase 7/8 headers were synced to `[Completed]` (done by the FE agent in the entry above). `make build-mkdocs` (`mkdocs build --strict`) is clean after fixing one bad anchor (`#9-risks-and-mitigations` → the real slug `#9-risks-mitigations`) — no broken links/nav.
+**DOCS — publish, nav, usage page, plan sync.** This document was already in `mkdocs.yml`'s Architecture nav (P0); added `architecture/simulator_usage.md` — a user-facing walkthrough (loading a strategy, configuring a run, reading the ribbon/equity/journal/heatmap/badges/log, the sweeps hand-off, and the same honestly-labelled limitations this plan documents — Sortino `n/a`, blank slippage column, navigation-only sweeps, no pending-order markers) — and linked both the plan and the new page from `architecture/index.md`. `tantra-frontend/docs/AlgoDesigner-PLAN.md`'s own Phase 7/8 headers were synced to `[Completed]` (done by the FE agent in the entry above). `make build-mkdocs` (`mkdocs build --strict`) is clean after fixing one bad anchor (`#9-risks-and-mitigations` → the real slug `#9-risks-mitigations`) — no broken links/nav.
 
 **STRAT.** The optional per-strategy `backtest_result.json` baseline-metrics item (§6 Phase 9) was deliberately deferred — it's marked optional in the plan and out of scope for this pass.
 

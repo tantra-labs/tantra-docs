@@ -6,24 +6,24 @@ and strategies, adapted to Rust's crate system.
 
 ## The Twelve Crates
 
-    vyapaar-marketssages              [Layer 1, foundation]
+    tantra-marketssages              [Layer 1, foundation]
       │
-      ├── vyapaar-core        [Layer 1, domain]
+      ├── tantra-core        [Layer 1, domain]
       │     │
-      │     ├── vyapaar-strategies      [Layer 1, engine]
+      │     ├── tantra-strategies      [Layer 1, engine]
       │     │     │
-      │     │     ├── vyapaar-strategies
+      │     │     ├── tantra-strategies
       │     │     │     │
-      │     │     │     └── vyapaar-strategies
+      │     │     │     └── tantra-strategies
       │     │     │
       │     │     └── (used by testing)
       │     │
-      │     ├── vyapaar-strategies
-      │     ├── vyapaar-strategies
-      │     ├── vyapaar-data
-      │     ├── vyapaar-data
+      │     ├── tantra-strategies
+      │     ├── tantra-strategies
+      │     ├── tantra-data
+      │     ├── tantra-data
       │     │
-      │     └── vyapaar-market
+      │     └── tantra-market
 
 ## Allowed Dependencies
 
@@ -31,25 +31,25 @@ This table is machine-enforced. Any dependency not listed here fails CI.
 
 | Crate | May depend on |
 |---|---|
-| `vyapaar-marketssages` | *(nothing)* |
-| `vyapaar-core` | `vyapaar-marketssages` |
-| `vyapaar-strategies` | `vyapaar-marketssages`, `vyapaar-core` |
-| `vyapaar-strategies` | `vyapaar-strategies` |
-| `vyapaar-strategies` | `vyapaar-marketssages`, `vyapaar-core` |
-| `vyapaar-strategies` | `vyapaar-strategies`, `vyapaar-strategies` |
-| `vyapaar-strategies` | `vyapaar-marketssages`, `vyapaar-core` |
-| `vyapaar-data` | `vyapaar-marketssages`, `vyapaar-core` |
-| `vyapaar-data` | `vyapaar-marketssages`, `vyapaar-core` |
-| `vyapaar-market` | `vyapaar-core` |
+| `tantra-marketssages` | *(nothing)* |
+| `tantra-core` | `tantra-marketssages` |
+| `tantra-strategies` | `tantra-marketssages`, `tantra-core` |
+| `tantra-strategies` | `tantra-strategies` |
+| `tantra-strategies` | `tantra-marketssages`, `tantra-core` |
+| `tantra-strategies` | `tantra-strategies`, `tantra-strategies` |
+| `tantra-strategies` | `tantra-marketssages`, `tantra-core` |
+| `tantra-data` | `tantra-marketssages`, `tantra-core` |
+| `tantra-data` | `tantra-marketssages`, `tantra-core` |
+| `tantra-market` | `tantra-core` |
 
-Note that `vyapaar-market` depends **only** on `vyapaar-core`. It does not
-depend on `vyapaar-strategies`, which means the market module can be tested
+Note that `tantra-market` depends **only** on `tantra-core`. It does not
+depend on `tantra-strategies`, which means the market module can be tested
 in complete isolation from the engine. This is deliberate: NSE calendar
 logic should have zero coupling to event dispatch.
 
 ## The Foundation Crates
 
-### `vyapaar-marketssages`
+### `tantra-marketssages`
 
 Defines the vocabulary of the engine. Every message that flows through the
 system is defined here.
@@ -70,10 +70,10 @@ system is defined here.
     ├── events/
     └── serialization/      — Arrow schemas, Parquet encoding
 
-**Rule:** `vyapaar-marketssages` has no business logic. It defines types and their
+**Rule:** `tantra-marketssages` has no business logic. It defines types and their
 serde/Arrow representations. Nothing else.
 
-### `vyapaar-core`
+### `tantra-core`
 
 Trading domain models. `Instrument`, `Position`, `Portfolio`, `Order`,
 `Trade`. These are entities with identity — you can look them up by ID.
@@ -92,12 +92,12 @@ Trading domain models. `Instrument`, `Position`, `Portfolio`, `Order`,
     ├── trade/
     └── identifiers/        — Symbol, ISIN, Exchange (Nse, Bse)
 
-**Rule:** `vyapaar-core` never imports from `vyapaar-strategies`. An `Instrument`
+**Rule:** `tantra-core` never imports from `tantra-strategies`. An `Instrument`
 does not know how to be traded; it only knows what it is.
 
 ## The Engine Crate
 
-### `vyapaar-strategies`
+### `tantra-strategies`
 
 The event kernel, connector traits, subscription manager, cache, and risk
 engine. This is where the determinism guarantee lives.
@@ -122,12 +122,12 @@ engine. This is where the determinism guarantee lives.
     └── risk/
         └── position_merger.rs
 
-**Rule:** `vyapaar-strategies` defines the interfaces that adapters implement. It
+**Rule:** `tantra-strategies` defines the interfaces that adapters implement. It
 never mentions a specific broker.
 
 ## The Market Module
 
-### `vyapaar-market`
+### `tantra-market`
 
 Market contracts, market packs, calendars, settlement, and costs.
 
@@ -144,22 +144,22 @@ engine; it calls `is_trading_day(date)`.
 
 ## The Strategy Stack
 
-### `vyapaar-strategies`
+### `tantra-strategies`
 
 The `Strategy` trait and the machinery around it — position management,
 P&L calculation, order generation.
 
-### `vyapaar-strategies`
+### `tantra-strategies`
 
 Pure functions over bar streams. Each indicator is independent and testable
 without the engine.
 
-### `vyapaar-strategies`
+### `tantra-strategies`
 
 The three-tier backtesting pipeline, latency models, cost models, and
 concurrent runners.
 
-### `vyapaar-strategies`
+### `tantra-strategies`
 
 Monte Carlo, walk-forward, cointegration, regime detection, tearsheets.
 These operate on backtest results, not on the engine.
@@ -169,12 +169,12 @@ These operate on backtest results, not on the engine.
 Every dependency edge was chosen to answer one question: **if this crate
 changed, what else would have to change?**
 
-- `vyapaar-marketssages` changes only when the vocabulary of the engine changes.
+- `tantra-marketssages` changes only when the vocabulary of the engine changes.
   This is rare.
-- `vyapaar-core` changes when the domain model changes. Less rare.
-- `vyapaar-market` changes whenever market rules change. This happens often,
+- `tantra-core` changes when the domain model changes. Less rare.
+- `tantra-market` changes whenever market rules change. This happens often,
   and the isolation means it does not ripple into the engine.
-- `vyapaar-strategies` changes when the event model changes. Very rare.
+- `tantra-strategies` changes when the event model changes. Very rare.
 - The strategy and testing crates change constantly during research.
 
 The hierarchy means that the crates that change most often are at the
@@ -185,7 +185,7 @@ requires a change to the core.
 ## Enforcing the Hierarchy
 
 `scripts/dependency_graph.py` reads every crate's `Cargo.toml`, extracts
-the `vyapaar-*` dependencies, and verifies they match the allowed table.
+the `tantra-*` dependencies, and verifies they match the allowed table.
 It runs in CI on every pull request.
 
 To check locally:

@@ -2,7 +2,7 @@
 
 The Indian market calendar operates with specialized market phases, pre-open auctions, special sessions (Muhurat trading), segment-specific closures, and settlement holidays that differ from exchange trading holidays.
 
-`vyapaar-market` (and Python `vyapaar.markets.india.calendar`) models all Indian exchange dynamics with microsecond-level session validation.
+`tantra-market` (and Python `tantra.markets.india.calendar`) models all Indian exchange dynamics with microsecond-level session validation.
 
 *Authoritative calendar source: National Stock Exchange of India (NSE) & Bombay Stock Exchange (BSE).*
 
@@ -52,17 +52,17 @@ NSE and BSE observe **15 full trading holidays** for equities and derivatives in
 ## 3. Muhurat Trading & Settlement Holidays
 
 ### Muhurat Trading Session
-Muhurat trading is a special one-hour auspicious trading session conducted during Diwali Laxmi Pujan (typically falling on a Sunday evening, e.g., 8 November 2026, 18:15–19:15 IST). `vyapaar-market` treats this as `Session::MuhuratTrading` with tailored risk limits.
+Muhurat trading is a special one-hour auspicious trading session conducted during Diwali Laxmi Pujan (typically falling on a Sunday evening, e.g., 8 November 2026, 18:15–19:15 IST). `tantra-market` treats this as `Session::MuhuratTrading` with tailored risk limits.
 
 ### Settlement Holidays vs. Trading Holidays
 Settlement holidays are dates when clearing corporations do not process fund or security transfers even if trading is open. On settlement holidays (e.g., Annual Bank Closing on 1 April), intraday positions function normally while T+1 funds settlement is postponed by one business day.
 
 ---
 
-## 4. Rust Engine API (`vyapaar-market`)
+## 4. Rust Engine API (`tantra-market`)
 
 ```rust
-use vyapaar_market::calendar::{MarketCalendar, NseCalendar, Session};
+use tantra_market::calendar::{MarketCalendar, NseCalendar, Session};
 use chrono::{NaiveDate, DateTime, Utc};
 
 let cal = NseCalendar::new(2026);
@@ -81,7 +81,7 @@ let next_day = cal.next_trading_day(NaiveDate::from_ymd_opt(2026, 1, 23).unwrap(
 ## 5. Python Strategy Integration
 
 ```python
-from vyapaar.markets.india.calendar import NseTradingCalendar
+from tantra.markets.india.calendar import NseTradingCalendar
 from datetime import date
 
 cal = NseTradingCalendar(year=2026)

@@ -2,7 +2,7 @@
 
 Trading costs in Indian markets represent a critical performance factor in quantitative strategy development. A delivery equity round-trip costs approximately **0.14% per side** once Securities Transaction Tax (STT), stamp duty, exchange transaction fees, SEBI turnover fees, GST, and brokerage are accounted for. At that level, a strategy trading frequently requires a significant gross alpha edge just to break even after statutory frictions.
 
-`vyapaar-market` (and Python `vyapaar.markets.india.costs`) models every statutory and exchange cost component separately so that strategy sensitivity and tax drag can be measured with microsecond determinism.
+`tantra-market` (and Python `tantra.markets.india.costs`) models every statutory and exchange cost component separately so that strategy sensitivity and tax drag can be measured with microsecond determinism.
 
 *Last verified: Rates reflect the Finance Act 2026 statutory updates, effective 1 April 2026.*
 
@@ -61,12 +61,12 @@ GST is **never** applied to STT or Stamp Duty.
 
 ---
 
-## 4. Rust Engine API (`vyapaar-market`)
+## 4. Rust Engine API (`tantra-market`)
 
-`vyapaar-market` separates *rates* configuration from deterministic *application*:
+`tantra-market` separates *rates* configuration from deterministic *application*:
 
 ```rust
-use vyapaar_market::{CostModel, SttRates, Segment, Side};
+use tantra_market::{CostModel, SttRates, Segment, Side};
 use rust_decimal_macros::dec;
 
 // 1. Initialize statutory STT rates (in basis points)
@@ -100,13 +100,13 @@ println!("Total transaction fees: ₹{}", breakdown.total());
 
 ---
 
-## 5. Python Statutory Costs (`vyapaar`)
+## 5. Python Statutory Costs (`tantra`)
 
 In Python backtests, statutory costs are calculated using the built-in NSE cost model:
 
 ```python
-from vyapaar.markets.india.costs import nse_equity_delivery_fill_cost
-from vyapaar.domain.order import OrderSide
+from tantra.markets.india.costs import nse_equity_delivery_fill_cost
+from tantra.domain.order import OrderSide
 
 cost = nse_equity_delivery_fill_cost(OrderSide.BUY, quantity=100.0, price=2500.0)
 print(f"STT: ₹{cost.stt:.2f}, Stamp Duty: ₹{cost.stamp_duty:.2f}, GST: ₹{cost.gst:.2f}")
@@ -116,10 +116,10 @@ print(f"STT: ₹{cost.stt:.2f}, Stamp Duty: ₹{cost.stamp_duty:.2f}, GST: ₹{c
 
 ## 6. Cost Sensitivity Analysis
 
-Because friction can turn a backtest with nominal edge into a losing strategy, Vyapaar supports parameter sweep sensitivity analysis:
+Because friction can turn a backtest with nominal edge into a losing strategy, Tantra supports parameter sweep sensitivity analysis:
 
 ```python
-from vyapaar.backtest import cost_sensitivity
+from tantra.backtest import cost_sensitivity
 
 sweep = cost_sensitivity(
     strategy=NiftyMomentumStrategy(),

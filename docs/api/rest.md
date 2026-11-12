@@ -1,11 +1,11 @@
-# REST Read API and `vyapaar serve`
+# REST Read API and `tantra serve`
 
-`vyapaar serve` exposes a full HTTP/WebSocket API. It boots `vyapaar-runtime-api-rest` as a standalone server over a directory of Parquet bar files plus optional profile, portfolio, journal, and token stores.
+`tantra serve` exposes a full HTTP/WebSocket API. It boots `tantra-runtime-api-rest` as a standalone server over a directory of Parquet bar files plus optional profile, portfolio, journal, and token stores.
 
 ```bash
-vyapaar serve --data-dir ./bars                      # 127.0.0.1:8000
-vyapaar serve --data-dir ./bars --addr 127.0.0.1:0   # pick a free port
-vyapaar serve --data-dir ./bars --profiles-dir ./profiles --portfolios-dir ./portfolios \
+tantra serve --data-dir ./bars                      # 127.0.0.1:8000
+tantra serve --data-dir ./bars --addr 127.0.0.1:0   # pick a free port
+tantra serve --data-dir ./bars --profiles-dir ./profiles --portfolios-dir ./portfolios \
     --journals-dir ./journals --tokens-file ./tokens.toml
 ```
 
@@ -23,7 +23,7 @@ The data directory holds `SYMBOL.EXCHANGE.parquet` files and is loaded **once** 
 
 ## Security posture
 
-- **Loopback by default.** If `--addr` is not loopback, `vyapaar serve` prints a warning on stderr: the API has no auth or TLS unless `--tokens-file` is set, so anyone who can reach it can read and write data.
+- **Loopback by default.** If `--addr` is not loopback, `tantra serve` prints a warning on stderr: the API has no auth or TLS unless `--tokens-file` is set, so anyone who can reach it can read and write data.
 - **No TLS, no rate limiting by default.**
 - **No CORS by default** (no CORS headers are sent). Opt in with `--cors-origin https://app.example` (repeatable). `*` and values that are not valid header values are rejected at start-up.
 - **Auth** (optional): when `--tokens-file` is set, bearer tokens are required on mutating routes (`POST`, `DELETE`, `PUT`, `PATCH`). Read routes remain public.
@@ -111,7 +111,7 @@ All routes below are implemented. Routes marked `501` answer `not_implemented` a
 | `DELETE` | `/profile/modules/{id}` | Delete module |
 | `GET` | `/ws` | Real-time streaming WebSocket (`WsTick` / `WsDepth` push, `WsClientCommand` subscribe/switch) |
 | `GET` | `/ws/market` | Real-time market streaming WebSocket (same handler as `/ws`) |
-| `GET` | `/ws/chat` | Chat agent WebSocket (`ChatRuntime`); requires `VYAPAAR_GGUF_PATH` or `VYAPAAR_LLM_BASE_URL` — see [Runtime chat agent](../architecture/runtime_chat.md) |
+| `GET` | `/ws/chat` | Chat agent WebSocket (`ChatRuntime`); requires `TANTRA_GGUF_PATH` or `TANTRA_LLM_BASE_URL` — see [Runtime chat agent](../architecture/runtime_chat.md) |
 | `GET` | `/journals/{id}` | Run/backtest execution journal |
 
 `POST /orders` is risk-gated (ADR 0018): a refusal is a 422 carrying the `risk_*` code (category `risk`, not retryable); `DELETE /orders/{id}` cancels without a gate and `POST /positions/close` closes without one.
@@ -140,7 +140,7 @@ A request body containing `code` or `source` is rejected with 422 `context.reaso
 
 ### Trade-Performance Journal: `/trade-journal/*` (Plan 0003)
 
-Backed by `vyapaar-ledger-performance`. These are **distinct** from the existing run/backtest journals (`/journals/{id}`, `/backtests/{id}/journal`, `/sweeps/{id}/journal`) and from `/portfolio/accounts`.
+Backed by `tantra-ledger-performance`. These are **distinct** from the existing run/backtest journals (`/journals/{id}`, `/backtests/{id}/journal`, `/sweeps/{id}/journal`) and from `/portfolio/accounts`.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
@@ -158,7 +158,7 @@ All monetary values are serialized as strings (Decimal exactness preserved).
 
 ### Market Reference Data: `/market-data/*` (Plan 0003 Phase 3)
 
-Backed by `vyapaar-data` (symbol profile, economic calendar) — currently serves **illustrative sample data** pending the `vyapaar-data` → Rust FFI bridge. The owning gaps are tracked in `vyapaar-data/docs/gaps/`: `0002-company-fundamentals-symbol-profile.md` (symbol profile ingestion) and `0001-economic-calendar-ingestion.md` / `0003-calendar-stubbed-data.md` (calendar). Sample-data stubs in `vyapaar-runtime` cite these gaps in code comments.
+Backed by `tantra-data` (symbol profile, economic calendar) — currently serves **illustrative sample data** pending the `tantra-data` → Rust FFI bridge. The owning gaps are tracked in `tantra-data/docs/gaps/`: `0002-company-fundamentals-symbol-profile.md` (symbol profile ingestion) and `0001-economic-calendar-ingestion.md` / `0003-calendar-stubbed-data.md` (calendar). Sample-data stubs in `tantra-runtime` cite these gaps in code comments.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
@@ -169,7 +169,7 @@ Backed by `vyapaar-data` (symbol profile, economic calendar) — currently serve
 
 * `/ws` and `/ws/market` share one command-driven handler: the server pushes `WsTick` (instrument, bid/ask/last, prev close) and `WsDepth {bids, asks}` frames as data arrives; the client sends `WsClientCommand` subscribe/switch actions. No polling.
 * `/backtests/{id}/events` is an SSE stream replayed from the run's line-indexed `events.ndjson`; pass `resume_from_seq=N` to resume after a reconnect without gaps or duplicates.
-* `/ws/chat` connects the [runtime chat agent](../architecture/runtime_chat.md) (`ChatRuntime`). It needs an LLM backend in the environment — `VYAPAAR_GGUF_PATH` (local Candle-GGUF, takes priority) or `VYAPAAR_LLM_BASE_URL`/`VYAPAAR_LLM_MODEL`/`VYAPAAR_LLM_API_KEY` (OpenAI/Ollama-compatible); without either, the socket answers with a clear `chat not configured` message. Sessions are in-memory (`InMemorySessionStore`) and lost on restart; alerts persist on the user profile.
+* `/ws/chat` connects the [runtime chat agent](../architecture/runtime_chat.md) (`ChatRuntime`). It needs an LLM backend in the environment — `TANTRA_GGUF_PATH` (local Candle-GGUF, takes priority) or `TANTRA_LLM_BASE_URL`/`TANTRA_LLM_MODEL`/`TANTRA_LLM_API_KEY` (OpenAI/Ollama-compatible); without either, the socket answers with a clear `chat not configured` message. Sessions are in-memory (`InMemorySessionStore`) and lost on restart; alerts persist on the user profile.
 
 ### Behaviour notes
 
@@ -215,9 +215,9 @@ Exactly one of `data` and `error` is present. `category` is not on the wire; it 
 
 ## CLI
 
-- `vyapaar serve --data-dir DIR [--addr ADDR] [--cors-origin ORIGIN]... [--profiles-dir DIR] [--portfolios-dir DIR] [--journals-dir DIR] [--tokens-file FILE]` — boot the REST server.
-- `vyapaar verify MANIFEST.json` — verifies a strategy manifest and prints the compiled IR as JSON (the CLI form of `POST /strategies/verify`).
-- `vyapaar schema export [--output DIR] [--typescript DIR] [--client DIR] [--openapi DIR] [--pyi DIR] [--mcp DIR] [--docs DIR]` — writes the generated contract artifacts; `vyapaar codegen` is an alias that emits every one (see [Contracts from Rust](../architecture/contracts_from_rust.md)).
-- `vyapaar jobs add/list/run/tick/install/logs/pause/resume/approvals/approve/deny` — job scheduler CLI (see [Runtime Job Scheduler](../architecture/runtime_jobs.md)).
+- `tantra serve --data-dir DIR [--addr ADDR] [--cors-origin ORIGIN]... [--profiles-dir DIR] [--portfolios-dir DIR] [--journals-dir DIR] [--tokens-file FILE]` — boot the REST server.
+- `tantra verify MANIFEST.json` — verifies a strategy manifest and prints the compiled IR as JSON (the CLI form of `POST /strategies/verify`).
+- `tantra schema export [--output DIR] [--typescript DIR] [--client DIR] [--openapi DIR] [--pyi DIR] [--mcp DIR] [--docs DIR]` — writes the generated contract artifacts; `tantra codegen` is an alias that emits every one (see [Contracts from Rust](../architecture/contracts_from_rust.md)).
+- `tantra jobs add/list/run/tick/install/logs/pause/resume/approvals/approve/deny` — job scheduler CLI (see [Runtime Job Scheduler](../architecture/runtime_jobs.md)).
 
 Use the typed [Python client](python-sdk.md) rather than parsing this by hand.

@@ -1,8 +1,8 @@
-# AI Engine & Autonomous Quant Researcher (`vyapaar-agent`)
+# AI Engine & Autonomous Quant Researcher (`tantra-agent`)
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-agent`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-agent`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Architectural Doctrine**: AI-Native by Design, Strictly Bounded by Type Safety. Vyapaar embeds frontier large language models (Claude, Gemini) and reinforcement learning into a closed, mathematically grounded quantitative research operating system. Dynamic code execution (`eval`) and ungrounded trading decisions are strictly forbidden.
+> **Architectural Doctrine**: AI-Native by Design, Strictly Bounded by Type Safety. Tantra embeds frontier large language models (Claude, Gemini) and reinforcement learning into a closed, mathematically grounded quantitative research operating system. Dynamic code execution (`eval`) and ungrounded trading decisions are strictly forbidden.
 
 ---
 
@@ -10,26 +10,26 @@
 
 Most algorithmic trading frameworks that incorporate AI follow an irresponsible paradigm: they prompt an LLM to generate unstructured Python code, execute it via `eval()` or unverified subprocesses, and hope it doesn't blow up an account.
 
-Vyapaar rejects this approach entirely. In Vyapaar, **AI operates within a Governed Intelligence Model**:
+Tantra rejects this approach entirely. In Tantra, **AI operates within a Governed Intelligence Model**:
 
 ```text
  ┌────────────────────────────────────────────────────────────────────────┐
- │                    VYAPAAR GOVERNED AI ARCHITECTURE                      │
+ │                    TANTRA GOVERNED AI ARCHITECTURE                      │
  ├────────────────────────────────────────────────────────────────────────┤
  │  FRONTIER AI AGENTS (Claude 3.7 Sonnet, Gemini 2.5 Pro)                │
  │  - Communicates exclusively via Model Context Protocol (MCP)           │
  │  - Restricted to verified Indicator Catalog & Domain Vocabulary        │
  ├────────────────────────────────────────────────────────────────────────┤
- │  CLOSED DECISION PARSER (`vyapaar_core::Decision`)                       │
+ │  CLOSED DECISION PARSER (`tantra_core::Decision`)                       │
  │  - Strict JSON schema: serde(deny_unknown_fields)                      │
  │  - Mandatory SEBI algo_id & scrip price band grounding                 │
- │  - Synchronous pre-trade risk interception via `vyapaar-risk`             │
+ │  - Synchronous pre-trade risk interception via `tantra-risk`             │
  ├────────────────────────────────────────────────────────────────────────┤
  │  DETERMINISTIC PROMPT & DECISION REPLAYER                              │
  │  - Cryptographic SHA-256 prompt and completion hash chain              │
  │  - Zero API calls during deterministic historical backtesting replay   │
  ├────────────────────────────────────────────────────────────────────────┤
- │  AUTONOMOUS RESEARCH & HYPOTHESIS LOOP (`vyapaar-agent`)                   │
+ │  AUTONOMOUS RESEARCH & HYPOTHESIS LOOP (`tantra-agent`)                   │
  │  - In-sample hypothesis generation -> Automated compilation ->         │
  │    Out-of-sample backtest -> Deflated Sharpe Ratio (DSR) gate ->       │
  │    Immutable DatasetManifest with provenance                           │
@@ -40,13 +40,13 @@ Vyapaar rejects this approach entirely. In Vyapaar, **AI operates within a Gover
 
 ## 2. Autonomous Quantitative Research Loop
 
-`vyapaar-agent` ("Brain") runs an autonomous, hypothesis-driven research cycle:
+`tantra-agent` ("Brain") runs an autonomous, hypothesis-driven research cycle:
 
 ```mermaid
 flowchart TD
     H["Step 1: Quantitative Hypothesis\n(e.g., Opening Range Breakout + CPR filter)"] --> SPEC["Step 2: Closed Specification\n(Restricted to verified Indicator Catalog)"]
     SPEC --> COMP["Step 3: Deterministic Compilation\n(Compiles to typed Rust / WASM Strategy)"]
-    COMP --> BT["Step 4: Microstructure Backtest (`vyapaar-runtime-backtest`)\n- Exact Indian taxes (STT, Stamp Duty, GST)\n- Pre-trade risk via vyapaar-risk"]
+    COMP --> BT["Step 4: Microstructure Backtest (`tantra-runtime-backtest`)\n- Exact Indian taxes (STT, Stamp Duty, GST)\n- Pre-trade risk via tantra-risk"]
     BT --> EVAL["Step 5: Statistical Robustness\n- Out-of-Sample Walk-Forward Analysis\n- Deflated Sharpe Ratio (DSR > 0.95)\n- Probability of Overfitting (PBO < 0.10)"]
     EVAL -->|Fails DSR / PBO| REFLECT["Step 6: AI Reflection & Auto-Enhancer\n- Analyze drawdown clusters\n- Mutate rules & refine parameters"]
     REFLECT --> SPEC
@@ -57,7 +57,7 @@ flowchart TD
 
 ## 3. The Verified Indicator Catalog & Closed Grammar
 
-An AI agent cannot discover repeatable alpha if it hallucinates non-existent indicators or builds mathematically unstable formulas. Vyapaar provides a fixed, verified **Indicator Catalog** queryable via MCP:
+An AI agent cannot discover repeatable alpha if it hallucinates non-existent indicators or builds mathematically unstable formulas. Tantra provides a fixed, verified **Indicator Catalog** queryable via MCP:
 
 ```json
 {
@@ -104,9 +104,9 @@ Any strategy specification naming an indicator outside this catalog or specifyin
 
 ---
 
-## 4. Closed Decision Grammar: `vyapaar_core::Decision`
+## 4. Closed Decision Grammar: `tantra_core::Decision`
 
-When an AI model generates trading signals in live or paper trading, it cannot emit free-form text or unrestricted JSON. It must emit an instance of the strictly typed `vyapaar_core::Decision` enum:
+When an AI model generates trading signals in live or paper trading, it cannot emit free-form text or unrestricted JSON. It must emit an instance of the strictly typed `tantra_core::Decision` enum:
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -146,7 +146,7 @@ pub enum Decision {
 1. **`#[serde(deny_unknown_fields)]`**: Prevents hallucinations; any unexpected JSON keys cause an immediate parse error.
 2. **Mandatory SEBI `algo_id`**: Under Indian exchange regulations (Circular SEBI/HO/MRD/DP/CIR/P/2018/62), every automated order must carry an approved `algo_id`. Missing or invalid IDs trigger instant rejection.
 3. **Price Band Interception**: Orders with prices outside the operational exchange circuit band (e.g., 2%, 5%, 10%) are rejected before hitting the network.
-4. **Synchronous Interception by `vyapaar-risk`**: AI decisions **never** communicate directly with broker execution adapters (`vyapaar-exec`). They must pass synchronously through the pre-trade risk engine.
+4. **Synchronous Interception by `tantra-risk`**: AI decisions **never** communicate directly with broker execution adapters (`tantra-exec`). They must pass synchronously through the pre-trade risk engine.
 
 ---
 
@@ -154,7 +154,7 @@ pub enum Decision {
 
 How can quantitative firms audit an AI trading decision executed 18 months ago? How can an AI strategy be backtested over 5 years of historical data without spending \$50,000 on API tokens?
 
-`vyapaar-agent` introduces the **Deterministic Replay Harness**:
+`tantra-agent` introduces the **Deterministic Replay Harness**:
 
 ```text
  ┌──────────────────────────────────────────────────────────────┐
@@ -187,7 +187,7 @@ How can quantitative firms audit an AI trading decision executed 18 months ago? 
 
 ## 6. Native Model Context Protocol (MCP) Server
 
-Vyapaar embeds a production Model Context Protocol (MCP) server, allowing frontier AI agents in Claude Desktop, Cursor, or autonomous scripts to interact with the quant platform directly:
+Tantra embeds a production Model Context Protocol (MCP) server, allowing frontier AI agents in Claude Desktop, Cursor, or autonomous scripts to interact with the quant platform directly:
 
 | Tool Name | Parameters | Description |
 | :--- | :--- | :--- |

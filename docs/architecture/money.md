@@ -1,8 +1,8 @@
 # Money, Currency & Indian Cost Modeling
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-core`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-core`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Zero Floats Policy** — In Vyapaar, floating-point numbers (`f32`/`f64`) are strictly forbidden across all prices, quantities, portfolio holdings, margins, and cost calculations. All financial math is conducted with exact 128-bit decimal arithmetic via `rust_decimal::Decimal`.
+> **Zero Floats Policy** — In Tantra, floating-point numbers (`f32`/`f64`) are strictly forbidden across all prices, quantities, portfolio holdings, margins, and cost calculations. All financial math is conducted with exact 128-bit decimal arithmetic via `rust_decimal::Decimal`.
 
 ---
 
@@ -10,7 +10,7 @@
 
 In trading systems, treating prices, quantities, and cash as generic floats inevitably introduces rounding errors, IEEE 754 precision drifts (e.g., `0.1 + 0.2 != 0.3`), and dimensional bugs (such as accidentally adding an equity share quantity to an INR cash balance).
 
-Vyapaar enforces type safety through distinct value objects defined in `vyapaar-core`:
+Tantra enforces type safety through distinct value objects defined in `tantra-core`:
 
 ```rust
 use rust_decimal::Decimal;
@@ -58,7 +58,7 @@ For the Indian market, all calculations settle in **INR**. `Money::format_minor(
 
 Backtesting without realistic Indian transaction costs produces completely deceptive returns, particularly for intraday and options strategies where statutory taxes can consume 30% to 70% of gross profits.
 
-`vyapaar-runtime-backtest` and `vyapaar-ledger-portfolio` implement the full Indian statutory cost stack using exact `rust_decimal::Decimal` arithmetic:
+`tantra-runtime-backtest` and `tantra-ledger-portfolio` implement the full Indian statutory cost stack using exact `rust_decimal::Decimal` arithmetic:
 
 ```text
                                 GROSS TURNOVER
@@ -112,14 +112,14 @@ India operates on a strict **T+1 rolling settlement** cycle for all equity cash 
 
 * **Trade Day ($T$)**:
   - The trade executes.
-  - Required margin is blocked immediately in `vyapaar-ledger-book`.
+  - Required margin is blocked immediately in `tantra-ledger-book`.
   - Intraday positions (MIS) must be squared off before the exchange cut-off time (15:20 IST).
 * **Settlement Day ($T+1$)**:
   - Payout of funds and demat securities occurs.
   - Delivery shares are credited to the demat account (NSDL / CDSL).
   - Withheld sale proceeds from $T$ become fully available for unencumbered cash withdrawals.
 
-`vyapaar-ledger-portfolio` tracks the settlement status of every executed lot:
+`tantra-ledger-portfolio` tracks the settlement status of every executed lot:
 
 ```rust
 pub enum SettlementStatus {

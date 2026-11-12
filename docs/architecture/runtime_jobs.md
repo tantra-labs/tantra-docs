@@ -1,20 +1,20 @@
 # Runtime Job Scheduler
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-runtime-jobs` crate. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-runtime-jobs` crate. See [Platform Conformance Matrix](../conformance_matrix.md).
 >
-> `vyapaar-runtime-jobs` is the **deterministic cron/background job framework** inside `vyapaar-runtime`: typed `JobSpec`s with multi-dimensional budgets, a cron grammar with `next_execution`, a persistent `FileJobRegistry`, fencing leases against split-brain execution, and a bounded worker pool with HTTP-style backpressure. The scheduler itself is a **trait** (`JobScheduler`) — hosts implement the execution loop (the `vyapaar` CLI wires one).
+> `tantra-runtime-jobs` is the **deterministic cron/background job framework** inside `tantra-runtime`: typed `JobSpec`s with multi-dimensional budgets, a cron grammar with `next_execution`, a persistent `FileJobRegistry`, fencing leases against split-brain execution, and a bounded worker pool with HTTP-style backpressure. The scheduler itself is a **trait** (`JobScheduler`) — hosts implement the execution loop (the `tantra` CLI wires one).
 
 ---
 
 ## 1. Bounded Context & Responsibility
 
-`vyapaar-runtime-jobs` (ADR 0017 / Jesse budgeting pattern) is scheduling **infrastructure**, not a domain aggregate. It defines *what* runs, *when*, *within what budget*, and *under which approvals* — it does not itself run the trading engine.
+`tantra-runtime-jobs` (ADR 0017 / Jesse budgeting pattern) is scheduling **infrastructure**, not a domain aggregate. It defines *what* runs, *when*, *within what budget*, and *under which approvals* — it does not itself run the trading engine.
 
 | Invariant | How it's enforced |
 |-----------|-------------------|
 | **Strict cron grammar** | `CronSchedule::new` validates 5 numeric fields at registration; letter suffixes (`L`/`W`) are refused rather than silently never firing |
 | **Deterministic next-fire** | `next_execution(after)` implements full Vixie semantics (incl. the both-day-fields-restricted OR rule) over UTC |
-| **Durable registry** | `FileJobRegistry` writes `~/.vyapaar/jobs.json` via atomic tmp-rename (`jobs.json.tmp` → rename) |
+| **Durable registry** | `FileJobRegistry` writes `~/.tantra/jobs.json` via atomic tmp-rename (`jobs.json.tmp` → rename) |
 | **Budgets before work** | `JobBudgets` caps turns, INR/USD friction, tokens, tool calls, data calls; `BudgetUsage` tracks consumption |
 | **No split-brain execution** | `FencingLease` carries a monotonic token + expiry + worker id; stale workers get `TokenMismatch`/`WorkerMismatch` |
 | **Bounded concurrency** | `BoundedWorkerPool` returns typed HTTP-mapped errors (429/503/500/422), never unbounded spawning |
@@ -50,7 +50,7 @@ There is **no `Trigger` enum** — a job's schedule *is* its cron expression; ma
 * `next_execution` delegates to the `cron` crate over an equivalent 6-field expression (seconds fixed to 0) with the day-of-week field translated from Vixie numbering (0/7 = Sunday) to the crate's 1-based scheme; when **both** day fields are restricted, the Vixie OR rule is evaluated as the earlier of the two one-field schedules.
 
 ### `JobScheduler` (trait)
-`register_job(spec, Arc<dyn Job>)`, `unregister_job{,_by_name}`, `get_job`, `list_jobs`, `start`, `stop`, `state()` (`Stopped`/`Running`/`Paused`). **This repository ships the trait and cron evaluation, not a concrete loop** — process owners implement it (the `vyapaar` CLI in `vyapaar-ui` wires one; jobs can also be driven tick-by-tick from tests).
+`register_job(spec, Arc<dyn Job>)`, `unregister_job{,_by_name}`, `get_job`, `list_jobs`, `start`, `stop`, `state()` (`Stopped`/`Running`/`Paused`). **This repository ships the trait and cron evaluation, not a concrete loop** — process owners implement it (the `tantra` CLI in `tantra-ui` wires one; jobs can also be driven tick-by-tick from tests).
 
 ### Job traits (`job` module)
 | Trait | Methods |
@@ -72,8 +72,8 @@ Monotonic fencing token + lease expiration + worker identity. Validation errors:
 
 ## 3. Persistence & Recovery
 
-* `FileJobRegistry` holds every `JobSpec` in one JSON document at `~/.vyapaar/jobs.json` (custom path supported). Updates serialize to a temporary sibling file and rename over the destination, so a crash mid-write cannot corrupt the registry.
-* Run-level crash recovery (normalizing `Pending`/`Running` runs to `Failed` at boot) lives in the **API run store** (`vyapaar-runtime-api-rest`), not in this crate.
+* `FileJobRegistry` holds every `JobSpec` in one JSON document at `~/.tantra/jobs.json` (custom path supported). Updates serialize to a temporary sibling file and rename over the destination, so a crash mid-write cannot corrupt the registry.
+* Run-level crash recovery (normalizing `Pending`/`Running` runs to `Failed` at boot) lives in the **API run store** (`tantra-runtime-api-rest`), not in this crate.
 
 ## 4. Run Journals vs Job Registry
 
@@ -81,8 +81,8 @@ The jobs crate does **not** write per-run journals. Backtest/sweep run journals 
 
 | Artifact | Owner |
 |----------|-------|
-| `~/.vyapaar/jobs.json` (job specs, statuses, budgets, leases) | `FileJobRegistry` (this crate) |
-| `<journals-dir>/<run_id>/manifest.json`, `events.ndjson` | `vyapaar-runtime-api` contract + `vyapaar-runtime-api-rest` `run_store.rs` |
+| `~/.tantra/jobs.json` (job specs, statuses, budgets, leases) | `FileJobRegistry` (this crate) |
+| `<journals-dir>/<run_id>/manifest.json`, `events.ndjson` | `tantra-runtime-api` contract + `tantra-runtime-api-rest` `run_store.rs` |
 
 See [REST API](../api/rest.md) for `/backtests/*`, `/sweeps/*` and `/journals/{id}`.
 
@@ -98,7 +98,7 @@ Shipped jobs are **simulated stubs** (they sleep and log; the real broker work i
 
 Each accepts `with_schedule(...)` for custom crons.
 
-## 6. CLI (`vyapaar jobs`, in `vyapaar-ui`)
+## 6. CLI (`tantra jobs`, in `tantra-ui`)
 
 `jobs add` / `list` / `run <id>` / `tick [--all]` / `install` / `logs <id>` / `pause <id>` / `resume <id>` / `approvals` / `approve <id>` / `deny <id>` — the CLI is a scheduler host; pause/resume and approve/deny flip `JobStatus` / honor `ApprovalPolicy::Manual` through the registry.
 

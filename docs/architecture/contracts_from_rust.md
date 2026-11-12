@@ -1,18 +1,18 @@
 # Contracts & Schema Generation from Rust
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-ffi-codegen`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-ffi-codegen`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Single Source of Truth**: Every machine-readable contract, JSON schema, OpenAPI specification, Pydantic model, and MCP tool definition in Vyapaar is generated deterministically from Rust types via `schemars`. Hand-written schema files and manual API models are strictly prohibited.
+> **Single Source of Truth**: Every machine-readable contract, JSON schema, OpenAPI specification, Pydantic model, and MCP tool definition in Tantra is generated deterministically from Rust types via `schemars`. Hand-written schema files and manual API models are strictly prohibited.
 
 ---
 
 ## 1. The Code Generation Pipeline
 
-Vyapaar enforces a single unidirectional source of truth:
+Tantra enforces a single unidirectional source of truth:
 
 ```text
  ┌────────────────────────────────────────────────────────┐
- │        PURE RUST SHARED KERNEL (`vyapaar-core`)          │
+ │        PURE RUST SHARED KERNEL (`tantra-core`)          │
  │  - Derive macros: #[derive(Serialize, Deserialize,     │
  │                           JsonSchema)]                 │
  └──────────────────────────┬─────────────────────────────┘
@@ -34,11 +34,11 @@ Vyapaar enforces a single unidirectional source of truth:
 
 | Contract Type | Target Artifact | Consumer Subsystem | Verification Tool |
 | :--- | :--- | :--- | :--- |
-| **Domain JSON Schema** | `schema/domain/domain_schema.json` | All subsystems | `cargo test -p vyapaar-ffi-codegen` |
-| **OpenAPI 3.1 Spec** | `schema/openapi/openapi.json` | `vyapaar-runtime-api-rest`, Swagger | Automated OpenAPI CI validation |
-| **MCP Tool Schemas** | `schema/mcp/mcp_tools.json` | `vyapaar-agent-mcp` (Claude/Gemini) | Model Context Protocol test suite |
-| **Python Type Stubs** | `vyapaar/src/vyapaar/wire/*.pyi` | `vyapaar-ffi`, IDE Autocomplete | `pyright` & `mypy` strict checks |
-| **Pydantic v2 Models** | `vyapaar/src/vyapaar/models.py` | Python Strategy SDK & Adapters | Automated golden conformance tests |
+| **Domain JSON Schema** | `schema/domain/domain_schema.json` | All subsystems | `cargo test -p tantra-ffi-codegen` |
+| **OpenAPI 3.1 Spec** | `schema/openapi/openapi.json` | `tantra-runtime-api-rest`, Swagger | Automated OpenAPI CI validation |
+| **MCP Tool Schemas** | `schema/mcp/mcp_tools.json` | `tantra-agent-mcp` (Claude/Gemini) | Model Context Protocol test suite |
+| **Python Type Stubs** | `tantra/src/tantra/wire/*.pyi` | `tantra-ffi`, IDE Autocomplete | `pyright` & `mypy` strict checks |
+| **Pydantic v2 Models** | `tantra/src/tantra/models.py` | Python Strategy SDK & Adapters | Automated golden conformance tests |
 
 ---
 
@@ -54,7 +54,7 @@ make codegen
 make check-codegen-ci
 ```
 
-If a developer alters a Rust struct in `vyapaar-core` without running `make codegen`, the CI build immediately fails, pointing out the exact diff.
+If a developer alters a Rust struct in `tantra-core` without running `make codegen`, the CI build immediately fails, pointing out the exact diff.
 
 ---
 
@@ -72,5 +72,5 @@ To prevent subtle cross-language deserialization discrepancies between Rust (`se
 
 ## 4. Architectural Rules
 
-* **Rule 1: Never edit a generated file by hand.** Any wire contract change must originate as a Rust change in `vyapaar-core`, followed by automated codegen.
+* **Rule 1: Never edit a generated file by hand.** Any wire contract change must originate as a Rust change in `tantra-core`, followed by automated codegen.
 * **Rule 2: Rust is the arbiter of correctness.** Where a generated schema and an external model disagree, the Rust type definition is authoritative, and the external consumer must be updated.

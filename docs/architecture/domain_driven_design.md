@@ -1,30 +1,30 @@
-# Domain-Driven Design (DDD) in Vyapaar
+# Domain-Driven Design (DDD) in Tantra
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-core`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-core`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Architectural Paradigm**: Vyapaar adopts a formal Domain-Driven Design (DDD) methodology inspired by institutional trading engines such as **StockSharp**, **NautilusTrader**, and LMAX Architecture. The core domain is strictly pure, zero-I/O, deterministic, and isolated from network protocols, databases, and UI frameworks.
+> **Architectural Paradigm**: Tantra adopts a formal Domain-Driven Design (DDD) methodology inspired by institutional trading engines such as **StockSharp**, **NautilusTrader**, and LMAX Architecture. The core domain is strictly pure, zero-I/O, deterministic, and isolated from network protocols, databases, and UI frameworks.
 
 ---
 
 ## 1. Strategic Design & Bounded Contexts
 
-In high-frequency and quantitative trading platforms, naive object models inevitably devolve into "God objects" where an `Order` contains networking sockets, broker-specific JSON strings, and database connection pools. Vyapaar strictly enforces **Bounded Contexts** with unambiguous ubiquitous language and clean boundary mappings:
+In high-frequency and quantitative trading platforms, naive object models inevitably devolve into "God objects" where an `Order` contains networking sockets, broker-specific JSON strings, and database connection pools. Tantra strictly enforces **Bounded Contexts** with unambiguous ubiquitous language and clean boundary mappings:
 
 ```text
  ┌────────────────────────────────────────────────────────────────────────┐
- │                      VYAPAAR BOUNDED CONTEXTS MAP                        │
+ │                      TANTRA BOUNDED CONTEXTS MAP                        │
  ├────────────────────────────────────────────────────────────────────────┤
  │                                                                        │
  │   ┌───────────────────────┐              ┌─────────────────────────┐   │
  │   │ MARKET DATA CONTEXT   │              │ EXECUTION CONTEXT       │   │
- │   │ Subsystem: vyapaar-market   │              │ Subsystem: vyapaar-exec     │   │
+ │   │ Subsystem: tantra-market   │              │ Subsystem: tantra-exec     │   │
  │   │ (WebSockets, Feeds,   │              │ (Broker REST/FIX, SOR,  │   │
  │   │  Catalog, Lakehouse)  │              │  Rate Limits, Slicing)  │   │
  │   └──────────┬────────────┘              └────────────▲────────────┘   │
  │              │ Canonical Ticks / Bars                 │ Wire Orders    │
  │              ▼                                        │                │
  │   ┌───────────────────────────────────────────────────┴────────────┐   │
- │   │                     SHARED KERNEL: vyapaar-core                  │   │
+ │   │                     SHARED KERNEL: tantra-core                  │   │
  │   │   - Value Objects: InstrumentId, Price, Quantity, Money, Bar   │   │
  │   │   - Wire Contracts: OrderRequest, OrderAck, FillReport         │   │
  │   │   - Decision Contract: Decision enum                           │   │
@@ -33,8 +33,8 @@ In high-frequency and quantitative trading platforms, naive object models inevit
  │              ┌───────────────┴───────────────┐                         │
  │              ▼                               ▼                         │
  │   ┌───────────────────────┐      ┌─────────────────────────────────┐   │
- │   │ REGULATORY RISK GATE  │      │ DOMAIN HEART: vyapaar-ledger      │   │
- │   │ Subsystem: vyapaar-risk  │      │ - OrderManagement Aggregate     │   │
+ │   │ REGULATORY RISK GATE  │      │ DOMAIN HEART: tantra-ledger      │   │
+ │   │ Subsystem: tantra-risk  │      │ - OrderManagement Aggregate     │   │
  │   │ - SEBI Algo ID Check  │◄────►│ - Portfolio Aggregate (FIFO)    │   │
  │   │ - OTR Circuit Breaker │      │ - DoubleEntryLedger Aggregate   │   │
  │   │ - Scrip Price Bands   │      │ (Zero-I/O Deterministic Domain) │   │
@@ -47,24 +47,24 @@ In high-frequency and quantitative trading platforms, naive object models inevit
 
 | Bounded Context | Primary Crate | Ubiquitous Vocabulary | Invariants & Rules |
 | :--- | :--- | :--- | :--- |
-| **Shared Kernel** | `vyapaar-core` | `InstrumentId`, `Price`, `Quantity`, `Money`, `Currency`, `Tick`, `Bar`, `Decision` | Pure types. Zero dependencies. No allocation or I/O on hot path. |
-| **Domain Heart** | `vyapaar-ledger` | `OrderManager`, `OrderState`, `TaxLot`, `Portfolio`, `DoubleEntryLedger` | Pure business rules. Zero network/clock calls. Fully deterministic replay. |
-| **Regulatory Risk** | `vyapaar-risk` | `RiskEngine`, `RiskLimits`, `AlgoId`, `OTRTracker`, `PriceBand` | Pre-trade risk gate. Synchronous validation. Tripped breakers halt trading. |
-| **Market Data** | `vyapaar-market` | `MarketDataFeed`, `TickBuffer`, `Normalizer`, `Catalog`, `Indicator` | Ingests broker streams. Coalesces quotes. Generates canonical ticks. |
-| **Execution** | `vyapaar-exec` | `BrokerExecutor`, `RateLimiter`, `OrderSlicer`, `SmartOrderRouter` | Outbound wire translation. Token-bucket rate limiting. Freeze slicing. |
-| **Runtime Orchestration**| `vyapaar-runtime` | `ActorRuntime`, `BacktestEngine`, `PersistenceRepository` | Tokio actor concurrency. Supervises message pipelines and storage. |
-| **AI Intelligence** | `vyapaar-agent` | `ResearchLoop`, `PromptReplayer`, `SpecId`, `McpServer` | Closed decision parsing. Reproducible prompt & strategy replay. |
+| **Shared Kernel** | `tantra-core` | `InstrumentId`, `Price`, `Quantity`, `Money`, `Currency`, `Tick`, `Bar`, `Decision` | Pure types. Zero dependencies. No allocation or I/O on hot path. |
+| **Domain Heart** | `tantra-ledger` | `OrderManager`, `OrderState`, `TaxLot`, `Portfolio`, `DoubleEntryLedger` | Pure business rules. Zero network/clock calls. Fully deterministic replay. |
+| **Regulatory Risk** | `tantra-risk` | `RiskEngine`, `RiskLimits`, `AlgoId`, `OTRTracker`, `PriceBand` | Pre-trade risk gate. Synchronous validation. Tripped breakers halt trading. |
+| **Market Data** | `tantra-market` | `MarketDataFeed`, `TickBuffer`, `Normalizer`, `Catalog`, `Indicator` | Ingests broker streams. Coalesces quotes. Generates canonical ticks. |
+| **Execution** | `tantra-exec` | `BrokerExecutor`, `RateLimiter`, `OrderSlicer`, `SmartOrderRouter` | Outbound wire translation. Token-bucket rate limiting. Freeze slicing. |
+| **Runtime Orchestration**| `tantra-runtime` | `ActorRuntime`, `BacktestEngine`, `PersistenceRepository` | Tokio actor concurrency. Supervises message pipelines and storage. |
+| **AI Intelligence** | `tantra-agent` | `ResearchLoop`, `PromptReplayer`, `SpecId`, `McpServer` | Closed decision parsing. Reproducible prompt & strategy replay. |
 
 ---
 
-## 2. Shared Kernel: Canonical Value Objects (`vyapaar-core`)
+## 2. Shared Kernel: Canonical Value Objects (`tantra-core`)
 
-All value objects in `vyapaar-core` are **immutable**, **self-validating**, and guarantee dimensional correctness:
+All value objects in `tantra-core` are **immutable**, **self-validating**, and guarantee dimensional correctness:
 
 ### 2.1 Dimensional Types
 In trading systems, treating prices, quantities, and cash as generic floats inevitably introduces rounding errors, IEEE 754 precision drifts (e.g., `0.1 + 0.2 != 0.3`), and dimensional bugs (such as accidentally adding an equity share quantity to an INR cash balance).
 
-Vyapaar enforces type safety through distinct value objects:
+Tantra enforces type safety through distinct value objects:
 
 ```rust
 use rust_decimal::Decimal;
@@ -104,9 +104,9 @@ pub struct InstrumentId {
 
 ---
 
-## 3. Domain Aggregates & Invariants (`vyapaar-ledger`)
+## 3. Domain Aggregates & Invariants (`tantra-ledger`)
 
-Aggregates are the transactional consistency boundaries in Vyapaar. All modifications to an aggregate root occur via explicit domain methods that enforce business invariants.
+Aggregates are the transactional consistency boundaries in Tantra. All modifications to an aggregate root occur via explicit domain methods that enforce business invariants.
 
 ### 3.1 Order Management Aggregate: `OrderManager`
 
@@ -250,7 +250,7 @@ Domain events are distributed across the actor pipeline without blocking the tra
 
 ## 5. Mathematical Verifiability & Property Testing
 
-Every aggregate in `vyapaar-ledger` is tested against formal invariants using the `proptest` framework:
+Every aggregate in `tantra-ledger` is tested against formal invariants using the `proptest` framework:
 * **Conservation of Capital**: For any random sequence of orders, fills, rejections, cancellations, and corporate actions, total equity strictly equals initial balance plus realized PnL minus transaction fees.
 * **Non-Negative Demat Balance**: Delivery positions cannot drop below zero.
 * **Finite State Reachability**: All order paths terminate in valid terminal states (`Filled`, `Cancelled`, `Rejected`, `Expired`) without state deadlocks.

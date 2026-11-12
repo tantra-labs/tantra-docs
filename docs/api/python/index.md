@@ -1,6 +1,6 @@
-# Vyapaar Python API Reference
+# Tantra Python API Reference
 
-The Vyapaar Labs Python ecosystem provides high-productivity quantitative research and strategy development libraries integrated with the high-performance Rust actor engine.
+The Tantra Labs Python ecosystem provides high-productivity quantitative research and strategy development libraries integrated with the high-performance Rust actor engine.
 
 ---
 
@@ -8,19 +8,19 @@ The Vyapaar Labs Python ecosystem provides high-productivity quantitative resear
 
 | Package | Repository | Description |
 | :--- | :--- | :--- |
-| `vyapaar_strategies` | [`vyapaar-strategies`](https://github.com/vyapaar-labs/vyapaar-strategies) | Quantitative strategy authoring SDK, indicator library (SMA, EMA, RSI, ATR, MACD), signal generation, portfolio sizing, and step chaining. |
-| `vyapaar_adapters` | [`vyapaar-adapters`](https://github.com/vyapaar-labs/vyapaar-adapters) | Broker ACL SDK: one package, 7 broker modules (Dhan, Zerodha, Angel One, Upstox, Fyers, Kotak, IIFL), canonical `Decimal` models over injected REST transports, deterministic paper broker + JSONL fixture replay. See [Adapters Package](../adapters-package.md). |
-| `vyapaar_data` | [`vyapaar-data`](https://github.com/vyapaar-labs/vyapaar-data) | Historical Parquet lakehouse data catalogs, partition management, point-in-time universe resolvers, and tick storage. |
-| `vyapaar_examples` | [`vyapaar-examples`](https://github.com/vyapaar-labs/vyapaar-examples) | Production-ready reference strategies: NIFTY/BankNIFTY options selling, equity momentum, and statistical arbitrage. |
-| `vyapaar_ffi` | [`vyapaar-ffi`](https://github.com/vyapaar-labs/vyapaar-ffi) | PyO3 native C-extension providing zero-copy memory bridges, PyArrow record batch transfers, and Tokio actor runtime lifecycle management. |
+| `tantra_strategies` | [`tantra-strategies`](https://github.com/tantra-labs/tantra-strategies) | Quantitative strategy authoring SDK, indicator library (SMA, EMA, RSI, ATR, MACD), signal generation, portfolio sizing, and step chaining. |
+| `tantra_adapters` | [`tantra-adapters`](https://github.com/tantra-labs/tantra-adapters) | Broker ACL SDK: one package, 7 broker modules (Dhan, Zerodha, Angel One, Upstox, Fyers, Kotak, IIFL), canonical `Decimal` models over injected REST transports, deterministic paper broker + JSONL fixture replay. See [Adapters Package](../adapters-package.md). |
+| `tantra_data` | [`tantra-data`](https://github.com/tantra-labs/tantra-data) | Historical Parquet lakehouse data catalogs, partition management, point-in-time universe resolvers, and tick storage. |
+| `tantra_examples` | [`tantra-examples`](https://github.com/tantra-labs/tantra-examples) | Production-ready reference strategies: NIFTY/BankNIFTY options selling, equity momentum, and statistical arbitrage. |
+| `tantra_ffi` | [`tantra-ffi`](https://github.com/tantra-labs/tantra-ffi) | PyO3 native C-extension providing zero-copy memory bridges, PyArrow record batch transfers, and Tokio actor runtime lifecycle management. |
 
 ---
 
 ## 2. Strategy Authoring Quickstart
 
 ```python
-from vyapaar_strategies import Strategy, Timeframe
-from vyapaar_strategies.indicators import Sma, Rsi
+from tantra_strategies import Strategy, Timeframe
+from tantra_strategies.indicators import Sma, Rsi
 import rust_decimal
 
 class DualMovingAverageStrategy(Strategy):
@@ -46,7 +46,7 @@ class DualMovingAverageStrategy(Strategy):
 For interacting with in-process datasets or serving backtest workloads:
 
 ```python
-from vyapaar.client import Client
+from tantra.client import Client
 
 # Connect to in-process Parquet lakehouse catalog
 client = Client.inproc(data_dir="./bars")

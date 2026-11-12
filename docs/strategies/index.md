@@ -1,6 +1,6 @@
 # Strategies
 
-A Vyapaar strategy is a Python class that inherits from `Strategy` and
+A Tantra strategy is a Python class that inherits from `Strategy` and
 implements lifecycle callbacks. The engine calls the callbacks in
 response to market events; the strategy responds by placing orders.
 
@@ -24,7 +24,7 @@ response to market events; the strategy responds by placing orders.
 
 ## The Strategy Catalog
 
-The community catalog lives in the `vyapaar-strategies` repository, grouped by
+The community catalog lives in the `tantra-strategies` repository, grouped by
 category and sub-category without numeric prefixes
 (`momentum/trend/sma_crossover`, `mean_reversion/oscillator/rsi_oversold`,
 `universe/alpha/momentum`). Each strategy directory has `strategy.py`,
@@ -46,7 +46,7 @@ an implemented strategy. Every registered strategy also has a `step.toml`; see
 ## Versioned Strategy Manifests & Baskets (plan 0001)
 <a id="versioned-strategy-manifests-baskets-plan-0001"></a>
 
-`vyapaar-strategies` also ships **versioned strategy manifests** and **basket
+`tantra-strategies` also ships **versioned strategy manifests** and **basket
 manifests** (plan 0001, all phases implemented in `207a70c`):
 
 | Piece | Description |
@@ -55,7 +55,7 @@ manifests** (plan 0001, all phases implemented in `207a70c`):
 | `BasketManifest` | Multi-strategy basket: member strategy refs, risk budget per member, and composite allocation |
 | `PromotionStatus` | Promotion workflow: `promote()` advances exactly one stage forward with evidence references; stages are `Draft → Review → Staged → Live → Archived` |
 
-Manifests and baskets live under `vyapaar_strategies/manifest/` (`strategy.py`,
+Manifests and baskets live under `tantra_strategies/manifest/` (`strategy.py`,
 `basket.py`, `params.py`, `version.py`) and are validated against JSON schemas
 in `schema/` (`step.schema.json`, `strategy-manifest.schema.json`,
 `basket-manifest.schema.json`). The CLI validators
@@ -73,16 +73,16 @@ See [Step Manifests and Chaining](step_manifests_and_chaining.md) for the
 ## README convention: Usage, Possible output, Pitfalls
 
 Every registered strategy README has the same three sections, and
-`test_readme_sections.py` in `vyapaar-strategies` fails when one is missing or too
+`test_readme_sections.py` in `tantra-strategies` fails when one is missing or too
 short:
 
-- **Usage**: a snippet that runs from the repo root with `vyapaar` installed
-  (load by registry name, run through `vyapaar.strategies.testing.replay`).
+- **Usage**: a snippet that runs from the repo root with `tantra` installed
+  (load by registry name, run through `tantra.strategies.testing.replay`).
 - **Possible output**: what that snippet actually prints. Metrics from
   `backtest_result.json` are quoted only when its `status` is `completed`.
 - **Pitfalls**: at least 3 bullets specific to the strategy's code and config,
   linking the generic
-  [avoiding backtest biases](https://vyapaar-labs.github.io/vyapaar/book/backtesting/avoiding_backtest_biases.html)
+  [avoiding backtest biases](https://tantra-labs.github.io/tantra/book/backtesting/avoiding_backtest_biases.html)
   page.
 
 Each `step.toml` also carries an optional `pitfalls` array of 2 to 4 short
@@ -114,11 +114,11 @@ section before relying on a strategy.
 
 ## The Three-Line Version
 
-If you have written a Vyapaar strategy before, this is the entire API:
+If you have written a Tantra strategy before, this is the entire API:
 
 ```python
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.strategies.base import Strategy
+from tantra.entities.instrument import InstrumentId
+from tantra.strategies.base import Strategy
 
 
 class MyStrategy(Strategy):
@@ -133,7 +133,7 @@ Everything else in these documents is elaboration. Subscriptions are declared in
 
 ## What Makes a Good Strategy
 
-A strategy in Vyapaar is expected to be:
+A strategy in Tantra is expected to be:
 
 - **Explicit about its edge.** A comment or docstring stating what
   market inefficiency the strategy is exploiting.

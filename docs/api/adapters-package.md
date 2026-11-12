@@ -1,15 +1,15 @@
-# Adapters Package (`vyapaar-adapters`)
+# Adapters Package (`tantra-adapters`)
 
-The pluggable Python **Anti-Corruption Layer (ACL)** between Vyapaar's canonical
+The pluggable Python **Anti-Corruption Layer (ACL)** between Tantra's canonical
 domain and the wire formats of Indian brokers: a single installable package,
-`vyapaar-adapters`, exposing the `vyapaar_adapters` package with one module per
+`tantra-adapters`, exposing the `tantra_adapters` package with one module per
 broker — Dhan, Zerodha (Kite), Angel One, Upstox, Fyers, Kotak, and IIFL.
 
 Every broker payload is translated into canonical models (`Quote`, `Bar`,
 `OrderRequest`, `Order`, `Position`, `Margin`) as exact `decimal.Decimal` values —
 **no `float` ever crosses the boundary**. Broker-specific structures never leak
 outward. For the Rust-side production adapters (feeds and execution in
-`vyapaar-market` / `vyapaar-exec`), see
+`tantra-market` / `tantra-exec`), see
 [Adapter Interface](../architecture/adapter_interface.md); for broker-by-broker
 practical differences, see [Brokers](../india/brokers.md).
 
@@ -21,16 +21,16 @@ practical differences, see [Brokers](../india/brokers.md).
 ## Installation & Layout
 
 ```bash
-pip install -e ./vyapaar-adapters   # requires Python >= 3.11, pydantic >= 2
+pip install -e ./tantra-adapters   # requires Python >= 3.11, pydantic >= 2
 ```
 
 Runtime dependencies are deliberately thin: `pydantic` (config models only) and the
-optional `vyapaar` wheel (the package falls back to stdlib `decimal` when absent, so
+optional `tantra` wheel (the package falls back to stdlib `decimal` when absent, so
 the whole suite runs offline). The repo follows a 4-zone layout:
 
 ```text
-vyapaar-adapters/
-├── vyapaar_adapters/     # Zone 1: package (common / broker modules / paper / registry)
+tantra-adapters/
+├── tantra_adapters/     # Zone 1: package (common / broker modules / paper / registry)
 ├── tests/                # Zone 2: offline contract certification (MockTransport)
 ├── configs/              # Zone 3: paper + live TOML connection templates
 ├── examples/ scripts/    # Zone 4: fixture recorder & smoke runner
@@ -42,9 +42,9 @@ vyapaar-adapters/
 ```python
 from decimal import Decimal
 
-from vyapaar_adapters import OrderRequest, OrderSide, OrderType
-from vyapaar_adapters.common import BrokerCredentials, MockTransport
-from vyapaar_adapters.dhan import DhanAdapter
+from tantra_adapters import OrderRequest, OrderSide, OrderType
+from tantra_adapters.common import BrokerCredentials, MockTransport
+from tantra_adapters.dhan import DhanAdapter
 
 transport = MockTransport()               # or UrllibTransport() in production
 dhan = DhanAdapter(
@@ -71,7 +71,7 @@ Adapters are constructed with an injected transport (`HttpTransport`), a base-UR
 override, and pydantic `BrokerCredentials`; nothing reads the environment implicitly
 and no credentials are needed for `MockTransport`-backed offline use.
 
-## Canonical Models (`vyapaar_adapters.common.models`)
+## Canonical Models (`tantra_adapters.common.models`)
 
 All models are `@dataclass(frozen=True, slots=True)` and self-validating in
 `__post_init__` — negative prices/quantities raise `ValueError` at construction.
@@ -85,13 +85,13 @@ All models are `@dataclass(frozen=True, slots=True)` and self-validating in
 | `Position` | `quantity` (may be negative = short), `average_price`, optional P&L | |
 | `Margin` | `available`, `used`, `total` | `currency` defaults to `"INR"` |
 
-Enums follow the Vyapaar ubiquitous language (`StrEnum`): `OrderSide`
+Enums follow the Tantra ubiquitous language (`StrEnum`): `OrderSide`
 (`BUY`/`SELL`), `OrderType` (`LIMIT`/`MARKET`/`STOP_LIMIT`/`STOP_MARKET`),
 `TimeInForce` (`DAY`/`IOC`/`GTD`), `ProductType` (`DELIVERY`/`INTRADAY`/`MARGIN`/
 `COVER_ORDER`/`BRACKET_ORDER`), `OrderStatus` (`PENDING`, `OPEN`,
 `PARTIALLY_FILLED`, `COMPLETE`, `REJECTED`, `CANCELLED`).
 
-## Zero Floats (`vyapaar_adapters.common.parse`)
+## Zero Floats (`tantra_adapters.common.parse`)
 
 Three strict helpers guard the boundary (`as_decimal`, `non_negative_decimal`,
 `as_iso_ts`):
@@ -136,12 +136,12 @@ class Adapter(Protocol):
 `BrokerApiError(status, detail)` on HTTP ≥ 400; no-op `connect`/`disconnect` for
 stateless token auth (subclasses override `_headers()` to add broker auth headers).
 
-## Broker Modules (`vyapaar_adapters.<broker>`)
+## Broker Modules (`tantra_adapters.<broker>`)
 
 All seven brokers are implemented as modules of the single package — there are no
 separate per-broker distributions. Each module maps its wire fields to the canonical
 models (quote, order placement, positions, funds/margin) and is registered under the
-`vyapaar.adapters` entry-point group **and** the built-in `BROKER_ADAPTERS` fallback
+`tantra.adapters` entry-point group **and** the built-in `BROKER_ADAPTERS` fallback
 (registry invariant enforced by `tests/test_registry.py`).
 
 | Broker | Module & class | Default base URL | Auth headers | Contract tests |
@@ -155,7 +155,7 @@ models (quote, order placement, positions, funds/margin) and is registered under
 | IIFL | `iifl.IIFLAdapter` | `https://tools.iiflsec.com/a/equities/1.0` | `Authorization: Bearer`, `client_id` | — (gap 0001) |
 
 Selected wire mappings (full per-broker reference:
-[`vyapaar-adapters/docs/design/code-brokers.md`](https://github.com/vyapaar-labs/vyapaar-adapters/blob/main/docs/design/code-brokers.md)):
+[`tantra-adapters/docs/design/code-brokers.md`](https://github.com/tantra-labs/tantra-adapters/blob/main/docs/design/code-brokers.md)):
 
 | Broker | Quote | Order placement | Positions | Margin |
 |--------|-------|-----------------|-----------|--------|
@@ -170,7 +170,7 @@ Selected wire mappings (full per-broker reference:
 Quantities and prices are serialized as strings into order payloads
 (`str(request.quantity)`) to preserve exact decimals end to end.
 
-## Paper Broker & Fixture Replay (`vyapaar_adapters.paper`)
+## Paper Broker & Fixture Replay (`tantra_adapters.paper`)
 
 The offline harness makes CI deterministic without live credentials:
 
@@ -186,8 +186,8 @@ The offline harness makes CI deterministic without live credentials:
   surface as test failures.
 
 ```python
-from vyapaar_adapters import PaperBroker, RecordingAdapter
-from vyapaar_adapters.common.fixtures import record_fixture, load_fixture
+from tantra_adapters import PaperBroker, RecordingAdapter
+from tantra_adapters.common.fixtures import record_fixture, load_fixture
 
 broker = PaperBroker({"NSE:RELIANCE-EQ": "2456.70"})
 sink: list[dict] = []
@@ -204,15 +204,15 @@ The lossless codec (`common.codec`) encodes `Decimal` as `{"_dec": "..."}`,
 dataclasses as `{"_model": ..., "fields": {...}}` — scales, timezone-awareness and
 enum identity all survive the JSON round trip.
 
-## Registry (`vyapaar_adapters.registry`)
+## Registry (`tantra_adapters.registry`)
 
 ```python
-from vyapaar_adapters.registry import load_adapters
+from tantra_adapters.registry import load_adapters
 
 adapters = load_adapters()   # {"dhan": DhanAdapter, "zerodha": ZerodhaAdapter, ...}
 ```
 
-Discovery iterates the `vyapaar.adapters` entry-point group (with a module-string
+Discovery iterates the `tantra.adapters` entry-point group (with a module-string
 fallback) and, when the package is not installed as a distribution, falls back to the
 built-in `BROKER_ADAPTERS` map. The invariant "entry points stay in sync with
 `BROKER_ADAPTERS`" is asserted by `tests/test_registry.py`, which also asserts every
@@ -274,7 +274,7 @@ parallel `tests/` directory (workspace rule — no inline tests in `src`).
 
 | Limitation | Tracking gap |
 |------------|--------------|
-| Contract tests exist only for `dhan` + `zerodha`; the other five brokers are untested | [gap 0001](https://github.com/vyapaar-labs/vyapaar-adapters/blob/main/docs/gaps/0001-broker-contract-tests-missing.md) |
+| Contract tests exist only for `dhan` + `zerodha`; the other five brokers are untested | [gap 0001](https://github.com/tantra-labs/tantra-adapters/blob/main/docs/gaps/0001-broker-contract-tests-missing.md) |
 | `get_bars` returns a single-quote stub for 6 of 7 brokers (only Zerodha parses real candles) | gap 0002 |
 | `cancel_order` discards the broker response and fabricates a zeroed `Order` in all seven adapters | gap 0003 |
 | REST-only: no WebSocket/tick streaming, no depth feed | gap 0004 |

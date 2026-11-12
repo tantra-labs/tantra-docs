@@ -1,11 +1,11 @@
 # Indicators
 
-Vyapaar ships with 40+ technical indicators implemented in Rust and
+Tantra ships with 40+ technical indicators implemented in Rust and
 wrapped for Python. All indicators follow the same incremental API:
 O(1) update per bar, `None` until warmed up.
 
-Indicators are defined in `vyapaar.strategies.indicators` (Python) and
-`vyapaar_strategies_indicators` (Rust). The Python wrappers call into the Rust
+Indicators are defined in `tantra.strategies.indicators` (Python) and
+`tantra_strategies_indicators` (Rust). The Python wrappers call into the Rust
 implementations via PyO3, so a Python strategy gets Rust performance.
 
 ## The Indicator Contract
@@ -29,7 +29,7 @@ implementations via PyO3, so a Python strategy gets Rust performance.
 
 ### Simple Moving Average
 
-    from vyapaar.strategies.indicators import Sma
+    from tantra.strategies.indicators import Sma
 
     sma = Sma(period=20)
     sma.update(price)       # → None until 20 values seen
@@ -158,12 +158,12 @@ Returns a histogram of traded volume by price:
 
 ## India-Specific Indicators
 
-The `vyapaar.strategies.indicators.india` module contains indicators
+The `tantra.strategies.indicators.india` module contains indicators
 popular in Indian retail and algorithmic trading:
 
 ### Pivot Points
 
-    from vyapaar.strategies.indicators.india import PivotPoints
+    from tantra.strategies.indicators.india import PivotPoints
 
     pp = PivotPoints(method="classic")
     pp.update(prev_high, prev_low, prev_close)
@@ -214,7 +214,7 @@ Some indicators wrap others:
 For vectorized research (Tier 1 backtests), indicators are available in
 GPU-accelerated form for bulk computation:
 
-    from vyapaar.research.vectorized import gpu_sma, gpu_rsi
+    from tantra.research.vectorized import gpu_sma, gpu_rsi
 
     prices = load_prices("RELIANCE", start="2015-01-01")
     sma_20 = gpu_sma(prices, period=20)     # returns a Series
@@ -223,7 +223,7 @@ This requires a CUDA-capable GPU. Falls back to CPU if unavailable.
 
 ## Writing a Custom Indicator
 
-    from vyapaar.strategies.indicators import Indicator
+    from tantra.strategies.indicators import Indicator
 
 
     class CustomMomentum(Indicator):
@@ -254,7 +254,7 @@ This requires a CUDA-capable GPU. Falls back to CPU if unavailable.
             return self._value is not None
 
 Custom indicators can be written in Python for research, but for
-production use, port them to Rust in `vyapaar-strategies` and expose
+production use, port them to Rust in `tantra-strategies` and expose
 them via a Python wrapper. The performance difference is significant
 for strategies that trade many instruments.
 

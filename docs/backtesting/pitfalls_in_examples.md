@@ -1,7 +1,7 @@
 # Pitfalls in the Examples and the Catalog
 
-Every example script in `vyapaar-examples` and every registered strategy in
-`vyapaar-strategies` is written to be read together with its pitfalls. The
+Every example script in `tantra-examples` and every registered strategy in
+`tantra-strategies` is written to be read together with its pitfalls. The
 convention is deliberate: a backtest number that comes without its failure modes
 is easy to over-trust, and the code that produced it is the best place to say
 what it does not prove.
@@ -9,12 +9,12 @@ what it does not prove.
 This page explains the convention and indexes the main classes of trap against a
 concrete script or strategy README that demonstrates it or defends against it.
 It does not repeat the general treatment; for that, read
-[Avoiding Backtest Biases](https://vyapaar-labs.github.io/vyapaar/book/backtesting/avoiding_backtest_biases.html)
+[Avoiding Backtest Biases](https://tantra-labs.github.io/tantra/book/backtesting/avoiding_backtest_biases.html)
 in the mdBook (source: `book/src/backtesting/avoiding_backtest_biases.md`).
 
 ## The convention
 
-**Example scripts (`vyapaar-examples`).** Every numbered script
+**Example scripts (`tantra-examples`).** Every numbered script
 (`<dir>/NN_*.py`) has a `Pitfalls::` section in its module docstring with 3 to 6
 bullets that are specific to what that script does. A unit test,
 `tests/unit/test_pitfalls_sections.py`, discovers the scripts and fails when one
@@ -22,12 +22,12 @@ has no section or a bullet count outside that range. A `PENDING_PITFALLS`
 allowlist exists to stage a new script; it is empty today. Each directory's
 `README.md` carries a short "Pitfalls checklist" pointing at the same idea.
 
-**Catalog strategies (`vyapaar-strategies`).** Every strategy in `registry.json`
+**Catalog strategies (`tantra-strategies`).** Every strategy in `registry.json`
 has a `README.md` with three sections, enforced by `test_readme_sections.py`:
 
 | Section | Holds |
 |---|---|
-| `## Usage` | A snippet that runs from the repo root: load by registry name, run through `vyapaar.strategies.testing.replay`. |
+| `## Usage` | A snippet that runs from the repo root: load by registry name, run through `tantra.strategies.testing.replay`. |
 | `## Possible output` | The real output of that snippet. `backtest_result.json` metrics are quoted only when its `status` is `completed`, and the README says where they came from. |
 | `## Pitfalls` | At least 3 bullets specific to that strategy's code and config, plus a link to the generic bias page. |
 

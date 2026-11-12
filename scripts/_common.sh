@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared helpers for vyapaar-docs scripts. Source this; do not execute.
+# Shared helpers for tantra-docs scripts. Source this; do not execute.
 
 set -euo pipefail
 

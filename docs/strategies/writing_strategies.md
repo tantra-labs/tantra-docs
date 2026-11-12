@@ -1,15 +1,15 @@
 # Writing Strategies
 
-A Vyapaar strategy is a Python class that inherits from `Strategy` and implements lifecycle callbacks. The engine calls the callbacks in response to market events; the strategy responds by submitting order intents through its context.
+A Tantra strategy is a Python class that inherits from `Strategy` and implements lifecycle callbacks. The engine calls the callbacks in response to market events; the strategy responds by submitting order intents through its context.
 
 The strategy code is identical in backtest and live. The engine determines which mode it is in.
 
 ## The Minimal Strategy
 
 ```python
-from vyapaar.entities.bar import Bar
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.strategies.base import Strategy
+from tantra.entities.bar import Bar
+from tantra.entities.instrument import InstrumentId
+from tantra.strategies.base import Strategy
 
 
 class BuyAndHold(Strategy):
@@ -117,10 +117,10 @@ self.submit(intent)             # Same as self.ctx.submit(intent)
 
 ## Indicators
 
-Indicators are stateful objects that consume a stream and produce values. They are defined in `vyapaar.strategies.indicators`:
+Indicators are stateful objects that consume a stream and produce values. They are defined in `tantra.strategies.indicators`:
 
 ```python
-from vyapaar.strategies.indicators import Sma, Rsi, Atr, Bollinger
+from tantra.strategies.indicators import Sma, Rsi, Atr, Bollinger
 
 def on_start(self):
     self.sma_fast = Sma(period=20)
@@ -162,7 +162,7 @@ def on_bar(self, bar):
 Strategy parameters should be class attributes using the `Parameter` descriptor:
 
 ```python
-from vyapaar.strategies.base import Strategy, Parameter
+from tantra.strategies.base import Strategy, Parameter
 
 
 class SmaCrossover(Strategy):
@@ -191,11 +191,11 @@ Logs are captured by the engine and included in the backtest report. In live mod
 ## A Complete Example
 
 ```python
-from vyapaar.entities.bar import Bar
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.strategies.base import Strategy, Parameter
-from vyapaar.strategies.indicators import Sma, Atr
-from vyapaar.entities.order import OrderIntent
+from tantra.entities.bar import Bar
+from tantra.entities.instrument import InstrumentId
+from tantra.strategies.base import Strategy, Parameter
+from tantra.strategies.indicators import Sma, Atr
+from tantra.entities.order import OrderIntent
 
 
 class SmaAtrStrategy(Strategy):

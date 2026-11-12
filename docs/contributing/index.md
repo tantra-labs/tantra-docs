@@ -1,6 +1,6 @@
 # Contributing
 
-Vyapaar is a multi-repository workspace. This section is the guide for
+Tantra is a multi-repository workspace. This section is the guide for
 changing the code.
 
 ## The Documents
@@ -22,11 +22,11 @@ Two things worth knowing before your first contribution:
 1. **The dependency hierarchy is enforced in CI.** If your pull
    request adds an edge that violates the allowed table in
    [Dependency Rules](dependency_rules.md), it will fail. Read that
-   document before adding a `vyapaar-*` dependency.
+   document before adding a `tantra-*` dependency.
 
 2. **The workspace spans six repositories.** The core engine
-   (`vyapaar/vyapaar`) does not import broker adapters
-   (`vyapaar/vyapaar-adapters`) or strategies (`vyapaar/vyapaar-strategies`).
+   (`tantra/tantra`) does not import broker adapters
+   (`tantra/tantra-adapters`) or strategies (`tantra/tantra-strategies`).
    Which repository you contribute to depends on what you are adding.
 
 ## The Contribution Flow

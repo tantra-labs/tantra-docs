@@ -1,7 +1,7 @@
 # Portfolio Construction
 
-A rebalanced portfolio answers four separate questions. Vyapaar's portfolio
-layer (`vyapaar.strategies.portfolio`) makes each one a small, swappable part
+A rebalanced portfolio answers four separate questions. Tantra's portfolio
+layer (`tantra.strategies.portfolio`) makes each one a small, swappable part
 and wires them together in `PortfolioStrategy`:
 
     Universe -> Selector -> WeightingScheme -> RebalanceSchedule -> PortfolioStrategy
@@ -16,7 +16,7 @@ long-only, and time comes from bar event time (UTC), never the wall clock.
 
 ## Vocabulary
 
-| Term | Meaning | Vyapaar part |
+| Term | Meaning | Tantra part |
 |---|---|---|
 | **Universe** | The set of instruments eligible to be held. Its *constituents* (members) can change over time. | `NamedUniverse("nifty50")`, `StaticUniverse([...])` |
 | **Selection** | Narrowing the universe to the names to hold, e.g. the 10 with the best trailing return. | `SelectAll()` (default), `TopN(n, score)` |
@@ -92,7 +92,7 @@ every 15 trading days.
 
 Code:
 
-    from vyapaar.strategies.portfolio import EqualWeight, EveryNDays, NamedUniverse, PortfolioStrategy
+    from tantra.strategies.portfolio import EqualWeight, EveryNDays, NamedUniverse, PortfolioStrategy
 
     strategy = PortfolioStrategy(
         NamedUniverse("nifty200_alpha30"),
@@ -115,10 +115,10 @@ Equivalent `config.toml`:
     allocation = 0.995
 
 This is the catalog strategy `equal_weight`
-(`vyapaar-strategies/portfolio/rebalancing/equal_weight`, class
+(`tantra-strategies/portfolio/rebalancing/equal_weight`, class
 `EqualWeightRebalance`), a thin `PortfolioStrategy` subclass that builds its
 parts from `[params]`. The runnable example is
-`vyapaar-examples/strategies/06_equal_weight_rebalance.py`.
+`tantra-examples/strategies/06_equal_weight_rebalance.py`.
 
 ### 2. Inverse-volatility, monthly
 
@@ -127,7 +127,7 @@ on the first session of each month.
 
 Code:
 
-    from vyapaar.strategies.portfolio import (
+    from tantra.strategies.portfolio import (
         InverseVolatility,
         MonthlyFirstSession,
         NamedUniverse,
@@ -155,7 +155,7 @@ Equivalent `config.toml`:
 
 Or directly from the params dict:
 
-    from vyapaar.strategies.portfolio import PortfolioStrategy
+    from tantra.strategies.portfolio import PortfolioStrategy
 
     strategy = PortfolioStrategy.from_params(
         {
@@ -174,7 +174,7 @@ whenever any position has drifted 5 percentage points from its target.
 
 Code:
 
-    from vyapaar.strategies.portfolio import (
+    from tantra.strategies.portfolio import (
         AnyOf,
         DriftBand,
         EqualWeight,
@@ -231,7 +231,7 @@ delisted, merged or removed during your backtest, which flatters the results.
 Registering a history:
 
     import datetime as dt
-    from vyapaar.markets.india.universes import (
+    from tantra.markets.india.universes import (
         Constituent,
         UniverseHistory,
         register_universe_history,

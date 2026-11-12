@@ -1,18 +1,18 @@
-# `vyapaar-docs` — Subagent Migration & DDD Refactoring Guide
+# `tantra-docs` — Subagent Migration & DDD Refactoring Guide
 
 > **Tier**: Tier 6E
 > **Source**: `honba-workspace/honba-docs`
-> **Target**: `vyapaar-docs`
+> **Target**: `tantra-docs`
 
 ---
 
 ## 1. File & Directory Migration Map
 
-| Source Path (`honba-docs/`) | Target Path (`vyapaar-docs/`) | Migration Action & Notes |
+| Source Path (`honba-docs/`) | Target Path (`tantra-docs/`) | Migration Action & Notes |
 | :--- | :--- | :--- |
 | `docs/*` | `docs/*` | Copy all directory trees (`ai/`, `api/`, `architecture/`, `backtesting/`, `examples/`, `getting-started/`, `india/`, `strategies/`, `tutorials/`, `conformance_matrix.md`). Retain target's `design/` and `roadmap/`. |
-| `book/src/architecture/crate_hierarchy.md` | `docs/architecture/crate_hierarchy.md` | Port from mdBook into `docs/architecture/`, updating to Vyapaar crate names. |
-| `book/src/architecture/message_flow.md` | `docs/architecture/message_flow.md` | Port from mdBook into `docs/architecture/`, updating message flow diagrams to Vyapaar architecture. |
+| `book/src/architecture/crate_hierarchy.md` | `docs/architecture/crate_hierarchy.md` | Port from mdBook into `docs/architecture/`, updating to Tantra crate names. |
+| `book/src/architecture/message_flow.md` | `docs/architecture/message_flow.md` | Port from mdBook into `docs/architecture/`, updating message flow diagrams to Tantra architecture. |
 | `book/src/backtesting/avoiding_backtest_biases.md` | `docs/backtesting/avoiding_backtest_biases.md` | Port Tucker Balch's 10 biases guide into `docs/backtesting/`. |
 | `book/src/nl-verification.md` | `docs/ai/nl_verification.md` | Replace stub page with full NL-to-strategy documentation from mdBook. |
 | `book/src/contributing/*` | `docs/contributing/*` | Port contribution guides (`index.md`, `development_setup.md`, `adding_adapters.md`, `adding_indicators.md`, `dependency_rules.md`). |
@@ -36,7 +36,7 @@
 4. Port helper scripts in `scripts/` (`_common.sh`, `build.sh`, `serve.sh`, `clean.sh`, `bootstrap.sh`) and `Makefile`, removing all `mdbook` build paths.
 
 ### Phase 2: Documentation Asset Migration & mdBook Consolidation
-1. Synchronize all subdirectories from `honba-docs/docs/*` to `vyapaar-docs/docs/`, preserving `design/`, `roadmap/`, and `migration-guide.md`.
+1. Synchronize all subdirectories from `honba-docs/docs/*` to `tantra-docs/docs/`, preserving `design/`, `roadmap/`, and `migration-guide.md`.
 2. Transfer unique pages from `honba-docs/book/src/`:
    - `book/src/architecture/crate_hierarchy.md` → `docs/architecture/crate_hierarchy.md`
    - `book/src/architecture/message_flow.md` → `docs/architecture/message_flow.md`
@@ -48,32 +48,32 @@
 ### Phase 3: Subsystem Terminology & DDD Refactoring
 Execute automated and manual refactoring across all markdown files in `docs/`:
 - **Subsystem & Crate Names**:
-  - `honba-core` → `vyapaar-core` (`honba_core` → `vyapaar_core`)
-  - `honba-kokoro` → `vyapaar-ledger` (`honba_kokoro` → `vyapaar_ledger`)
-  - `honba-mon` → `vyapaar-risk` (`honba_mon` → `vyapaar_risk`)
-  - `honba-me` → `vyapaar-market` (`honba_me` → `vyapaar_market`)
-  - `honba-te` → `vyapaar-exec` (`honba_te` → `vyapaar_exec`)
-  - `honba-ya` → `vyapaar-runtime` (`honba_ya` → `vyapaar_runtime`)
-  - `honba-nou` → `vyapaar-agent` (`honba_nou` → `vyapaar_agent`)
-  - `honba-tamashii` → `vyapaar-ffi` (`honba_tamashii` → `vyapaar_ffi`)
-  - `honba-kao` → `vyapaar-ui` (`honba_kao` → `vyapaar_ui`)
-  - `honba-fe` → `vyapaar-fe` (`honba_fe` → `vyapaar_fe`)
-  - `honba-data` → `vyapaar-data` (`honba_data` → `vyapaar_data`)
-  - `honba-adapters` → `vyapaar-adapters` (`honba_adapters` → `vyapaar_adapters`)
-  - `honba-strategies` → `vyapaar-strategies` (`honba_strategies` → `vyapaar_strategies`)
-  - `honba-examples` → `vyapaar-examples` (`honba_examples` → `vyapaar_examples`)
-  - `honba-docs` → `vyapaar-docs` (`honba_docs` → `vyapaar_docs`)
+  - `honba-core` → `tantra-core` (`honba_core` → `tantra_core`)
+  - `honba-kokoro` → `tantra-ledger` (`honba_kokoro` → `tantra_ledger`)
+  - `honba-mon` → `tantra-risk` (`honba_mon` → `tantra_risk`)
+  - `honba-me` → `tantra-market` (`honba_me` → `tantra_market`)
+  - `honba-te` → `tantra-exec` (`honba_te` → `tantra_exec`)
+  - `honba-ya` → `tantra-runtime` (`honba_ya` → `tantra_runtime`)
+  - `honba-nou` → `tantra-agent` (`honba_nou` → `tantra_agent`)
+  - `honba-tamashii` → `tantra-ffi` (`honba_tamashii` → `tantra_ffi`)
+  - `honba-kao` → `tantra-ui` (`honba_kao` → `tantra_ui`)
+  - `honba-fe` → `tantra-fe` (`honba_fe` → `tantra_fe`)
+  - `honba-data` → `tantra-data` (`honba_data` → `tantra_data`)
+  - `honba-adapters` → `tantra-adapters` (`honba_adapters` → `tantra_adapters`)
+  - `honba-strategies` → `tantra-strategies` (`honba_strategies` → `tantra_strategies`)
+  - `honba-examples` → `tantra-examples` (`honba_examples` → `tantra_examples`)
+  - `honba-docs` → `tantra-docs` (`honba_docs` → `tantra_docs`)
 - **Python Imports & Namespaces**:
-  - `import honba` → `import vyapaar`
-  - `from honba.` → `from vyapaar.`
+  - `import honba` → `import tantra`
+  - `from honba.` → `from tantra.`
 - **Organization & Branding**:
-  - `honba-labs` → `vyapaar-labs`
-  - "Honba" → "Vyapaar" (preserving contextual historical design origins where appropriate)
+  - `honba-labs` → `tantra-labs`
+  - "Honba" → "Tantra" (preserving contextual historical design origins where appropriate)
 
 ### Phase 4: MkDocs Configuration & Navigation Restructuring
 1. Rewrite `mkdocs.yml`:
-   - Set `site_name: Vyapaar Labs Documentation`
-   - Set `site_url: https://docs.vyapaar-labs.io`
+   - Set `site_name: Tantra Labs Documentation`
+   - Set `site_url: https://docs.tantra-labs.io`
    - Configure Material theme palette (slate / indigo), copy buttons, section indexes.
    - Configure markdown extensions (`pymdownx.superfences`, `pymdownx.highlight`, `admonition`, `tables`, `footnotes`, `attr_list`, `toc`).
 2. Construct comprehensive navigation tree incorporating:

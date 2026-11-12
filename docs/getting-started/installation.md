@@ -1,6 +1,6 @@
 # Installation
 
-Vyapaar requires three toolchains: **Rust** (for the engine), **Python 3.10+**
+Tantra requires three toolchains: **Rust** (for the engine), **Python 3.10+**
 (for the control plane and strategy API), and optionally **Node.js 18+** (only
 if you want to run the frontend dashboard).
 
@@ -13,7 +13,7 @@ Install via [rustup](https://rustup.rs):
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     rustup component add rustfmt clippy
 
-Vyapaar pins `rust-version = "1.75"` in the workspace, so any newer stable
+Tantra pins `rust-version = "1.75"` in the workspace, so any newer stable
 toolchain works.
 
 ### Python
@@ -40,8 +40,8 @@ On macOS with Homebrew:
 
 ## Clone and Build
 
-    git clone https://github.com/vyapaar-labs/vyapaar.git
-    cd vyapaar
+    git clone https://github.com/tantra-labs/tantra.git
+    cd tantra
 
 ### Build the Rust workspace
 
@@ -68,18 +68,18 @@ The Python control plane links to the Rust core via PyO3:
 
 Verify:
 
-    vyapaar version
-    # → vyapaar 0.1.0
+    tantra version
+    # → tantra 0.1.0
 
 ## Install Broker Adapters
 
 Adapters live in a separate repository — one package, one module per broker —
 so the core engine stays broker-agnostic:
 
-    git clone https://github.com/vyapaar-labs/vyapaar-adapters.git
-    cd vyapaar-adapters
+    git clone https://github.com/tantra-labs/tantra-adapters.git
+    cd tantra-adapters
 
-    pip install -e .          # installs vyapaar_adapters with all seven broker modules
+    pip install -e .          # installs tantra_adapters with all seven broker modules
 
 All seven brokers (Dhan, Zerodha, Angel One, Upstox, Fyers, Kotak, IIFL) ship in
 the single package; Dhan and Zerodha are the contract-certified ones. The

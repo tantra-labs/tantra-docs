@@ -11,9 +11,9 @@ crosses back below. Position size is equal-weight across the universe.
 
 Create `first_backtest.py`:
 
-    from vyapaar import Strategy
-    from vyapaar.indicators import Sma
-    from vyapaar.markets.india.universes import resolve_universe
+    from tantra import Strategy
+    from tantra.indicators import Sma
+    from tantra.markets.india.universes import resolve_universe
 
 
     class SmaCrossover(Strategy):

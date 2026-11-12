@@ -1,7 +1,7 @@
 # Natural Language Verification
 
 Natural language verification is the workflow of describing a strategy
-in plain English, having Vyapaar generate the implementation, run a
+in plain English, having Tantra generate the implementation, run a
 backtest, and produce a critique in plain English. It is useful for
 two purposes: writing strategies quickly, and getting a second opinion
 on a strategy you wrote yourself.
@@ -10,10 +10,10 @@ on a strategy you wrote yourself.
 
 ### Workflow 1: NL → Strategy
 
-You describe what you want. Vyapaar writes it, backtests it, and tells
+You describe what you want. Tantra writes it, backtests it, and tells
 you whether it works.
 
-    from vyapaar.ai.verification import nl_to_strategy, critique
+    from tantra.ai.verification import nl_to_strategy, critique
 
     result = nl_to_strategy(
         description="""
@@ -54,7 +54,7 @@ breakdown.
 
 You wrote a strategy. You want an independent review.
 
-    from vyapaar.ai.verification import critique
+    from tantra.ai.verification import critique
 
     report = critique(
         strategy=SmaCrossover,     # a class
@@ -179,7 +179,7 @@ reasoning are saved alongside the report.
 
 ## The Critique Schema
 
-    from vyapaar.ai.verification import Critique
+    from tantra.ai.verification import Critique
 
     class Critique(BaseModel):
         summary: str

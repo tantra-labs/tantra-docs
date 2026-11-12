@@ -1,10 +1,10 @@
 # Adding Broker Adapters
 
-Adapter development happens in the `vyapaar-adapters` repository. This document
+Adapter development happens in the `tantra-adapters` repository. This document
 describes how to add a new broker **module** to the package, test it offline, and
 register it.
 
-> Synced against `vyapaar-adapters` source on 2026-11-12. The seven shipped modules
+> Synced against `tantra-adapters` source on 2026-11-12. The seven shipped modules
 > (`dhan`, `zerodha`, `angelone`, `upstox`, `fyers`, `kotak`, `iifl`) are the living
 > examples — `dhan.py` is the cleanest template, `zerodha.py` the reference for real
 > candle history.
@@ -13,7 +13,7 @@ register it.
 
 1. Read [Adapters Package](../api/adapters-package.md) for the package model and
    [Adapter Interface](../architecture/adapter_interface.md) for how Python adapters
-   relate to the Rust production path (`vyapaar-market` / `vyapaar-exec`).
+   relate to the Rust production path (`tantra-market` / `tantra-exec`).
 2. Check the parity state in the repo's `docs/gaps/` index — `dhan` and `zerodha`
    are contract-certified; the other five are implemented but untested (gap 0001).
    New broker modules should land **with** their contract test, never without.
@@ -27,8 +27,8 @@ Adapters are single modules of the one package — there is no per-broker
 distribution, no scaffolding generator:
 
 ```text
-vyapaar-adapters/
-├── vyapaar_adapters/
+tantra-adapters/
+├── tantra_adapters/
 │   ├── <broker>.py          # the adapter module you are adding
 │   ├── common/              # shared: models, parse, protocols, transport, base, config, codec, fixtures
 │   ├── paper.py             # offline harness
@@ -49,11 +49,11 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from vyapaar_adapters.common.base import BaseRestAdapter
-from vyapaar_adapters.common.models import (
+from tantra_adapters.common.base import BaseRestAdapter
+from tantra_adapters.common.models import (
     Margin, Order, OrderRequest, OrderSide, OrderStatus, OrderType, Position, Quote,
 )
-from vyapaar_adapters.common.parse import as_decimal
+from tantra_adapters.common.parse import as_decimal
 
 
 class MyBrokerAdapter(BaseRestAdapter):
@@ -145,8 +145,8 @@ enum mappings, and error paths.
 # tests/test_mybroker.py — shape
 from decimal import Decimal
 
-from vyapaar_adapters.common import MockTransport
-from vyapaar_adapters.mybroker import MyBrokerAdapter
+from tantra_adapters.common import MockTransport
+from tantra_adapters.mybroker import MyBrokerAdapter
 
 
 def _adapter(**responses):
@@ -178,11 +178,11 @@ Assert in every test file:
 1. `pyproject.toml`:
 
 ```toml
-[project.entry-points."vyapaar.adapters"]
-mybroker = "vyapaar_adapters.mybroker:MyBrokerAdapter"
+[project.entry-points."tantra.adapters"]
+mybroker = "tantra_adapters.mybroker:MyBrokerAdapter"
 ```
 
-2. `vyapaar_adapters/registry.py` — append to `BROKER_ADAPTERS`:
+2. `tantra_adapters/registry.py` — append to `BROKER_ADAPTERS`:
 
 ```python
 "mybroker": MyBrokerAdapter,
@@ -211,11 +211,11 @@ template so it is covered when they land.
 ## Step 7: Verification gates
 
 ```bash
-cd vyapaar-adapters
+cd tantra-adapters
 make test     # pytest -q
 make lint     # ruff check .
 make check    # lint + format-check + tests
-mypy vyapaar_adapters tests   # strict-ish: disallow_untyped_defs
+mypy tantra_adapters tests   # strict-ish: disallow_untyped_defs
 ```
 
 Everything runs offline — no live credentials, no network. Live smoke tests are
@@ -255,7 +255,7 @@ the contract — test them explicitly with `MockTransport` canned error payloads
 
 ## Checklist
 
-- [ ] `vyapaar_adapters/<broker>.py` subclassing `BaseRestAdapter`, `default_base_url` set, `_headers()` auth added
+- [ ] `tantra_adapters/<broker>.py` subclassing `BaseRestAdapter`, `default_base_url` set, `_headers()` auth added
 - [ ] All protocol methods implemented with canonical models and `as_decimal` coercion
 - [ ] Real `get_bars` (OHLCV) and parsed `cancel_order` — no stubs
 - [ ] `tests/test_<broker>.py` with `MockTransport`: Decimal assertions, enum mappings, error paths

@@ -1,18 +1,18 @@
 # Adapters: typed registry helpers
 
-> !!! warning "Not yet implemented in the `vyapaar` SDK"
->     The `vyapaar` wheel (built from `vyapaar-ffi`) does **not** ship a
->     `vyapaar.adapters` module today — `base.py`, `registry.py`, the role
+> !!! warning "Not yet implemented in the `tantra` SDK"
+>     The `tantra` wheel (built from `tantra-ffi`) does **not** ship a
+>     `tantra.adapters` module today — `base.py`, `registry.py`, the role
 >     protocols and `verify_adapter_contract` described below are the *target*
 >     contract, not shipped code. The adapter layer that **is** implemented is
->     the separate [`vyapaar-adapters` package](adapters-package.md) with its own
->     entry-point registry (`vyapaar_adapters.registry.load_adapters`). This page
+>     the separate [`tantra-adapters` package](adapters-package.md) with its own
+>     entry-point registry (`tantra_adapters.registry.load_adapters`). This page
 >     is retained as the design reference for the planned SDK-side registry;
 >     when it lands, it will be re-synced against source.
 
-Adapters implement the contract in `vyapaar/python/src/vyapaar/adapters/base.py` and are found
-through the registry in `vyapaar/python/src/vyapaar/adapters/registry.py`. Adapter packages advertise
-themselves under the `vyapaar.adapters` entry-point group; discovery is lazy and explicit
+Adapters implement the contract in `tantra/python/src/tantra/adapters/base.py` and are found
+through the registry in `tantra/python/src/tantra/adapters/registry.py`. Adapter packages advertise
+themselves under the `tantra.adapters` entry-point group; discovery is lazy and explicit
 registration always wins. See also [Adapter Interface](../architecture/adapter_interface.md).
 
 ## Roles and Client protocols
@@ -35,7 +35,7 @@ registration always wins. See also [Adapter Interface](../architecture/adapter_i
 it typed, so a type checker sees the role's methods:
 
 ```python
-from vyapaar.adapters.registry import default_registry
+from tantra.adapters.registry import default_registry
 
 registry = default_registry()
 adapter = registry.create_market_data(name, **config)
@@ -47,7 +47,7 @@ found = await adapter.search_instruments("INFY")
 shortcuts over the default registry are `resolve_market_data_adapter(name, **config)` and
 `resolve_execution_adapter(name, **config)`; `resolve_adapter` returns the untyped `Adapter`.
 
-Errors (all in `vyapaar.adapters.errors`):
+Errors (all in `tantra.adapters.errors`):
 
 - `AdapterNotFound` if no adapter is registered under `name` (the message lists the installed
   ones).

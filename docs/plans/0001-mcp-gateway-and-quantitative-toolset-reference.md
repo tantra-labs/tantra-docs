@@ -1,10 +1,10 @@
 # 0001 — Documentation Plan: MCP Quantitative Gateway & 15 Engine Reference
 
 > **Status**: Ready for implementation.
-> **Target Files**: `vyapaar-docs/docs/ai/mcp_gateway.md`, `vyapaar-docs/docs/ai/toolsets/*.md`, `vyapaar-docs/docs/getting-started/mcp.md`.
+> **Target Files**: `tantra-docs/docs/ai/mcp_gateway.md`, `tantra-docs/docs/ai/toolsets/*.md`, `tantra-docs/docs/getting-started/mcp.md`.
 > **Depends on reading**:
-> - `vyapaar-agent/docs/plans/0001-mcp-gateway-discovery-and-quantitative-engines.md`
-> - `vyapaar-ui/docs/plans/0003-mcp-gateway-result-rendering-and-client-configs.md`
+> - `tantra-agent/docs/plans/0001-mcp-gateway-discovery-and-quantitative-engines.md`
+> - `tantra-ui/docs/plans/0003-mcp-gateway-result-rendering-and-client-configs.md`
 > - Fincept MCP Documentation (`https://docs.fincept.in/`)
 
 ---
@@ -16,19 +16,19 @@ Fincept provides a gold-standard documentation pattern for quantitative AI tools
 - Dedicated client connection guides for every major AI coding tool (Claude Code, Cursor, Codex, VS Code).
 - Comprehensive API reference for every quantitative engine with input schemas, return envelopes, and parameter bounds.
 
-This document plans the corresponding documentation rollout in `vyapaar-docs` to ensure users and AI agents have exhaustive, high-quality documentation for Vyapaar's MCP gateway and 15 quantitative engines.
+This document plans the corresponding documentation rollout in `tantra-docs` to ensure users and AI agents have exhaustive, high-quality documentation for Tantra's MCP gateway and 15 quantitative engines.
 
 ---
 
 ## 1. Documentation Structure
 
 ```
-vyapaar-docs/docs/
+tantra-docs/docs/
 ├── ai/
 │   ├── index.md                      # Overview of AI architecture & NoFX principle
 │   ├── mcp_gateway.md                # MCP Server, transports (Stdio/SSE), and discovery
 │   ├── personas.md                   # 9 Specialized financial personas & skills
-│   ├── result_protocol.md            # Universal result envelope (vyapaar/result/v1)
+│   ├── result_protocol.md            # Universal result envelope (tantra/result/v1)
 │   ├── toolsets/                     # Dedicated reference per engine
 │   │   ├── market.md                 # Quotes, candles, order books, holiday calendar
 │   │   ├── technicals.md             # 200+ indicators & 61 candlestick patterns
@@ -52,12 +52,12 @@ vyapaar-docs/docs/
 ## 2. Key Documentation Deliverables
 
 ### 2.1 Machine-Readable Documentation Index (`llms.txt`)
-Deploy `vyapaar-docs/docs/llms.txt` following the modern standard so external LLM coding agents connecting to Vyapaar can index the entire quantitative toolset catalog in a single turn.
+Deploy `tantra-docs/docs/llms.txt` following the modern standard so external LLM coding agents connecting to Tantra can index the entire quantitative toolset catalog in a single turn.
 
 ### 2.2 Client Connection Guides
 Provide exact configuration snippets and setup steps:
-- Running `vyapaar mcp config --client <name>`.
-- Testing connection with `tools/list` and `vyapaar_search_tools`.
+- Running `tantra mcp config --client <name>`.
+- Testing connection with `tools/list` and `tantra_search_tools`.
 
 ### 2.3 Interactive Example Prompts
 Document canonical quantitative workflows:

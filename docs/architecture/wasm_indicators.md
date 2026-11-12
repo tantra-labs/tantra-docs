@@ -1,8 +1,8 @@
 # WASM & High-Performance Indicators Engine
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-market-indicators / vyapaar-ui-api-wasm`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-market-indicators / tantra-ui-api-wasm`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Single Mathematical Source of Truth**: The `vyapaar-api-wasm` and `vyapaar-market-indicators` crates compile verified Rust mathematical indicators to WebAssembly (WASM) for the Leptos frontend (`vyapaar-ui`), browser simulators, and AI evaluation loops. Compute is pure, zero-allocation, and byte-for-byte identical across native Rust, Python (`vyapaar-ffi`), and WASM.
+> **Single Mathematical Source of Truth**: The `tantra-api-wasm` and `tantra-market-indicators` crates compile verified Rust mathematical indicators to WebAssembly (WASM) for the Leptos frontend (`tantra-ui`), browser simulators, and AI evaluation loops. Compute is pure, zero-allocation, and byte-for-byte identical across native Rust, Python (`tantra-ffi`), and WASM.
 
 ---
 
@@ -10,11 +10,11 @@
 
 Indicator calculations must never be reimplemented in different languages. In typical trading platforms, technical indicators calculated in Python (using Pandas/TA-Lib) diverge from indicators calculated in the browser (using JavaScript) or execution servers (in C++/Rust), creating catastrophic phantom signal discrepancies.
 
-Vyapaar guarantees mathematical parity by compiling the exact same Rust indicator algorithms to WebAssembly:
+Tantra guarantees mathematical parity by compiling the exact same Rust indicator algorithms to WebAssembly:
 
 ```text
  ┌────────────────────────────────────────────────────────┐
- │        PURE RUST INDICATOR KERNEL (`vyapaar-market`)         │
+ │        PURE RUST INDICATOR KERNEL (`tantra-market`)         │
  │  - Zero I/O, pure mathematical functions               │
  └──────────────────────────┬─────────────────────────────┘
                             │
@@ -22,8 +22,8 @@ Vyapaar guarantees mathematical parity by compiling the exact same Rust indicato
               ▼                           ▼
  ┌─────────────────────────┐ ┌─────────────────────────┐
  │   NATIVE RUST & PYTHON  │ │   WEBASSEMBLY TARGET    │
- │ - vyapaar-runtime backtester   │ │ - vyapaar-ui Leptos CSR  │
- │ - vyapaar-ffi PyO3   │ │ - Interactive Canvas    │
+ │ - tantra-runtime backtester   │ │ - tantra-ui Leptos CSR  │
+ │ - tantra-ffi PyO3   │ │ - Interactive Canvas    │
  │ - Sub-microsecond ticks │ │ - In-browser Simulator  │
  └─────────────────────────┘ └─────────────────────────┘
 ```

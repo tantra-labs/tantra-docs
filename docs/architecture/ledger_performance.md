@@ -1,14 +1,14 @@
 # Ledger Performance — Trade-Performance Journal
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-ledger-performance` crate. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-ledger-performance` crate. See [Platform Conformance Matrix](../conformance_matrix.md).
 >
-> `vyapaar-ledger-performance` is a pure, zero-I/O, zero-float trade-performance journal — a distinct sibling of `vyapaar-ledger-journal` (double-entry accounting) and `vyapaar-ledger-portfolio` (FIFO tax-lot valuation). It owns the trader's *performance/annotations journal*, not the accounting ledger.
+> `tantra-ledger-performance` is a pure, zero-I/O, zero-float trade-performance journal — a distinct sibling of `tantra-ledger-journal` (double-entry accounting) and `tantra-ledger-portfolio` (FIFO tax-lot valuation). It owns the trader's *performance/annotations journal*, not the accounting ledger.
 
 ---
 
 ## 1. Bounded Context & Responsibility
 
-`vyapaar-ledger-performance` (Tier 1B, plan 0002) is the **pure trade-performance journal**. It consumes the derived closed-trade stream (`MatchedLot`) from `vyapaar-ledger-portfolio::AccountState::match_lots()` and layers on trader annotations, performance metrics, an edge-score composite, a daily P&L calendar, and account-vs-account comparison.
+`tantra-ledger-performance` (Tier 1B, plan 0002) is the **pure trade-performance journal**. It consumes the derived closed-trade stream (`MatchedLot`) from `tantra-ledger-portfolio::AccountState::match_lots()` and layers on trader annotations, performance metrics, an edge-score composite, a daily P&L calendar, and account-vs-account comparison.
 
 **Key design invariants:**
 
@@ -161,7 +161,7 @@ Derived closed trade from a portfolio `MatchedLot` plus user annotation — one 
 
 ## 8. REST Exposure
 
-The trade-performance journal is exposed over HTTP via `vyapaar-runtime-api-rest` under the `/trade-journal/*` prefix (plan 0003):
+The trade-performance journal is exposed over HTTP via `tantra-runtime-api-rest` under the `/trade-journal/*` prefix (plan 0003):
 
 | Method | Path | Phase | Purpose |
 |--------|------|-------|---------|
@@ -181,7 +181,7 @@ See [REST API](../api/rest.md) for full request/response shapes.
 
 ## 9. Related Documents
 
-* **[Architecture Layers & Topology](architecture_layers.md)** — Full `vyapaar-ledger` bounded context: OMS, portfolio, journal, allocation, performance.
+* **[Architecture Layers & Topology](architecture_layers.md)** — Full `tantra-ledger` bounded context: OMS, portfolio, journal, allocation, performance.
 * **[Ledger Allocation](ledger_allocation.md)** — Portfolio allocation & optimization engine (sibling crate).
 * **[REST API](../api/rest.md)** — `/trade-journal/*` endpoint reference.
 * **[Platform Conformance Matrix](../conformance_matrix.md)** — Implementation status badge.

@@ -2,7 +2,7 @@
 
 Position sizing determines more of a strategy's outcome than signal generation does. A strategy with a mediocre signal and good sizing outperforms a strategy with a great signal and fixed-lot sizing.
 
-Vyapaar provides sizing helpers and a portfolio construction layer for multi-instrument strategies.
+Tantra provides sizing helpers and a portfolio construction layer for multi-instrument strategies.
 
 ## The Sizing Models
 
@@ -21,7 +21,7 @@ Fixed size is simple and adequate for research but rarely appropriate for produc
 Trade a fixed percentage of equity per position:
 
 ```python
-from vyapaar.strategies.sizing import whole_shares
+from tantra.strategies.sizing import whole_shares
 
 cash = self.ctx.cash().to_major()
 size = whole_shares(cash, 0.05, bar.close)  # 5% of equity per position
@@ -35,7 +35,7 @@ This is the most common model in practice. For an equal-weight portfolio of N in
 Scale the position so that a fixed move in the underlying produces a fixed loss:
 
 ```python
-from vyapaar.strategies.sizing import whole_shares
+from tantra.strategies.sizing import whole_shares
 
 cash = self.ctx.cash().to_major()
 atr_value = self.atr[iid].value
@@ -53,7 +53,7 @@ With a 2-ATR stop and 1% risk per trade, a losing trade costs 1% of equity regar
 For strategies with a known edge, size by Kelly:
 
 ```python
-from vyapaar.strategies.sizing import whole_shares
+from tantra.strategies.sizing import whole_shares
 
 # Kelly fraction: (win_rate * win_loss_ratio - (1 - win_rate)) / win_loss_ratio
 win_rate = 0.55
@@ -70,13 +70,13 @@ Full Kelly maximises long-run growth but produces drawdowns that are intolerable
 
 ## Stop Losses
 
-A stop loss is a standing order that closes a position if the price moves adversely. Vyapaar supports several stop types through `OrderIntent` factories:
+A stop loss is a standing order that closes a position if the price moves adversely. Tantra supports several stop types through `OrderIntent` factories:
 
 ### Fixed Stop (Stop-Market)
 
 ```python
-from vyapaar.entities.order import OrderIntent
-from vyapaar.entities.instrument import InstrumentId
+from tantra.entities.order import OrderIntent
+from tantra.entities.instrument import InstrumentId
 
 iid = InstrumentId("RELIANCE", "NSE")
 self.ctx.submit(OrderIntent.stop_sell(iid, 100, 2400.00))
@@ -106,8 +106,8 @@ if atr_val is not None:
 A trailing stop follows the market in your favour and never retreats. It is the `TRAILING_STOP` order type, built with two `OrderIntent` factories:
 
 ```python
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.entities.order import OrderIntent
+from tantra.entities.instrument import InstrumentId
+from tantra.entities.order import OrderIntent
 
 iid = InstrumentId("TCS", "NSE")
 
@@ -195,7 +195,7 @@ leverage = gross_exposure / value if value > 0 else 0
 For multi-instrument strategies, the portfolio layer handles allocation across positions. See [Portfolio Construction](portfolio_construction.md) for the full `PortfolioStrategy` API.
 
 ```python
-from vyapaar.strategies.portfolio import (
+from tantra.strategies.portfolio import (
     EqualWeight, InverseVolatility, EveryNDays, MonthlyFirstSession,
     NamedUniverse, PortfolioStrategy, TopN, momentum
 )
@@ -219,7 +219,7 @@ strategy = PortfolioStrategy(
 )
 
 # Top-10 momentum with a drift band
-from vyapaar.strategies.portfolio import AnyOf, DriftBand
+from tantra.strategies.portfolio import AnyOf, DriftBand
 
 strategy = PortfolioStrategy(
     NamedUniverse("nifty50"),
@@ -258,8 +258,8 @@ Threshold rebalancing trades only when target weights drift more than `threshold
 Risk is enforced by the **runner** (via `RiskStage`), not by strategy code. Pass a risk stage when constructing the runner:
 
 ```python
-from vyapaar.risk import RiskLimits, RiskStage
-from vyapaar.strategies.runner import StrategyRunner
+from tantra.risk import RiskLimits, RiskStage
+from tantra.strategies.runner import StrategyRunner
 
 limits = RiskLimits()
 limits.max_notional = 10_000_000
@@ -273,7 +273,7 @@ runner = StrategyRunner(strategy, execution_port, risk=stage, risk_limits=limits
 
 The runner checks every order against the risk limits before submitting to the execution port. A refusal never reaches the port and is audited.
 
-Available limits (see `vyapaar.risk.RiskLimits`):
+Available limits (see `tantra.risk.RiskLimits`):
 - `max_notional` — maximum order notional
 - `max_positions` — maximum concurrent positions
 - `max_leverage` — maximum portfolio leverage
@@ -292,7 +292,7 @@ Drawdown is measured on total portfolio equity (cash + marked positions). Config
 
 ## Multi-Account Execution
 
-Vyapaar supports multi-account execution where the same strategy runs across multiple broker accounts. The engine merges target positions before submitting to avoid self-trading:
+Tantra supports multi-account execution where the same strategy runs across multiple broker accounts. The engine merges target positions before submitting to avoid self-trading:
 
 ```toml
 [execution]
@@ -305,12 +305,12 @@ This is a WonderTrader-inspired feature. Without merging, two accounts running t
 ## A Complete Example
 
 ```python
-from vyapaar.entities.bar import Bar
-from vyapaar.entities.instrument import InstrumentId
-from vyapaar.strategies.base import Strategy, Parameter
-from vyapaar.strategies.indicators import Sma, Atr
-from vyapaar.entities.order import OrderIntent
-from vyapaar.strategies.sizing import whole_shares
+from tantra.entities.bar import Bar
+from tantra.entities.instrument import InstrumentId
+from tantra.strategies.base import Strategy, Parameter
+from tantra.strategies.indicators import Sma, Atr
+from tantra.entities.order import OrderIntent
+from tantra.strategies.sizing import whole_shares
 
 
 class MomentumPortfolio(Strategy):

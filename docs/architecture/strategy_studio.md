@@ -1,34 +1,34 @@
-# Vyapaar Strategy Studio — AI-Native Strategy Workbench & Auto-Researcher
+# Tantra Strategy Studio — AI-Native Strategy Workbench & Auto-Researcher
 
-> **[STATUS: SCAFFOLD]** — `vyapaar-ui`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: SCAFFOLD]** — `tantra-ui`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
 **Document ID:** HBD-2026-DES-006
 **Status:** Draft for Implementation
 **Version:** 1.0
 **Last updated:** 2026-10-20
-**Target Systems:** `vyapaar-ui` (Leptos 0.7 CSR — this is a CSR-only design), `vyapaar-ui-client`, `vyapaar-ui-api-wasm`, `vyapaar-runtime` (REST backend, mostly as-is; two small gap fixes proposed but not in scope), `vyapaar-agent` (patterns consumed; no server work)
-**Reference Lineage:** noFX / bfx-hf-ui-core (panel architecture, dockable workbench motifs — the lineage vyapaar-ui's widget library is explicitly modernized from, Apache-2.0 per `packages/ui-core/NOTICE.md`); Jesse (strategy-as-declarative-spec, backtest metrics summary, optimizer loop, journal discipline); vyapaar-docs doctrine (`book/src/research_loop.md`, three-tier pipeline, statistical validation, backtest-bias guardrails); ADR 0016/0017/0018/0021/0029.
-**Sibling documents:** HBD-2026-DES-004 (React algodesigner plan — the contract source), HBD-2026-DES-005 (vyapaar-ui simulator port — shares P0 foundations, results surface, and handoff), `vyapaar-ui/plan.md` §4.2.
+**Target Systems:** `tantra-ui` (Leptos 0.7 CSR — this is a CSR-only design), `tantra-ui-client`, `tantra-ui-api-wasm`, `tantra-runtime` (REST backend, mostly as-is; two small gap fixes proposed but not in scope), `tantra-agent` (patterns consumed; no server work)
+**Reference Lineage:** noFX / bfx-hf-ui-core (panel architecture, dockable workbench motifs — the lineage tantra-ui's widget library is explicitly modernized from, Apache-2.0 per `packages/ui-core/NOTICE.md`); Jesse (strategy-as-declarative-spec, backtest metrics summary, optimizer loop, journal discipline); tantra-docs doctrine (`book/src/research_loop.md`, three-tier pipeline, statistical validation, backtest-bias guardrails); ADR 0016/0017/0018/0021/0029.
+**Sibling documents:** HBD-2026-DES-004 (React algodesigner plan — the contract source), HBD-2026-DES-005 (tantra-ui simulator port — shares P0 foundations, results surface, and handoff), `tantra-ui/plan.md` §4.2.
 
 ---
 
 ## 1. Purpose
 
-Build the vyapaar-ui **Strategy Studio**: an AI-native visual + declarative strategy workbench for **Indian equities** (NSE session, IST, tick sizes, price bands, T+1 settlement, STT/cost model, intraday square-off) that:
+Build the tantra-ui **Strategy Studio**: an AI-native visual + declarative strategy workbench for **Indian equities** (NSE session, IST, tick sizes, price bands, T+1 settlement, STT/cost model, intraday square-off) that:
 
 1. Lets a human author a strategy graph (`StrategyGraphShape` v1 — the same contract as DES-004/DES-005) on a node canvas, with typed ports, a derived catalogue, code round-trip, snapshots, and a library.
 2. Verifies every candidate against the server (`POST /strategies/verify`) and shows honest diagnostics (quarantine until verified — **propose-never-execute**, ADR 0029 S5).
-3. Runs backtests and parameter sweeps through vyapaar-runtime REST (Tier 2 / Tier 3 of the documented pipeline) and presents results with the E4-S6 trust badges.
+3. Runs backtests and parameter sweeps through tantra-runtime REST (Tier 2 / Tier 3 of the documented pipeline) and presents results with the E4-S6 trust badges.
 4. Hosts an **AI co-pilot** (chat, context briefs, candidate diff cards, apply/discard) and the flagship feature: the **AI Researcher auto mode** — a closed-loop research agent that mutates the strategy graph, evaluates each candidate, learns from a hypothesis journal of failures, and runs **up to 1000 iterations or until the researcher's stated goal is met**, entirely from the browser. No new backend service is required.
-5. Interworks with the rest of vyapaar: hands off to the Simulator (DES-005), reuses the workspace idioms of the Workbench/Screener, consumes vyapaar-market indicators, honors vyapaar-risk's risk doctrine at the authoring and proposal layers, and matches nou's determinism/audit patterns so a future server-side researcher can replay every session.
+5. Interworks with the rest of tantra: hands off to the Simulator (DES-005), reuses the workspace idioms of the Workbench/Screener, consumes tantra-market indicators, honors tantra-risk's risk doctrine at the authoring and proposal layers, and matches nou's determinism/audit patterns so a future server-side researcher can replay every session.
 
 ### 1.1 Why CSR (decision, not preference)
 
 The user directive is **prefer CSR**, and the environment makes that the honest choice:
 
-- vyapaar-ui is already pure CSR Leptos 0.7 (Trunk, `mount_to_body`), and vyapaar-docs precedent (DES-005) sets the port convention.
-- **Nothing on the server can host the researcher today.** `vyapaar-agent-llm::LlmProvider` is an unimplemented stub (`OpenAiProvider::complete` returns `Err(Transport("not implemented"))`; no `reqwest` wired; plan M0/M2 unchecked). There is no `/assistant/propose`, no prompt-queue, no GPU budget. Any "AI orchestration service" would be net-new infrastructure — exactly what "prefer CSR" excludes.
-- The reactor pattern vyapaar prefers — *the server is a deterministic adjudicator, the client is a dumb terminal* — inverts for research: the loop needs an LLM key, memory (hypothesis journal), and a stateful long-running controller. All three are naturally browser-side here, and they are cheap to keep there: 1000 iterations ≈ 1M tokens ≈ **$3** (research_loop.md's own budget) — a self-contained, user-owned script rather than a deployed service.
+- tantra-ui is already pure CSR Leptos 0.7 (Trunk, `mount_to_body`), and tantra-docs precedent (DES-005) sets the port convention.
+- **Nothing on the server can host the researcher today.** `tantra-agent-llm::LlmProvider` is an unimplemented stub (`OpenAiProvider::complete` returns `Err(Transport("not implemented"))`; no `reqwest` wired; plan M0/M2 unchecked). There is no `/assistant/propose`, no prompt-queue, no GPU budget. Any "AI orchestration service" would be net-new infrastructure — exactly what "prefer CSR" excludes.
+- The reactor pattern tantra prefers — *the server is a deterministic adjudicator, the client is a dumb terminal* — inverts for research: the loop needs an LLM key, memory (hypothesis journal), and a stateful long-running controller. All three are naturally browser-side here, and they are cheap to keep there: 1000 iterations ≈ 1M tokens ≈ **$3** (research_loop.md's own budget) — a self-contained, user-owned script rather than a deployed service.
 - The one thing CSR must never do is **falsely execute**: ADR 0029 D16 says the frontend never executes strategy logic. The design below honors the *spirit* (the browser never issues a **canonical** verdict) while explicitly amending the *letter* with a clearly-labelled Tier-1 **provisional screening evaluator** (§5.3, decision D4). This is a documented doctrine exception and is flagged for a ADR delta.
 
 ## 2. Lineage: what is taken from where
@@ -36,14 +36,14 @@ The user directive is **prefer CSR**, and the environment makes that the honest 
 | Source | Taken | Not taken |
 |---|---|---|
 | **noFX / bfx-hf-ui-core** | Panel discipline (`HfPanel`/`HfPanelHeader`), dockable workspace motifs (open/close/width/focus-mode layout persisted per feature), the invariant that widgets stay presentational while a single app-owned store holds state | Dockview-style drag-to-dock (net-new engine; out of scope — the DES-004 experience proves a split+drawer layout is enough at this scale) |
-| **Jesse** | Strategy as a **declarative spec** (the graph/manifest is the strategy; code is a rendering), the backtest **metrics summary** framing (a fixed documented set + derived table), the **optimizer loop** discipline (parameter ranges declared in the spec itself; sweeps over declared space), journal-of-trades habit | Jesse's Python strategy classes (vyapaar's node graph replaces them), its equity-tick engine |
-| **vyapaar-fe algodesigner** (DES-004) | The entire `StrategyGraphShape` contract, node catalogue, the studio layout types, co-pilot message kinds, sweeps panel shapes | Its **mocked** AiQuantStudio engine (`ai-optimizer-engine.ts` returns 3 hard-coded iterations with `Math.random()` Monte-Carlo — the loop below replaces it with real calls), Monaco dependency |
-| **vyapaar-agent** | The harness patterns: closed-schema parses (`deny_unknown_fields`), the `LlmRecord` JSONL audit record, `PromptReplayer` determinism contract, `ValidationBlock` gates | Its (currently nonexistent) LLM transport |
-| **Jesse + Indian market** | — | Framework specifics adapted to India: single-symbol-per-run universes, NSE bar specs, `SESSION_OPEN 09:15 IST`, T+1, freeze-quantity participation caps drawn from vyapaar-risk's doctrine, square-off scheduling nodes |
+| **Jesse** | Strategy as a **declarative spec** (the graph/manifest is the strategy; code is a rendering), the backtest **metrics summary** framing (a fixed documented set + derived table), the **optimizer loop** discipline (parameter ranges declared in the spec itself; sweeps over declared space), journal-of-trades habit | Jesse's Python strategy classes (tantra's node graph replaces them), its equity-tick engine |
+| **tantra-fe algodesigner** (DES-004) | The entire `StrategyGraphShape` contract, node catalogue, the studio layout types, co-pilot message kinds, sweeps panel shapes | Its **mocked** AiQuantStudio engine (`ai-optimizer-engine.ts` returns 3 hard-coded iterations with `Math.random()` Monte-Carlo — the loop below replaces it with real calls), Monaco dependency |
+| **tantra-agent** | The harness patterns: closed-schema parses (`deny_unknown_fields`), the `LlmRecord` JSONL audit record, `PromptReplayer` determinism contract, `ValidationBlock` gates | Its (currently nonexistent) LLM transport |
+| **Jesse + Indian market** | — | Framework specifics adapted to India: single-symbol-per-run universes, NSE bar specs, `SESSION_OPEN 09:15 IST`, T+1, freeze-quantity participation caps drawn from tantra-risk's doctrine, square-off scheduling nodes |
 
 ## 3. The research loop — the contract of AI Researcher auto mode
 
-**The loop is: LLM proposes structure, vyapaar-runtime (and the provisional evaluator) measures, the journal remembers.** The design is a direct implementation of `vyapaar-docs/book/src/research_loop.md`, hardened by the statistical-validation and bias-guardrail doctrine.
+**The loop is: LLM proposes structure, tantra-runtime (and the provisional evaluator) measures, the journal remembers.** The design is a direct implementation of `tantra-docs/book/src/research_loop.md`, hardened by the statistical-validation and bias-guardrail doctrine.
 
 ### 3.1 The Hypothesis record (single source of truth for the loop)
 
@@ -81,7 +81,7 @@ idle ─▶ reasoning ─▶ generating ─▶ screening ─▶ backtesting ─�
 
 - `reasoning` — the journal is rendered into the prompt: unsimilar past hypotheses, failure-mode tally (how many of each kind have been observed), parent chain, and the *instruction* to address at least one observed failure mode.
 - `generating` — the LLM emits the `Hypothesis` JSON. Parse failure (reject-unknown-fields, closed `FailureMode`) ⇒ retry once with the error embedded, then skip iteration and count it.
-- `screening` — Tier 1 provisional evaluator (§5.3): indicators via `vyapaar-ui-api-wasm`, next-open execution, ~seconds in wasm.
+- `screening` — Tier 1 provisional evaluator (§5.3): indicators via `tantra-ui-api-wasm`, next-open execution, ~seconds in wasm.
 - `backtesting` — Tier 2 canonical: `POST /backtests` (server), only when the candidate can actually execute server-side (§5.4), with seed = `loop_seed + iteration` (journals byte-identical per manifest; honest reproducibility).
 - `validating` — Tier 3 gates: `ValidationBlock`-shaped checks (§5.5) + the goal evaluation (§3.4).
 - `reflecting` — failure-mode classification and journal append; the only state the LLM sees next turn.
@@ -114,7 +114,7 @@ Port of research_loop.md's journal, sized honestly for a browser:
 
 - Append-only **JSONL** of `ResearchRecord { hypothesis, tier1, tier2_backtest_id, metrics, validation, failure_mode, embedding?, ts }` persisted in **IndexedDB** (via a tiny `web-sys` crate handle) with localStorage mirror of the *last used provider settings*; export button writes `research_journal_<ts>.jsonl` (CSV fallback for `research_log.md`-style humans).
 - **Similarity memory** replaces FAISS honestly: deterministic hashed-shingle TF-IDF similarity over `statement + rationale + node-vocabulary` (pure Rust in the wasm crate), top-K unsimilar retrieval for the prompt. Constants and a test-fix percentage are pinned; no "AI recalls everything" claims.
-- Replay parity: every record is written with `prompt_sha256`/`output_sha256`/`model_version` like nou's `LlmRecord`, so a future server-side researcher (`vyapaar-agent` growing a real `LlmProvider`) can replay this journal through `PromptReplayer` semantics. That is the long-term interworking this design buys with zero server work today.
+- Replay parity: every record is written with `prompt_sha256`/`output_sha256`/`model_version` like nou's `LlmRecord`, so a future server-side researcher (`tantra-agent` growing a real `LlmProvider`) can replay this journal through `PromptReplayer` semantics. That is the long-term interworking this design buys with zero server work today.
 
 ### 3.6 Provider abstraction (client-side)
 
@@ -126,7 +126,7 @@ trait ResearchProvider {            // browser fetch, no server in this path
 struct ProviderRequest { prompt: String, json_schema: &'static str, max_tokens: u32, temperature: f32 }
 ```
 
-Built-ins (BYO key in localStorage `vyapaar.studio.research.providers` — UX: masked input + explicit "stored locally, fake-visible never" warning):
+Built-ins (BYO key in localStorage `tantra.studio.research.providers` — UX: masked input + explicit "stored locally, fake-visible never" warning):
 
 1. **OpenAI-compatible** (`POST {base}/chat/completions` with `response_format: json_object` or tool-call JSON schema when offered) — covers OpenAI/DeepSeek/Ollama-with-OpenAI/other proxies; flags CORS risk in docs.
 2. **Anthropic** (`/v1/messages`) — browser key CORS is provider-dependent; warn loudly.
@@ -137,18 +137,18 @@ Provider selection is per-loop-run; a provider error backs off (3 attempts × ex
 
 ## 4. Legacy contract recap — the graph/manifest model (from DES-004, unchanged)
 
-The studio authors **`StrategyGraphShape` v1** — identical to what DES-005's simulator consumes and to what vyapaar-runtime verifies:
+The studio authors **`StrategyGraphShape` v1** — identical to what DES-005's simulator consumes and to what tantra-runtime verifies:
 
 - Node types (10): `universe, indicator, transform, condition, logic, sizing, risk, order, schedule, benchmark`; typed ports `series|bool|size|order` per `NODE_PORT_MAP`.
 - `StrategyManifest` = graph minus canvas extras (`strategy_api_version`, `parameters`); server `POST /strategies/verify` answers `StrategyIr`; `POST /strategies` compiles to a content-addressed `sha256:` id in a session catalog (≤1000, idempotent — **this id is the loop's candidate cache key**).
-- Values that matter for the loop, verified in `vyapaar-runtime` source: verify errors come back as 422 with `context.reason = <IrError code>` (`no_subscriptions`, `SubscriptionOutsideUniverse`, …) — **prompt-string material, by design agent-friendly**. `source`/`code` keys are refused (`source_unsupported`).
+- Values that matter for the loop, verified in `tantra-runtime` source: verify errors come back as 422 with `context.reason = <IrError code>` (`no_subscriptions`, `SubscriptionOutsideUniverse`, …) — **prompt-string material, by design agent-friendly**. `source`/`code` keys are refused (`source_unsupported`).
 
-## 5. Architecture in vyapaar-ui
+## 5. Architecture in tantra-ui
 
 ### 5.1 Module map
 
 ```
-crates/vyapaar-ui-app/src/studio/
+crates/tantra-ui-app/src/studio/
   mod.rs                     pub use; page composition
   graph/
     types.rs                 StrategyGraphShape/GraphNode/GraphEdge/PortKind (serde-shaped, wire-neutral)
@@ -159,9 +159,9 @@ crates/vyapaar-ui-app/src/studio/
     codegen.rs               generate_code() — Python strategy source, deterministic
     recognize.rs             recognize source → {graph, spans, code_only} (parser port; used by the code pane)
     diff.rs                  graph_diff + LCS source diff rows
-    snapshot.rs              versions[] snapshot/restore (localStorage vyapaar.studio.versions)
-  layout.rs                  StudioLayout (port of designer layout; localStorage vyapaar.studio.layout)
-  library.rs                 SavedStrategy/Manifest, upsert/fork, library sync (localStorage vyapaar.strategies.library)
+    snapshot.rs              versions[] snapshot/restore (localStorage tantra.studio.versions)
+  layout.rs                  StudioLayout (port of designer layout; localStorage tantra.studio.layout)
+  library.rs                 SavedStrategy/Manifest, upsert/fork, library sync (localStorage tantra.strategies.library)
   handoff.rs                 stash/take to Simulator (keys shared with DES-005 §6)
   stores/mod.rs              StudioStore (RwSignal struct, idiom of stores/trading_mode.rs)
   canvas/                    node editor (§6.3)
@@ -172,7 +172,7 @@ crates/vyapaar-ui-app/src/studio/
     types.rs                 Goal/Hypothesis/Iteration metrics/LoopState
     providers.rs             ResearchProvider impls (openai-compatible/anthropic/ollama/manual)
     propose.rs               prompt builder + reject-unknown-fields parse + retry-one-shot
-    journal.rs               IndexedDB JSONL + TF-IDF similarity (`vyapaar.studio.research`)
+    journal.rs               IndexedDB JSONL + TF-IDF similarity (`tantra.studio.research`)
     engine.rs                the loop state machine (spawn_local_scoped + sleep, pause/kill)
     eval/
       tier1.rs               provisional screening interpreter (§5.3)
@@ -181,20 +181,20 @@ crates/vyapaar-ui-app/src/studio/
   components/…               goal sliders, iteration table, telemetry tabs, journal drawer
 ```
 
-Plus `vyapaar-ui-client` methods (DES-005 P0 keeps `get_strategies/post_strategies/post_strategies_verify`; this doc adds `post_sweeps/get_sweeps_by_id`) and an **honest `vyapaar-ui-api-wasm` addition**: `research.rs` — tier-1 interpreter + similarity index + FNV hash (pure, golden-testable, mirrors the existing `replay.rs`/`screener.rs` pattern in that crate).
+Plus `tantra-ui-client` methods (DES-005 P0 keeps `get_strategies/post_strategies/post_strategies_verify`; this doc adds `post_sweeps/get_sweeps_by_id`) and an **honest `tantra-ui-api-wasm` addition**: `research.rs` — tier-1 interpreter + similarity index + FNV hash (pure, golden-testable, mirrors the existing `replay.rs`/`screener.rs` pattern in that crate).
 
 ### 5.2 Node catalogue — the NSE whitelist
 
-`vyapaar-market-indicators` implements exactly 9 (verified): `sma, ema, rsi, macd, bollinger, donchian, atr, stochastic, williams_r`. The palette shows **those 9 as *verified*** and any other kind as *unverified-provisional* (badged, evaluated in Tier 1 only, cannot enter a `goal_met` status until server-side coverage exists). No `rma`, no `psar` today (DES-005's registry map was already pinned to this list). Derived catalogue rule (ADR 0029): the studio mirrors the registry shape; the source of truth is the vyapaar-market list held in one `const` table, marked for regeneration when indicators land upstream.
+`tantra-market-indicators` implements exactly 9 (verified): `sma, ema, rsi, macd, bollinger, donchian, atr, stochastic, williams_r`. The palette shows **those 9 as *verified*** and any other kind as *unverified-provisional* (badged, evaluated in Tier 1 only, cannot enter a `goal_met` status until server-side coverage exists). No `rma`, no `psar` today (DES-005's registry map was already pinned to this list). Derived catalogue rule (ADR 0029): the studio mirrors the registry shape; the source of truth is the tantra-market list held in one `const` table, marked for regeneration when indicators land upstream.
 
-NSE authoring constraints encoded at the palette/validation layer (not as folklore): sessions 09:15–15:30 IST; bar specs reuse vyapaar-runtime's `bar_spec` grammar (`(\d+)(s|m|h|d|w|mo)`); sizes are lot/kill aware in the UI copy: "freeze_quantity / participation honored server-side by the fill engine; client-side the sizer clamps to a paise-rounded, lot-multiple value" — the honest version is that **the runtime guards live in vyapaar-risk**, and the studio surfaces them as *constraints the server can refuse*, never as local guards.
+NSE authoring constraints encoded at the palette/validation layer (not as folklore): sessions 09:15–15:30 IST; bar specs reuse tantra-runtime's `bar_spec` grammar (`(\d+)(s|m|h|d|w|mo)`); sizes are lot/kill aware in the UI copy: "freeze_quantity / participation honored server-side by the fill engine; client-side the sizer clamps to a paise-rounded, lot-multiple value" — the honest version is that **the runtime guards live in tantra-risk**, and the studio surfaces them as *constraints the server can refuse*, never as local guards.
 
 ### 5.3 Tier-1: the provisional screening evaluator (doctrine exception)
 
 **Decision D4 (doctrine-letter exception — see §8 risk R1).** Porting research_loop.md's tiering: tier 1 is canonical in the docs but unreachable on this server for structural candidates. The studio therefore runs tier-1 **client-side**, and the design's rule is *provenance, not prohibition*:
 
 1. Fetch bars for the candidate's `universe.explicit[0]` via `GET /bars` (falls back to DES-005's labelled `preview` bars — never presented as history).
-2. Compute indicator node outputs via `vyapaar-ui-api-wasm::indicators` (same wasm path the chart uses).
+2. Compute indicator node outputs via `tantra-ui-api-wasm::indicators` (same wasm path the chart uses).
 3. Interpret the graph: condition/logic/sizing/risk/order per port semantics, **fills at next bar open (ADR 0016 `NextOpenExecution`), sells before buys, T+1-aware**, cost via a port of `IndianCostModel` constants (STT/classic charges, slippage bps from goal config).
 4. Metrics = the fixed 5 (`trades/net_pnl/sharpe/max_drawdown/total_return`) + `win_rate/profit_factor/expected_edge_bps` computed client-side.
 5. Every surfaced number is stamped `provisional — non-authoritative` (a rendered chip on every card; impossible to colour it as server `reported`); **`goal_met` can only trigger from validation-tier/server numbers** (§3.4). The provenance vocabulary from DES-005 (`reported|derived|provisional|n/a`) is shared so consumers can't mislabel.
@@ -205,38 +205,38 @@ NSE authoring constraints encoded at the palette/validation layer (not as folklo
 ### 5.4 Tier-2 + tier-3 evaluation
 
 - A tier-2 run is `POST /backtests` with `seed = loop_seed + i` (non-zero, required), `strategy = <canonical id>`, `universe = "SYMBOL.EXCHANGE"`, `bar_spec`, window fixed for the whole loop (the same dataset for every candidate; changes invalidate the loop's comparability), costs from the goal sliders. Queue-realism (verified): the server is a bounded queue (64, `429 run_queue_full`) with `available_parallelism()` workers; the loop backs off on 429 and resumes; every successful run's RLULID `run_id` is journaled.
-- Tier-3 numeric work: when a candidate has `sweepable` parameters (manifest `ParameterSpec` ranges — the sweep space is declared in the manifest by design: `sweep_space_from_manifest`), the studio builds a call `POST /sweeps {strategy, params: {name: [low, high, step]…}, trials: <grid len>, …}`. Honest handling of today's server (verified): sweeps are grid-only, `trials` must equal the grid size, `ranked` rows are indicative-only, param mapping is per-strategy-name hard-coded, and `custom` factories are stubs — so a sweep is issued **only** for registry-carried names and the studio labels those results `server: slice of declared space`. Anything beyond the grid (adaptive/random search) stays out of the LLM by the doctrine and out of the client by design until vyapaar-runtime grows a sampler (flagged in §8 R6).
+- Tier-3 numeric work: when a candidate has `sweepable` parameters (manifest `ParameterSpec` ranges — the sweep space is declared in the manifest by design: `sweep_space_from_manifest`), the studio builds a call `POST /sweeps {strategy, params: {name: [low, high, step]…}, trials: <grid len>, …}`. Honest handling of today's server (verified): sweeps are grid-only, `trials` must equal the grid size, `ranked` rows are indicative-only, param mapping is per-strategy-name hard-coded, and `custom` factories are stubs — so a sweep is issued **only** for registry-carried names and the studio labels those results `server: slice of declared space`. Anything beyond the grid (adaptive/random search) stays out of the LLM by the doctrine and out of the client by design until tantra-runtime grows a sampler (flagged in §8 R6).
 - **Equity series for candidates** comes from the run journal (fills → round trips → equity, DES-005 P3 shared code), not from `/reports/equity-curve` — that endpoint is portfolio-derived with a pseudo-random price walker (verified) and would lie in a loop context. Honesty pin for the whole document.
 
 ### 5.5 Gates: client-side `ValidationBlock` + goal check
 
-vyapaar-agent-analytics' block (`DsrResult/PboResult/WalkForwardResult/HoldoutResult/MonteCarloResult/CostStressResult` + defaults verified in source) computes today but the server path attaches `validation: None` (`to_backtest_response`, `sweep_report_to_response` — verified). This design therefore:
+tantra-agent-analytics' block (`DsrResult/PboResult/WalkForwardResult/HoldoutResult/MonteCarloResult/CostStressResult` + defaults verified in source) computes today but the server path attaches `validation: None` (`to_backtest_response`, `sweep_report_to_response` — verified). This design therefore:
 
-- Adds `vyapaar-analytics (vyapaar-agent-analytics)` as a `workspace.dependencies` path dep of `vyapaar-ui` (same pattern vyapaar-runtime already uses) — it is a pure-Rust serde crate, wasm-safe; `gate.rs` feeds return series from journal-derived equity into `evaluate_backtest(...)`/`evaluate_sweep(...)` **client-side** to produce the real block per candidate.
+- Adds `tantra-analytics (tantra-agent-analytics)` as a `workspace.dependencies` path dep of `tantra-ui` (same pattern tantra-runtime already uses) — it is a pure-Rust serde crate, wasm-safe; `gate.rs` feeds return series from journal-derived equity into `evaluate_backtest(...)`/`evaluate_sweep(...)` **client-side** to produce the real block per candidate.
 - Enforces the doctrine thresholds as the **loop goal defaults**: `ValidationThresholds { min_oos_is_ratio: 0.5, min_deflated_sharpe: 0.5, min_trades: 100, max_top5_contribution: 0.30 }`. `goal_met` requires the full block's `passed == true` on a *server-tier* metrics series, never tier-1.
 - Renders trust badges with the DES-005 vocabulary (`reported|gates: DSR / PBO / holdout / walk-forward / monte-carlo / cost-stress`), and the honest footnote when the server sends nothing ("The run payload carried no validation block; gates computed client-side from guest journal series (E4-S6 thresholds)").
 
-### 5.6 Studio workbench (noFX lineage, vyapaar-ui-idiomatic)
+### 5.6 Studio workbench (noFX lineage, tantra-ui-idiomatic)
 
-Ported from fe's algodesigner, adapted to vyapaar-ui primitives:
+Ported from fe's algodesigner, adapted to tantra-ui primitives:
 
-- Layout: `console`-shell + split canvas/code library/assistant + 300px bottom drawer (`verify|run|sweeps|results|ops`), all `RwSignal`-driven, persisted `vyapaar.studio.layout`; focus mode mirrors fe's.
+- Layout: `console`-shell + split canvas/code library/assistant + 300px bottom drawer (`verify|run|sweeps|results|ops`), all `RwSignal`-driven, persisted `tantra.studio.layout`; focus mode mirrors fe's.
 - Node canvas: **custom Leptos SVG** (no xyflow — see §6.3); scale-inverse rendering with `Background gap=16`, snap-to-grid 16.
 - Store: `StudioStore` single reactive struct, granular `RwSignal`s; every graph mutation also re-derives `source` (codegen) and `sourceLines` atomically (fe's invariant).
-- Handoff: simulator handoff keys are **the same strings** DES-005 documents (`vyapaar.simulator.handoff`, sessionStorage) — the studio stashes and routes; the simulator hydrates both tracks from it on arrival (DES-005 P8 reads this).
+- Handoff: simulator handoff keys are **the same strings** DES-005 documents (`tantra.simulator.handoff`, sessionStorage) — the studio stashes and routes; the simulator hydrates both tracks from it on arrival (DES-005 P8 reads this).
 
 ### 5.7 Interworking map (one line each)
 
-- **vyapaar-runtime REST** — verify/compile (with content-addressed id cache), backtests (seeded) + SSE events, sweeps (grid), bars for proxies. Shares vyapaar-ui-client with DES-005.
+- **tantra-runtime REST** — verify/compile (with content-addressed id cache), backtests (seeded) + SSE events, sweeps (grid), bars for proxies. Shares tantra-ui-client with DES-005.
 - **DES-005 Simulator** — `stash/take` handoff; the Simulator's SelectionOrigin/`SelectionInput` already accepts handoff-first resolution.
-- **vyapaar-market-indicators** — the palette whitelist and tier-1 compute path.
-- **vyapaar-agent** — `LlmRecord` JSONL shape + `PromptReplayer`-compatible audit (`prompt_sha256`/`output_sha256`/`model_version`); the manifest/`StrategyIr` cross-crate already re-used. Everything is written so that once nou has a real provider, `research/journal.rs` can hand the whole trail to a server loop without schema change.
-- **vyapaar-risk** — the *constraints*, not the entity: `MAX_COMMISSION`, `MAX_SLIPPAGE`, order-rate/participation language in validation copy; risk doctrines are claimed (never silently censored — see the DES-005 note that REST backtest runs currently do not route through `RiskStage`; this doc calls it out as R7, not "fixes it").
-- **vyapaar-docs** — this document cites its doctrine and doesn't reinterpret it.
+- **tantra-market-indicators** — the palette whitelist and tier-1 compute path.
+- **tantra-agent** — `LlmRecord` JSONL shape + `PromptReplayer`-compatible audit (`prompt_sha256`/`output_sha256`/`model_version`); the manifest/`StrategyIr` cross-crate already re-used. Everything is written so that once nou has a real provider, `research/journal.rs` can hand the whole trail to a server loop without schema change.
+- **tantra-risk** — the *constraints*, not the entity: `MAX_COMMISSION`, `MAX_SLIPPAGE`, order-rate/participation language in validation copy; risk doctrines are claimed (never silently censored — see the DES-005 note that REST backtest runs currently do not route through `RiskStage`; this doc calls it out as R7, not "fixes it").
+- **tantra-docs** — this document cites its doctrine and doesn't reinterpret it.
 
 ## 6. Phases
 
-Each phase ends with named verification commands; [AGENT HINT] bullets are unchecked-machine-safe guidance. Test style: `#[cfg(test)]` with golden fixtures in `vyapaar-ui/schema/conformance/studio/`.
+Each phase ends with named verification commands; [AGENT HINT] bullets are unchecked-machine-safe guidance. Test style: `#[cfg(test)]` with golden fixtures in `tantra-ui/schema/conformance/studio/`.
 
 ---
 
@@ -244,15 +244,15 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 **Goal:** the studio's REST surface exists and shape-locks zero drift.
 
-1. Extend `vyapaar-ui-client`: `post_sweeps`, `get_sweeps_by_id`, plus `put_profile_layouts_by_name` (server-side library sync, fe's `saveStrategy` path). Re-export `SweepRequest/SweepResponse/SweepReportResponse/StrategiesRequest/StrategyIr/StrategyManifest/ParameterSpec` in `wire`.
-2. Golden fixtures in `vyapaar-ui/schema/conformance/studio/`: `manifest_sma_cross.json`, `strategy_ir_echo.json`, `sweep_response.json`, `verify_error_no_subscriptions.json` (422 with `context.reason`). Tests parse both enveloped and bare.
+1. Extend `tantra-ui-client`: `post_sweeps`, `get_sweeps_by_id`, plus `put_profile_layouts_by_name` (server-side library sync, fe's `saveStrategy` path). Re-export `SweepRequest/SweepResponse/SweepReportResponse/StrategiesRequest/StrategyIr/StrategyManifest/ParameterSpec` in `wire`.
+2. Golden fixtures in `tantra-ui/schema/conformance/studio/`: `manifest_sma_cross.json`, `strategy_ir_echo.json`, `sweep_response.json`, `verify_error_no_subscriptions.json` (422 with `context.reason`). Tests parse both enveloped and bare.
 3. Verify the two honest server facts our design leans on, and write them into the module doc as a "verified against source" field: (a) verify errors carry `context.reason = IrError::code()`; (b) `POST /strategies` is idempotent per canonical manifest bytes.
 
 [AGENT HINT] `StrategyManifest` on the wire is `deny_unknown_fields` — since we serialize the crate's own struct, never build manifests as raw `json!` maps. The catalog id (`sha256:<hex>`) is content-addressed: **the same candidate never re-compiles**; use it as the loop cache key from day one.
 
 [AGENT HINT] Library sync fails hard? Honor fe's behavior: server sync is best-effort — on failure, persist locally and set `save_state: offline` rather than breaking Ctrl+S.
 
-**Acceptance:** `cargo test -p vyapaar-ui-client` green; fixtures decode; `cargo check --all-features` clean.
+**Acceptance:** `cargo test -p tantra-ui-client` green; fixtures decode; `cargo check --all-features` clean.
 
 ---
 
@@ -266,7 +266,7 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 [AGENT HINT] `graph_issues` order is semantics (thin UIs iterate in order); port tests must preserve it. `recognize` must be **lossless** on `code_only` (never reconstruct unmarked spans silently — DES-004 S3 invariant).
 
-**Acceptance:** `cargo test -p vyapaar-ui-app studio::graph` green, fe's vitest case names reproduced in Rust test names.
+**Acceptance:** `cargo test -p tantra-ui-app studio::graph` green, fe's vitest case names reproduced in Rust test names.
 
 ---
 
@@ -277,7 +277,7 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 1. `canvas/editor.rs`: SVG viewport with pan (drag), wheel-zoom, click-select, drag-move (16px snap), `Escape`/Del handling guarded against `INPUT/TEXTAREA`.
 2. `canvas/node_card.rs` (one generic component): 200–300px card, category top-border color (from `--c-*` tokens, stored per-category in CSS vars), issue badge, per-kind body chips, ports as named rows with typed color dots.
 3. `canvas/edge.rs`: smoothstep path; **insertable edge**: midpoint “+” button → filter-by-port-kind menu (`series`→ indicators, `bool`→ gates/orders); splice = replace edge with `a → new → b` positioned midway.
-4. `canvas/palette.rs`, `canvas/inspector.rs`: floats; palette drag with HTML5 MIME `application/vyapaar-node` (port fe's);\_inspector shows param inputs from catalogue ranges.
+4. `canvas/palette.rs`, `canvas/inspector.rs`: floats; palette drag with HTML5 MIME `application/tantra-node` (port fe's);\_inspector shows param inputs from catalogue ranges.
 5. Store wiring: every editor gesture calls a store action; canvas-only extras (`positions`) stay out of `to_manifest`.
 
 [AGENT HINT] Leptos SVG: keep one `Signal<Vec<RenderNode>>` `Memo` over positions; do NOT re-render each port as its own effect (a 12-node graph must be one MEMO render pass). Pan/zoom is a plain SVG transform — do not hand-roll DPR handling; keep `viewBox` in user units. Multi-select (rubber band) is **out of scope** — fe never implemented it either; state so in copy.
@@ -292,7 +292,7 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 **Goal:** everything survives a reload; the studio's memory is real and local.
 
-1. `StudioStore`: granular signals; layout persistence `vyapaar.studio.layout` (fe's `DesignerLayout` fields exactly: `libraryOpen, assistantOpen, libraryWidth 200..600, assistantWidth 280..600, codeRatio 0.15..0.85, drawerOpen, drawerTab, focus`); focus mode.
+1. `StudioStore`: granular signals; layout persistence `tantra.studio.layout` (fe's `DesignerLayout` fields exactly: `libraryOpen, assistantOpen, libraryWidth 200..600, assistantWidth 280..600, codeRatio 0.15..0.85, drawerOpen, drawerTab, focus`); focus mode.
 2. `library.rs`: `SavedStrategy` (fe `SavedStrategyManifest` shape), `upsert/fork(slugify + unique_id)`, library drawer with search/category/modes `all|global|user`; Ctrl+S semantics; server sync best-effort (P0 method).
 3. `snapshot.rs`: SHA-256 versions, dedupe-on-snapshot, restore reparse; UI: actions menu (Import/Export JSON/versions) **with the gate**: import validates first with `graph_issues` (no importing garbage).
 4. SSE/poll code reuse: the studio page mounts `SimulatorStore`'s own polling client? **No** — the studio is a separate feature but the *run* code path should stay one codebase. **Decision:** the studio's Run/Sweeps/Results panels are the **same components DES-005 P5 build** (metrics ribbon, journal table, equity chart with drawdown-trust badges, validation badges, run log), mounted with studio-store context instead. This keeps two features honest and halves the surface.
@@ -312,8 +312,8 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 1. `studio/codegen.rs` in-canvas integration: the code pane (read-only v1 — one file, line-numbered, `spans` markers shown as gutter hints); visible all mutations.
 2. Code↔graph: `recognize + createSyncScheduler` port — fe semantics: `idle → pending (300ms debounce) → synced | invalid`; `code_only` flag and `spans`.
 3. `panels/verify.rs`: `verify_graph()` = local issues first, then `POST /strategies/verify` → `StrategyIr` echo in state; per-issue jump-to-node from the drawer; verified vs invalid pills; **Simulate button disabled+red-count until `issues.length == 0`** (fe behavior).
-4. Editor → simulator: the "Run in Simulator" button stashes `SimulatorHandoff { graph, name, source: 'studio' }` in `sessionStorage vyapaar.simulator.handoff` and routes `/simulator?strategy=<name>&source=studio` — DES-005 consumes it natively iff we also extend its origin enum with `'studio'` (a two-word change to DES-005 P8; noted there as a live follow-up).
-5. **Decision — editor tech (CSR honest):** fe uses Monaco on python. On vyapaar-ui, Monaco is a net-new 2.5MB wasm/JS dependency that fights CSR budgets. V1 = custom minimal code pane (textarea + line gutters + highlight *via a tiny regex highlighter in web_sys, ~150 lines*); Monaco/CodeMirror is a P9 option behind a feature flag (`vyapaar.studio.rich_editor`) via the existing vendor-JS bridge pattern (same seam as the chart). The studio remains 100% usable without it.
+4. Editor → simulator: the "Run in Simulator" button stashes `SimulatorHandoff { graph, name, source: 'studio' }` in `sessionStorage tantra.simulator.handoff` and routes `/simulator?strategy=<name>&source=studio` — DES-005 consumes it natively iff we also extend its origin enum with `'studio'` (a two-word change to DES-005 P8; noted there as a live follow-up).
+5. **Decision — editor tech (CSR honest):** fe uses Monaco on python. On tantra-ui, Monaco is a net-new 2.5MB wasm/JS dependency that fights CSR budgets. V1 = custom minimal code pane (textarea + line gutters + highlight *via a tiny regex highlighter in web_sys, ~150 lines*); Monaco/CodeMirror is a P9 option behind a feature flag (`tantra.studio.rich_editor`) via the existing vendor-JS bridge pattern (same seam as the chart). The studio remains 100% usable without it.
 
 [AGENT HINT] `generate_code`'s Python must be byte-stable given (graph, hash) — pin a golden test with all 6 templates so a graph change never silently renames emitted params (dedupe via the `${nodeId}_${param}` rule).
 
@@ -325,7 +325,7 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 ### Phase 5 — Run + sweeps panels (canonical evaluation)
 
-**Goal:** the studio can drive vyapaar-runtime honestly: one run, one sweep, truth only.
+**Goal:** the studio can drive tantra-runtime honestly: one run, one sweep, truth only.
 
 1. `panels/run.rs`: window/seed/costs controls (goal sliders default `seed 42`), run button gated as P4; visible `RunState`; inline `Blocked` reasons from `RunErrorPill` wiring like DES-005 store (`foldStatus` etc.); SSE events drawer from DES-005 `run-log` shared component.
 2. `panels/sweeps.rs`: sweeps are only offered when `GET /strategies` shows the compiled id is registry-carried; otherwise the panel shows the honest "no_rust_implementation" explanation box. Sweep params come from `manifest.parameters` (declared sweep space). Fixed `seed + i` per trial (matches server behavior); grid bar-length cap 50 client-side to make accidental mega-grids honest.
@@ -363,13 +363,13 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 1. `research/types.rs` — all structs of §3 (`ResearchGoal`, `Iteration`, `LoopState` with fe's honest status/phase enums, `FailureMode` closed enum), `deny_unknown_fields` on all LLM-input shapes.
 2. `research/providers.rs` — §3.6 contracts; Ollama-default recommendation in UI copy; every provider call surfaces tokens in/out and a per-loop cumulative cost meter (token-truth from the response; if a provider's cost is NULL, cost renders `n/a` honestly).
 3. `research/propose.rs` — prompt assembly (`journal.unsimilar`, failure tally, parent chain, catalogue, constraints, explicit "do not optimize numerics; declare sweepable ranges"), response parsed into `Hypothesis` with **one retry with the parse error appended**, then a skip (record + count).
-4. `research/journal.rs` — IndexedDB (`vyapaar.studio.research`), append `ResearchRecord` (the SHA-256 `LlmRecord` fields honored), export journal JSONL + research_log.md text export; similarity index (bounded, deterministic) for the prompt.
+4. `research/journal.rs` — IndexedDB (`tantra.studio.research`), append `ResearchRecord` (the SHA-256 `LlmRecord` fields honored), export journal JSONL + research_log.md text export; similarity index (bounded, deterministic) for the prompt.
 5. `research/engine.rs` — the state machine: serial loop (3.2) with **operator controls** (pause, kill-switch = halts after current iteration; never mid-, respecting the doctrine's no-proposal-without-measurement discipline), budget meters (tokens/wall-clock/iterations), `goal_met` only on validation-tier truth (5.4/5.5), provider failures backoff ×3, 3 consecutive provider errors ⇒ `paused` with an explanation (loop never spins a provider bill).
 6. Telemetry tab (fe's, honest this time): per-iteration table `(k, hypothesis id, statement, tier1 metrics, tier2 run_id, gates, failure_mode, tokens)`; `bestIterationIndex` selector; goal meter bars; **Monte-Carlo/walk-forward sections only render what the block contains** (fe's fakes are gone).
 
 [AGENT HINT] All sealing happens in `spawn_local_scoped` steps; never `create_effect` the loop's own output signal (Leptos infinite-update trap; DES-005 P4 hint applies).
 
-[AGENT HINT] The loop must survive reload: persist loop state (current iteration, phase, journal offsets, budget spent) to local storage keyed `vyapaar.studio.research` on every phase transition, and offer "Resume" on remount. A reload mid-`backtesting` just re-polls the server run id (journals last).
+[AGENT HINT] The loop must survive reload: persist loop state (current iteration, phase, journal offsets, budget spent) to local storage keyed `tantra.studio.research` on every phase transition, and offer "Resume" on remount. A reload mid-`backtesting` just re-polls the server run id (journals last).
 
 [AGENT HINT] Never call `POST /backtests` for a candidate that fails `graph_issues` — that's not "cheap"; it wastes a server slot and might queue up to 64 more; keep gating a pure function.
 
@@ -381,9 +381,9 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 **Goal:** the provisional screening path is real, honest, and parities where it can.
 
-1. `research/eval/tier1.rs` — the §5.3 interpreter inside `vyapaar-ui-api-wasm` (bars fetch is `vyapaar-ui-app`'s job; interpreter is pure): indicators → graph → next-open-fill trades → the 8 metrics; every return value echoes `source: provisional`.
-2. `parity.rs` — for `sma_crossover` (registry-carried), drive **both** tier-1 and a real server backtest on the same `(seed, dataset)` and compare (equity/approx-on-metrics tolerance, documented over a fixed window); the parity report is *a fixture test* in ` vyapaar-ui/schema/conformance/studio/t1_t2_parity.json`. The purpose: catch tier-1 drift when either side changes (e.g., DES-005 P0 lands server fixes); the harness runs by hand against a server, not in CI that must pass offline.
-3. `research/eval/envelope.rs` — the runtime-risk **preview** (fe's `RuntimeRiskEnvelope` mock, minus the theatre): honest constants (`max_risk_per_trade_pct`, kill-switch drawdown), computed from vyapaar-risk's published limits as **preview copy only** — a "would refuse" chip (server truth, listed in §8 R7).
+1. `research/eval/tier1.rs` — the §5.3 interpreter inside `tantra-ui-api-wasm` (bars fetch is `tantra-ui-app`'s job; interpreter is pure): indicators → graph → next-open-fill trades → the 8 metrics; every return value echoes `source: provisional`.
+2. `parity.rs` — for `sma_crossover` (registry-carried), drive **both** tier-1 and a real server backtest on the same `(seed, dataset)` and compare (equity/approx-on-metrics tolerance, documented over a fixed window); the parity report is *a fixture test* in ` tantra-ui/schema/conformance/studio/t1_t2_parity.json`. The purpose: catch tier-1 drift when either side changes (e.g., DES-005 P0 lands server fixes); the harness runs by hand against a server, not in CI that must pass offline.
+3. `research/eval/envelope.rs` — the runtime-risk **preview** (fe's `RuntimeRiskEnvelope` mock, minus the theatre): honest constants (`max_risk_per_trade_pct`, kill-switch drawdown), computed from tantra-risk's published limits as **preview copy only** — a "would refuse" chip (server truth, listed in §8 R7).
 
 [AGENT HINT] Tier-1 cache: candidates hash-id via `graph_hash_sync` — a loop that regenerates the same candidate skips re-eval (the wrong kind of fast), but **never** lets that change tier-2 seeds or journal ids (server cache invalidation is honest: same content = same result).
 
@@ -397,13 +397,13 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 **Goal:** everything above is written down honestly.
 
-1. Workbook docs: `vyapaar-docs` book chapter extract (the research loop user guide), including the "what it will not do" §3.3 verbatim copy.
-2. `vyapaar-ui/plan.md` §4.2 update: link this doc; add Phase checkboxes mirroring P0–P9.
+1. Workbook docs: `tantra-docs` book chapter extract (the research loop user guide), including the "what it will not do" §3.3 verbatim copy.
+2. `tantra-ui/plan.md` §4.2 update: link this doc; add Phase checkboxes mirroring P0–P9.
 3. Perf budget test (mirroring DES-005 P9): node editing with 50 nodes ≤ 16ms input→paint (per gesture), tier-1 on 1-year 5-minute bars ≤ 50ms, journal TF-IDF retrieval ≤ 5ms for 1000 records.
-4. `A11y` pass on the canvas (keyboard navigation to node/edged via tab order is **in scope** since fe never did it — call it out as a new addition); color contrast against all 8 vyapaar-ui themes.
-5. The three **flagged server asks** each get one paragraph of doc content for the future vyapaar-runtime worker: (a) `validation: Some(...)` compute-and-attach in `to_backtest_response`/sweep response; (b) a manifest/graph-interpreter strategy so `no_rust_implementation` stops existing; (c) a sweep sampler beyond grid (`random | sobol`). Each documented as: current behavior (verified, with file+function), why the studio works around it, what changes on the surface if honored.
+4. `A11y` pass on the canvas (keyboard navigation to node/edged via tab order is **in scope** since fe never did it — call it out as a new addition); color contrast against all 8 tantra-ui themes.
+5. The three **flagged server asks** each get one paragraph of doc content for the future tantra-runtime worker: (a) `validation: Some(...)` compute-and-attach in `to_backtest_response`/sweep response; (b) a manifest/graph-interpreter strategy so `no_rust_implementation` stops existing; (c) a sweep sampler beyond grid (`random | sobol`). Each documented as: current behavior (verified, with file+function), why the studio works around it, what changes on the surface if honored.
 
-[AGENT HINT] The three server asks are **out of scope** for this repo's implementation phases but are the doc's diplomatic hooks (R2/R3/R6 in §8). Do not change vyapaar-runtime code in this workstream.
+[AGENT HINT] The three server asks are **out of scope** for this repo's implementation phases but are the doc's diplomatic hooks (R2/R3/R6 in §8). Do not change tantra-runtime code in this workstream.
 
 **Acceptance:** docs pass lint; `cargo clippy --all-targets -- -D warnings` clean; `make build` prod profile; the "Definition of Done" of DES-005 §7 applies verbatim (provenance, honest empty states, no hex colors, module docs name their port source).
 
@@ -411,7 +411,7 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 
 | Facility | Current reality (verified) | Studio behavior |
 |---|---|---|
-| LLM | `vyapaar-agent-llm` stub (transport unimplemented) | Providers client-side (BYO key / Ollama); nou's audit shapes honored |
+| LLM | `tantra-agent-llm` stub (transport unimplemented) | Providers client-side (BYO key / Ollama); nou's audit shapes honored |
 | Execute arbitrary graph | 422 `no_rust_implementation` unless a builtin name matches; manifest `parameters` ignored by the registry | Tier-1 provisional path for everything else; tier-2 only for registry-carried |
 | `ValidationBlock` | Computed in the crate, **attached `None`** on all response paths | Client-side compute from journal return series (pure gates) |
 | Sweeps | Grid-only, `trials == grid.len()`, per-name param mapping; `custom` factory stub | Sweeps only for registry-carried names; visible limitation copy |
@@ -431,17 +431,17 @@ Each phase ends with named verification commands; [AGENT HINT] bullets are unche
 | R4 | Browser held the LLM API key → leak | Ollama default; masked storage; never mirrored to server; a future "local researcher sidecar" is the documented upgrade path if a key never belongs in a browser. |
 | R5 | 1000 iterations × LLM cost/burn | Budget meters, stop conditions, cumulative cost meter, journal-dump on 3-failure pause; offline heuristic provider for zero-cost dev runs. |
 | R6 | Sweeps grids burst (big cartesian) | Cap 50 client-side; `trials` must be declared; registry-first honest copy; P9 asks for (c) samplers. |
-| R7 | REST backtests don't route vyapaar-risk RiskStage today | Stated in copy; the loop never claims executed-refused order metrics as server truth (`refused_orders` from the ya-backtest engine only). |
+| R7 | REST backtests don't route tantra-risk RiskStage today | Stated in copy; the loop never claims executed-refused order metrics as server truth (`refused_orders` from the ya-backtest engine only). |
 | R8 | Reload mid-loop loses state | Persist-on-phase-transition + resume path (P7 #5), server run ids survive restarts (server-side `run_id` persists on journals). |
 | R9 | Node canvas perf in wasm | One-Memo render pass, no per-node effects; P9 budget gate; polish budget claims that the DES-004 canvas state was fine after ~50 nodes. |
-| R10 | vyapaar-runtime restart loses the compiled-candidate catalog → history breaks | Content-addressed `sha256:` ids mean re-compose refreshes; the loop re-compiles before tier-2 (`POST /strategies` id for `goal_met` continuity), never trusting in-process names. |
+| R10 | tantra-runtime restart loses the compiled-candidate catalog → history breaks | Content-addressed `sha256:` ids mean re-compose refreshes; the loop re-compiles before tier-2 (`POST /strategies` id for `goal_met` continuity), never trusting in-process names. |
 
 ## 9. Definition of Done
 
-1. Every module doc names its fe/docs reference and any semantic deviation (vyapaar-ui convention).
+1. Every module doc names its fe/docs reference and any semantic deviation (tantra-ui convention).
 2. `cargo test --workspace` + `cargo clippy --all-targets -- -D warnings` green; `make build` prod profile works.
 3. All eight hongkao themes crisp; zero literal hexes in studio CSS (`var(--*)` only).
-4. Provenance vocabulary enforced everywhere: nothing renders `server`-looking numbers unless they came from vyapaar-runtime, or show a `provisional` chip if they came from Tier-1.
+4. Provenance vocabulary enforced everywhere: nothing renders `server`-looking numbers unless they came from tantra-runtime, or show a `provisional` chip if they came from Tier-1.
 5. Propose-never-execute holds end-to-end: no unverified candidate can pipeline into a run; the draft ADR-0029-S5 chip appears on every non-verified proposal path.
 6. The loop honors *every* research_loop.md "does NOT do" rule, executable assertions where possible (fail-loud loops over numeric prompting).
-7. Vyapaar's statistical-validation thresholds (§5.5) are the loop's default goal gates; a user may lower them, with a one-line warning quote in the UI.
+7. Tantra's statistical-validation thresholds (§5.5) are the loop's default goal gates; a user may lower them, with a one-line warning quote in the UI.

@@ -1,6 +1,6 @@
-# Using the Vyapaar Simulator
+# Using the Tantra Simulator
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-runtime-backtest`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-runtime-backtest`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
 The Simulator is the browser workbench for turning a strategy — built in the
 [Algo Designer](algo_designer_and_simulator.md) or picked from the Library —
@@ -22,11 +22,11 @@ this order:
    the Simulator falls back to the last strategy you had open from the
    Strategy Library.
 3. **Built-in template.** With nothing else available, it falls back to a
-   bundled template. Only `sma_crossover` is wired to a strategy `vyapaar`
+   bundled template. Only `sma_crossover` is wired to a strategy `tantra`
    actually executes today — `buy_and_hold`, `rsi_reversal` and `sma_crossover`
    are the three Rust-registered strategies, and a compiled graph only runs if
    it carries one of those names. Other templates and hand-authored graphs
-   report `no_rust_implementation` until `vyapaar` grows a generic IR
+   report `no_rust_implementation` until `tantra` grows a generic IR
    interpreter (tracked as an open question in the plan, §11.7).
 
 A reload restores your last selection, so you don't lose your place.

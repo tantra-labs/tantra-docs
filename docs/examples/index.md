@@ -1,41 +1,41 @@
 # Examples
 
-The `vyapaar-examples` repository is a numbered learning path: every script is
+The `tantra-examples` repository is a numbered learning path: every script is
 offline and deterministic by default (the `fake` adapter plus synthetic bars) and
 teaches one concept end to end. This page is the index — for each script, the
 strategy it runs, the indicators or portfolio parts it builds on, and how to run
 it. Each directory also carries a `README.md` with the full set of options.
 
-Run them from a checkout of `vyapaar-examples`:
+Run them from a checkout of `tantra-examples`:
 
 ```bash
-pip install -e ../vyapaar/python      # core
-pip install -e ".[dev]"             # vyapaar_examples + pytest/ruff
+pip install -e ../tantra/python      # core
+pip install -e ".[dev]"             # tantra_examples + pytest/ruff
 python backtesting/01_first_backtest.py
 pytest -q
 ```
 
-Scripts that need `vyapaar_examples` add the repo root to `sys.path` when the
+Scripts that need `tantra_examples` add the repo root to `sys.path` when the
 package is not installed, so they also run from a plain checkout. Scripts that
-load catalog strategies look for `vyapaar-strategies` at `--strategies-dir`, then
-`$VYAPAAR_STRATEGIES_DIR`, then `../vyapaar-strategies`.
+load catalog strategies look for `tantra-strategies` at `--strategies-dir`, then
+`$TANTRA_STRATEGIES_DIR`, then `../tantra-strategies`.
 
-## Shared helpers — `vyapaar_examples/`
+## Shared helpers — `tantra_examples/`
 
 The numbered scripts keep only the lesson logic; plumbing lives in the small
-`vyapaar_examples` package.
+`tantra_examples` package.
 
 | Module | Role |
 |---|---|
-| `vyapaar_examples.synthetic` | Deterministic synthetic daily bars (`bar`, `weekdays`, `trending_bars`, `get_bars`). It replaces the old `tests.synthetic` and is shared by the scripts and the unit tests. |
-| `vyapaar_examples.cli` | `make_parser`, `add_out_arg`, `emit_json` and `run_example`: the parser, `--out` and JSON-printing boilerplate. |
-| `vyapaar_examples.replay_report` | `replay_report(strategy, bars, params)` runs `vyapaar.strategies.testing.replay` and packages the JSON report the strategy examples print. |
-| `vyapaar_examples.ewr` | Package (`model`, `sizing`, `schedule`, `simulation`, `reporting`) behind the hand-rolled equal-weight rebalancer. |
-| `vyapaar_examples.screening` | Package (`paths`, `momentum`, `value`, `graham`, plus `render`, `cli_args`, `dispatch` and `nl_support` helpers) behind the screeners and the chained screener/SIP script. |
-| `vyapaar_examples.pipeline` | Composable screen, filter, size and execute steps, each with a `describe()` manifest, and the TOML chain runner in `chain.py`. See [Step Manifests and Chaining](../strategies/step_manifests_and_chaining.md). |
+| `tantra_examples.synthetic` | Deterministic synthetic daily bars (`bar`, `weekdays`, `trending_bars`, `get_bars`). It replaces the old `tests.synthetic` and is shared by the scripts and the unit tests. |
+| `tantra_examples.cli` | `make_parser`, `add_out_arg`, `emit_json` and `run_example`: the parser, `--out` and JSON-printing boilerplate. |
+| `tantra_examples.replay_report` | `replay_report(strategy, bars, params)` runs `tantra.strategies.testing.replay` and packages the JSON report the strategy examples print. |
+| `tantra_examples.ewr` | Package (`model`, `sizing`, `schedule`, `simulation`, `reporting`) behind the hand-rolled equal-weight rebalancer. |
+| `tantra_examples.screening` | Package (`paths`, `momentum`, `value`, `graham`, plus `render`, `cli_args`, `dispatch` and `nl_support` helpers) behind the screeners and the chained screener/SIP script. |
+| `tantra_examples.pipeline` | Composable screen, filter, size and execute steps, each with a `describe()` manifest, and the TOML chain runner in `chain.py`. See [Step Manifests and Chaining](../strategies/step_manifests_and_chaining.md). |
 
 If you have older notes that import `tests.synthetic`, switch them to
-`vyapaar_examples.synthetic`.
+`tantra_examples.synthetic`.
 
 Every numbered script carries a `Pitfalls::` section in its module docstring,
 enforced by a unit test; read it before trusting a number. The convention is
@@ -44,7 +44,7 @@ and problems that are still open are listed on [Known Issues](known_issues.md).
 
 Strategies come in two flavours: **inline demo classes** defined in the example
 itself, kept small so the lesson is visible in one file, and **catalog
-strategies** loaded by registry name from `vyapaar-strategies`, the same code that
+strategies** loaded by registry name from `tantra-strategies`, the same code that
 ships to users.
 
 ## Broker adapters — `basic/`
@@ -61,7 +61,7 @@ Adapter mechanics only, no trading strategy.
 
 `04_place_order_paper.py` and `05_check_positions.py` place real orders on any
 adapter other than `fake`, so they refuse a real broker unless
-`VYAPAAR_EXAMPLES_ALLOW_LIVE_ORDERS=1` is set. `05` reads the position of the
+`TANTRA_EXAMPLES_ALLOW_LIVE_ORDERS=1` is set. `05` reads the position of the
 instrument it bought rather than the first row of the book.
 
 ```bash
@@ -128,7 +128,7 @@ rebalance". The catalog entry is `portfolio/rebalancing/equal_weight`.
 | 07 | `universes/07_alpha30_backtest.py` | Catalog `equal_weight` on `nifty200_alpha_30`, next-open fills, T+N settlement |
 | 08 | `universes/08_alpha30_union_ewr_backtest.py` | Hand-rolled equal-weight rebalancer |
 
-There is one Alpha 30 source, `vyapaar_examples/universe_lists.py`. The default
+There is one Alpha 30 source, `tantra_examples/universe_lists.py`. The default
 list is what the core's `resolve_universe("nifty200_alpha_30")` returns (the
 list `07` trades), and `--alpha30-list engine|seed` on `08` (`--list seed` on
 `03`) opts into the older seed list, which differs by four names. Neither is
@@ -146,8 +146,8 @@ python universes/08_alpha30_union_ewr_backtest.py --start 2026-01-01 --end 2026-
 
 ## Reference strategies — `strategies/`
 
-Scripts 01 to 07 run on synthetic data via `vyapaar.strategies.testing.replay`
-(bars from `vyapaar_examples.synthetic`, report from `replay_report`); 08 to 11
+Scripts 01 to 07 run on synthetic data via `tantra.strategies.testing.replay`
+(bars from `tantra_examples.synthetic`, report from `replay_report`); 08 to 11
 are pipeline recipes.
 
 | # | File | Strategy class | Indicators / parts |
@@ -197,7 +197,7 @@ portfolio runs.
 | 08 | `backtesting/08_sip_buy_and_hold.py` | — | Systematic investment plan (SIP), monthly or weekly buy-and-hold, XIRR, drawdown. The lump sum buys at the first open, each instalment at that session's close |
 | 09 | `backtesting/09_forward_sip_backtest.py` | — | Forward SIP backtester (`--symbols` or a stdin pipe); alias of 10 |
 | 10 | `backtesting/10_chained_screener_and_sip.py` | — | Chained screener (momentum, value, dividend) and forward SIP out-of-sample backtest. The lump sum buys at the next session's open after `--asof`; unpriced, skipped and delisted symbols are listed in the summary |
-| 11 | `backtesting/11_portfolio_rebalancer.py` | — | Equal-weight periodic rebalance with the real `vyapaar_examples.ewr.simulate` rebalancer (flat `--fee`, T+N settlement), `--symbols` or stdin aware |
+| 11 | `backtesting/11_portfolio_rebalancer.py` | — | Equal-weight periodic rebalance with the real `tantra_examples.ewr.simulate` rebalancer (flat `--fee`, T+N settlement), `--symbols` or stdin aware |
 
 Behaviour worth knowing:
 
@@ -220,7 +220,7 @@ Behaviour worth knowing:
   fund buys T+N sessions later, names with no bars are dropped and noted).
   `--allocation 52w-ratio` and `score` are a one-shot weighted lump sum, not a
   rebalance.
-- `vyapaar_examples.sip` (behind `09`, `10` and the pipeline's `SipBacktestHarness`; `08` has its own single-instrument logic) buys at the next session's open
+- `tantra_examples.sip` (behind `09`, `10` and the pipeline's `SipBacktestHarness`; `08` has its own single-instrument logic) buys at the next session's open
   after `--asof`, not that day's close, and reports `unpriced_symbols`,
   `skipped_symbols` and `delisted_symbols`. An unpriced name is held flat as
   idle cash (see [Known Issues](known_issues.md)).
@@ -292,7 +292,7 @@ python screening/06_run_chain.py --chain screening/chains/quality_value.toml --f
 python screening/06_run_chain.py --describe
 ```
 
-`06_run_chain.py` runs steps from `vyapaar_examples.pipeline`. Each `[[steps]]`
+`06_run_chain.py` runs steps from `tantra_examples.pipeline`. Each `[[steps]]`
 entry names a step (`screen.value`, `filter.fundamental_quality`,
 `size.equal_weight`, `execute.sip_backtest`, and others), may override params
 with `with`, and may add display-only columns with `report`:
@@ -305,12 +305,12 @@ report = ["market_cap", "dividend_yield_pct", "roe_pct"]   # shown, not tested
 ```
 
 The Graham and net-net screeners (04, 05) are not pipeline steps yet. Chains
-that name `vyapaar-strategies` catalog ids validate but are not runnable here. See
+that name `tantra-strategies` catalog ids validate but are not runnable here. See
 [Step Manifests and Chaining](../strategies/step_manifests_and_chaining.md).
 
 ## Mutual funds — `mutual_funds/`
 
-No `Strategy` subclasses; direct NAV/SIP math over `vyapaar_examples.amfi`.
+No `Strategy` subclasses; direct NAV/SIP math over `tantra_examples.amfi`.
 
 | # | File | Purpose |
 |---|---|---|
@@ -409,7 +409,7 @@ intentionally unused; numbers are not reused or shifted.
 | 12 | `ai_research/12_ai_drawdown_refinement.py` | Runnable | AI auto-enhancer: diagnose ≥12% drawdown → ADX trend filter → decision_guard rules → OOS re-evaluation with DSR |
 
 Key behaviours:
-- `09` fails closed through `vyapaar_examples/decision_guard.py`: a missing or
+- `09` fails closed through `tantra_examples/decision_guard.py`: a missing or
   malformed decision rejects the order; a quantity increase raises; a veto or
   size-down of a protective exit is ignored and flagged.
 - `11` replays prompts cryptographically (SHA-256) with no API calls —
@@ -448,9 +448,9 @@ Stage 8 is documentation and the master index:
   docstring sections across all 94 topic scripts + 15 flat scripts;
   `test_polyrepo_decoupling.py` verifies zero `honba` identifiers
 - All verification gates green: `pytest -q` (922 passed, 70 skipped),
-  `ruff check`, `ruff format --check`, `mypy vyapaar_examples` (234 files)
+  `ruff check`, `ruff format --check`, `mypy tantra_examples` (234 files)
 
-For the strategy catalog itself, see the `vyapaar-strategies` repository; the
+For the strategy catalog itself, see the `tantra-strategies` repository; the
 [BANKNIFTY Options Backtest](../tutorials/banknifty-options-backtest.md),
 [Alpha30 Factor Model](../tutorials/alpha30-factor-model.md) and
 [SIP Backtest](../tutorials/sip-backtest.md) tutorials walk through end-to-end

@@ -1,16 +1,16 @@
-# Loading Data: `vyapaar data load`
+# Loading Data: `tantra data load`
 
 Reads a Parquet bar file for one instrument and prints a summary. Nothing is
-written; use it to check a file before a backtest or before `vyapaar serve`.
+written; use it to check a file before a backtest or before `tantra serve`.
 
 ```bash
-vyapaar data load <file.parquet> <SYMBOL> [--exchange NSE|BSE]
+tantra data load <file.parquet> <SYMBOL> [--exchange NSE|BSE]
 ```
 
 ```bash
-vyapaar data load bars/INFY.parquet INFY                    # NSE (default)
-vyapaar data load bars/INFY.parquet INFY --exchange BSE     # BSE
-vyapaar data load bars/INFY.parquet NSE:INFY                # qualified
+tantra data load bars/INFY.parquet INFY                    # NSE (default)
+tantra data load bars/INFY.parquet INFY --exchange BSE     # BSE
+tantra data load bars/INFY.parquet NSE:INFY                # qualified
 ```
 
 Output (stdout):
@@ -50,4 +50,4 @@ A qualifier and `--exchange` that agree (`NSE:INFY --exchange NSE`) are accepted
 Exit status is non-zero on any error.
 
 Name files `SYMBOL.EXCHANGE.parquet` (for example `INFY.NSE.parquet`) when they
-are meant for [`vyapaar serve`](../api/rest.md).
+are meant for [`tantra serve`](../api/rest.md).

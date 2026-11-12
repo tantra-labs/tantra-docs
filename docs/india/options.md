@@ -56,7 +56,7 @@ recently:
 
 ## Option Greeks
 
-Vyapaar computes Greeks using the Black-Scholes model with continuous
+Tantra computes Greeks using the Black-Scholes model with continuous
 dividend yield, calibrated to the Indian risk-free rate (typically the
 91-day T-bill yield).
 
@@ -77,7 +77,7 @@ surface:
 ## Weekly vs Monthly Backtesting
 
 A weekly options strategy needs data at a granularity that monthly
-strategies do not. Vyapaar's backtest engine handles both, but the data
+strategies do not. Tantra's backtest engine handles both, but the data
 requirements differ:
 
 | Strategy type | Required data | Catalog size (1 year, NIFTY) |
@@ -87,7 +87,7 @@ requirements differ:
 | 0DTE, full chain | Tick | ~200 GB |
 
 The scaffold does not ship options tick data. You must source it from a
-broker or vendor and import it via `vyapaar-data::nse::options`.
+broker or vendor and import it via `tantra-data::nse::options`.
 
 ## Cost Model for Options
 
@@ -136,8 +136,8 @@ Expiry day is where most options backtests go wrong. Three issues:
 
 ## A Short Straddle Example
 
-    from vyapaar.strategies.base import Strategy
-    from vyapaar.india.options import OptionChain, Index
+    from tantra.strategies.base import Strategy
+    from tantra.india.options import OptionChain, Index
 
     class NiftyShortStraddle(Strategy):
         def on_start(self):
@@ -165,9 +165,9 @@ Options data is the hardest data to obtain in India:
 - **Vendors** (TrueData, GDFL, etc.) provide tick-level historical
   options data for a fee.
 
-Vyapaar's importer handles the NSE F&O bhavcopy format:
+Tantra's importer handles the NSE F&O bhavcopy format:
 
-    from vyapaar.india.options import import_nse_bhavcopy_fno
+    from tantra.india.options import import_nse_bhavcopy_fno
 
     import_nse_bhavcopy_fno(
         path="FO_Bhavcopy_20261027.zip",

@@ -5,7 +5,7 @@ there is no intraday trading (NAV is struck once daily), there is no
 order book (you get the end-of-day NAV), and the relevant questions are
 usually about SIP returns and category rotation rather than signals.
 
-Vyapaar models mutual funds as a distinct instrument type with their own
+Tantra models mutual funds as a distinct instrument type with their own
 cost and tax treatment.
 
 *Last verified: 2026-09-30.*
@@ -16,9 +16,9 @@ The Association of Mutual Funds in India publishes daily NAVs for every
 scheme. NAVs are uploaded by 11:00 PM on every business day and can be
 downloaded as a flat file from the AMFI portal.[reference:17]
 
-Vyapaar's importer reads this file:
+Tantra's importer reads this file:
 
-    from vyapaar.india.mutual_funds import fetch_amfi_nav, AmfiNavImporter
+    from tantra.india.mutual_funds import fetch_amfi_nav, AmfiNavImporter
 
     # Download the current AMFI NAV file
     df = fetch_amfi_nav()          # returns a DataFrame
@@ -39,7 +39,7 @@ Each scheme has a **six-digit AMFI scheme code** (stable) and a
 direct and regular plans, which have different NAVs and different
 expense ratios.
 
-    from vyapaar.india.mutual_funds import Scheme, SchemeCode
+    from tantra.india.mutual_funds import Scheme, SchemeCode
 
     scheme = Scheme.by_code(120503)     # e.g. Axis Bluechip - Direct
     assert scheme.plan == Plan.Direct
@@ -59,7 +59,7 @@ For a backtest, TER is deducted from the scheme's gross return:
 
     net_return = gross_nav_return - (ter / 365)   # daily deduction
 
-Vyapaar applies TER automatically when a scheme is used in a portfolio
+Tantra applies TER automatically when a scheme is used in a portfolio
 backtest. If you are using a **direct plan**, the TER is already netted
 into the published NAV and should not be deducted again. Set
 `plan_ter_applied = true` in the config to avoid double-counting.
@@ -67,7 +67,7 @@ into the published NAV and should not be deducted again. Set
 ## SEBI Scheme Categories
 
 SEBI's 2017 categorisation circular defines the canonical scheme
-categories. Vyapaar uses them for category rotation strategies:
+categories. Tantra uses them for category rotation strategies:
 
     pub enum Category {
         EquityLargeCap,
@@ -106,7 +106,7 @@ A Systematic Investment Plan invests a fixed amount on a fixed schedule
 strategy: "if I had invested ₹10,000 on the 5th of every month since
 2015, what would my portfolio be worth today?"
 
-    from vyapaar.india.mutual_funds import SipBacktest
+    from tantra.india.mutual_funds import SipBacktest
 
     bt = SipBacktest(
         scheme=120503,
@@ -138,11 +138,11 @@ Exit loads vary by scheme and holding period:
     scheme.exit_load(days_held=180)  # → 0.0 if scheme has no exit load
     scheme.exit_load(days_held=30)   # → 1.0 if within 3 months
 
-Vyapaar applies both automatically in mutual fund backtests.
+Tantra applies both automatically in mutual fund backtests.
 
 ## Category Analysis
 
-    from vyapaar.india.mutual_funds import CategoryAnalyzer
+    from tantra.india.mutual_funds import CategoryAnalyzer
 
     analyzer = CategoryAnalyzer(plan=Plan.Direct)
     report = analyzer.report(
@@ -160,7 +160,7 @@ return, volatility, Sharpe, and maximum drawdown.
 Mutual fund portfolios are often built with a risk-parity or
 mean-variance objective across categories rather than schemes:
 
-    from vyapaar.india.mutual_funds import portfolio_optimize
+    from tantra.india.mutual_funds import portfolio_optimize
 
     weights = portfolio_optimize(
         schemes=[120503, 118989, 125354],
@@ -175,7 +175,7 @@ same data integrity guarantees as equity backtests.
 
 A subtle but large effect: a regular plan carries an additional
 0.5–1.5% annual distribution expense. Over 20 years, this compounds
-to a 10–25% reduction in terminal wealth. Vyapaar's default is **direct
+to a 10–25% reduction in terminal wealth. Tantra's default is **direct
 plans** for all backtests, because regular plans compensate a
 distributor who is not present in an algorithmic strategy.
 

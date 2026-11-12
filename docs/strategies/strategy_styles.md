@@ -1,6 +1,6 @@
 # Strategy Styles: Event-Driven, Declarative and Portfolio
 
-Vyapaar offers three ways to write a strategy. They are layers over the same
+Tantra offers three ways to write a strategy. They are layers over the same
 event flow, so a strategy written in any of them runs unchanged in backtest,
 paper and live. Pick the highest layer that expresses your idea; drop down a
 layer only when it gets in the way.
@@ -20,8 +20,8 @@ either facade bypasses it entirely.
 
 The base class. You receive events and decide:
 
-    from vyapaar.entities.bar import Bar
-    from vyapaar.strategies.base import Strategy
+    from tantra.entities.bar import Bar
+    from tantra.strategies.base import Strategy
 
 
     class Momentum(Strategy):
@@ -38,8 +38,8 @@ quantity and `busy(id)` is true while an order for that instrument is unfilled.
 
 Per-instrument rules instead of an `on_bar` body:
 
-    from vyapaar.entities.bar import Bar
-    from vyapaar.strategies import DeclarativeStrategy, Entry
+    from tantra.entities.bar import Bar
+    from tantra.strategies import DeclarativeStrategy, Entry
 
 
     class Breakout(DeclarativeStrategy):
@@ -76,7 +76,7 @@ are placed. Warmup is the runner's job (`Strategy.warmup_bars`).
 
 ### Jesse comparison
 
-| Jesse | Vyapaar | Notes |
+| Jesse | Tantra | Notes |
 |---|---|---|
 | `should_long()` | `should_long(bar)` | Default `False`; receives the bar instead of reading `self.price` |
 | `should_short()` | `should_short(bar)` | Default `False` |
@@ -87,7 +87,7 @@ are placed. Warmup is the runner's job (`Strategy.warmup_bars`).
 | `self.price`, `self.close` | the `bar` argument | |
 | `self.stop_loss`, `self.take_profit` | `Entry.stop_loss`, `Entry.take_profit` | Placed after the entry fill, not with it |
 
-What Vyapaar does differently:
+What Tantra does differently:
 
 - **A `busy()` guard.** While any order for the instrument is unfilled, the
   rules are not evaluated. This prevents stacking duplicate entries, but see
@@ -128,8 +128,8 @@ Trailing stops (`OrderType.TRAILING_STOP`) are not used by this class; see
 
 Declare what the portfolio should look like:
 
-    from vyapaar.entities.instrument import InstrumentId
-    from vyapaar.strategies import TargetWeightStrategy
+    from tantra.entities.instrument import InstrumentId
+    from tantra.strategies import TargetWeightStrategy
 
 
     class TwoNames(TargetWeightStrategy):
@@ -179,5 +179,5 @@ parts, or as a TOML-friendly `params` dict. See
 - [Writing Strategies](writing_strategies.md)
 - [Portfolio Construction](portfolio_construction.md)
 - [Position Management](position_management.md)
-- Examples: `vyapaar-examples/strategies/07_declarative_long_short.py` and
+- Examples: `tantra-examples/strategies/07_declarative_long_short.py` and
   `06_equal_weight_rebalance.py`.

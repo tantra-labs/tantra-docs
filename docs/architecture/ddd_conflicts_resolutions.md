@@ -1,14 +1,14 @@
 # DDD Bounded Context Conflicts & Resolutions
 
-> **[STATUS: IMPLEMENTED]** — Migration from `honba-workspace` to `vyapaar-labs`; 7 of 9 conflicts resolved, 1 HIGH priority (Zero-I/O) in progress, 1 partial (Screener/Signal ownership).
+> **[STATUS: IMPLEMENTED]** — Migration from `honba-workspace` to `tantra-labs`; 7 of 9 conflicts resolved, 1 HIGH priority (Zero-I/O) in progress, 1 partial (Screener/Signal ownership).
 >
-> This document identifies **DDD bounded context conflicts** that arose during the migration from `honba-workspace` to `vyapaar-labs` (the **new design**). Each conflict is mapped to its resolution, with responsibility assignments and dependency ordering.
+> This document identifies **DDD bounded context conflicts** that arose during the migration from `honba-workspace` to `tantra-labs` (the **new design**). Each conflict is mapped to its resolution, with responsibility assignments and dependency ordering.
 
 ---
 
 ## Executive Summary
 
-The migration from `honba-workspace` to `vyapaar-labs` introduced a strict DDD architecture with 15 bounded repositories across 6 layers. During this migration, 9 bounded-context conflicts were identified. This document records each conflict, the old (`honba-*`) state, the new (`vyapaar-*`) state, and the resolution.
+The migration from `honba-workspace` to `tantra-labs` introduced a strict DDD architecture with 15 bounded repositories across 6 layers. During this migration, 9 bounded-context conflicts were identified. This document records each conflict, the old (`honba-*`) state, the new (`tantra-*`) state, and the resolution.
 
 Overall status: **7/9 Resolved** | **1 HIGH Priority** (Zero-I/O domain purity) | **1 Partial** (Screener/Signal ownership).
 
@@ -18,15 +18,15 @@ Overall status: **7/9 Resolved** | **1 HIGH Priority** (Zero-I/O domain purity) 
 
 ```mermaid
 flowchart BT
-    T0[Tier 0: vyapaar-core\n(Shared Kernel - No deps)]
-    T1A[Tier 1A: vyapaar-risk\n(Zero-I/O)]
-    T1B[Tier 1B: vyapaar-ledger\n(Zero-I/O)]
-    T2A[Tier 2A: vyapaar-market\n(Compute: Zero-I/O,\nAdapters: Async)]
-    T2B[Tier 2B: vyapaar-exec\n(Async I/O)]
-    T3A[Tier 3A: vyapaar-agent\n(Async + Pure Core)]
-    T3B[Tier 3B: vyapaar-runtime\n(Async)]
-    T4[Tier 4: vyapaar-ffi\n(FI Bridge)]
-    T5[Tier 5: vyapaar-ui\n(WASM / TUI)]
+    T0[Tier 0: tantra-core\n(Shared Kernel - No deps)]
+    T1A[Tier 1A: tantra-risk\n(Zero-I/O)]
+    T1B[Tier 1B: tantra-ledger\n(Zero-I/O)]
+    T2A[Tier 2A: tantra-market\n(Compute: Zero-I/O,\nAdapters: Async)]
+    T2B[Tier 2B: tantra-exec\n(Async I/O)]
+    T3A[Tier 3A: tantra-agent\n(Async + Pure Core)]
+    T3B[Tier 3B: tantra-runtime\n(Async)]
+    T4[Tier 4: tantra-ffi\n(FI Bridge)]
+    T5[Tier 5: tantra-ui\n(WASM / TUI)]
     T6[Tier 6: Python Ecosystem]
 
     T0 --> T1A
@@ -54,24 +54,24 @@ See [Architectural Layers & Bounded Context Topology](architecture_layers.md) fo
 
 ### Conflict #1: Shared Kernel Bloat
 
-| Aspect | `honba-core` (Old) | `vyapaar-core` (New) | Resolution |
+| Aspect | `honba-core` (Old) | `tantra-core` (New) | Resolution |
 |:-------|:-------------------|:---------------------|:-----------|
-| **Portfolio Snapshot Types** | Included `PortfolioSnapshot`, `PortfolioPosition`, `PortfolioHolding`, `PortfolioTotals`, `PortfolioGreeks` | **MOVED** to `vyapaar-runtime-persistence` as repository read models | ✅ Clean separation: Domain events in core, read models in application layer |
-| **Screener Types** | Included `ScreenerScanRequest`, `ScreenerRow`, `FilterOp`, `MetricDefinition`, `Signal` | **MOVED** to `vyapaar-runtime` (strategy) or `vyapaar-ui` (UI) | ⚠️ **PENDING**: Decide between runtime (domain signals) vs UI (screening UI) |
-| **Signal Types** | Included `Signal`, `SignalDirection`, `SignalHorizon`, `Timeframe` | **REMAINS** in `vyapaar-core` (unclear boundary) | ⚠️ **CONSIDER**: Move to `vyapaar-runtime-strategy` or `vyapaar-agent` |
-| **Size Method Types** | Included `SizingMethod`, `RiskBudget`, `PositionSizingRequest`, `PositionSizingResult` | **REMAINS** in `vyapaar-core` (shared across agent/runtime) | ✅ Correct - these are domain abstractions |
+| **Portfolio Snapshot Types** | Included `PortfolioSnapshot`, `PortfolioPosition`, `PortfolioHolding`, `PortfolioTotals`, `PortfolioGreeks` | **MOVED** to `tantra-runtime-persistence` as repository read models | ✅ Clean separation: Domain events in core, read models in application layer |
+| **Screener Types** | Included `ScreenerScanRequest`, `ScreenerRow`, `FilterOp`, `MetricDefinition`, `Signal` | **MOVED** to `tantra-runtime` (strategy) or `tantra-ui` (UI) | ⚠️ **PENDING**: Decide between runtime (domain signals) vs UI (screening UI) |
+| **Signal Types** | Included `Signal`, `SignalDirection`, `SignalHorizon`, `Timeframe` | **REMAINS** in `tantra-core` (unclear boundary) | ⚠️ **CONSIDER**: Move to `tantra-runtime-strategy` or `tantra-agent` |
+| **Size Method Types** | Included `SizingMethod`, `RiskBudget`, `PositionSizingRequest`, `PositionSizingResult` | **REMAINS** in `tantra-core` (shared across agent/runtime) | ✅ Correct - these are domain abstractions |
 
 **Status**: ✅ Partially resolved | ⚠️ Pending (Screener/Signal)
 
 **Action Required**: Decide on Screener/Signal ownership:
-- **Option A**: `vyapaar-runtime-strategy` owns all strategy-related types (`Signal`, `Screener`)
-- **Option B**: `vyapaar-ui` owns `Screener` (UI concern), `vyapaar-runtime-strategy` owns `Signal` (domain concept)
+- **Option A**: `tantra-runtime-strategy` owns all strategy-related types (`Signal`, `Screener`)
+- **Option B**: `tantra-ui` owns `Screener` (UI concern), `tantra-runtime-strategy` owns `Signal` (domain concept)
 
 ---
 
 ### Conflict #2: Portfolio Aggregate Responsibility
 
-| Aspect | `honba-kokoro-portfolio` (Old) | `vyapaar-ledger-portfolio` (New) | Resolution |
+| Aspect | `honba-kokoro-portfolio` (Old) | `tantra-ledger-portfolio` (New) | Resolution |
 |:-------|:-------------------------------|:---------------------------------|:-----------|
 | **FIFO Tax-Lot Matching** | Embedded in `InMemoryPositionRepository` (application layer) | **ENCAPSULATED** in `Portfolio` aggregate root | ✅ Correct - business logic in domain |
 | **Tax Lot Types** | Separate `Fitolot`, `CostBasisLot`, `TaxLot` | **UNIFIED** into single `TaxLot` entity | ✅ Correct - single canonical model |
@@ -87,14 +87,14 @@ See [Architectural Layers & Bounded Context Topology](architecture_layers.md) fo
 
 ### Conflict #3: Exchange / ProductType Unification
 
-| Aspect | `honba-*` (Old) | `vyapaar-*` (New) | Resolution |
+| Aspect | `honba-*` (Old) | `tantra-*` (New) | Resolution |
 |:-------|:----------------|:------------------|:-----------|
-| **Exchange Enum** | Redefined in `honba-kokoro-oms`, `honba-kokoro-ledger`, `honba-me-market`, `honba-te-*` | **CANONICAL** in `vyapaar-core::Exchange` with variants `{Nse, Bse, Nfo, Mcx, Cds}` | ✅ Correct - single source of truth |
-| **Product Type** | Redefined in multiple places | **ADDED** to `vyapaar-core::ProductType` (if missing) | ⚠️ **VERIFY**: Ensure `ProductType::{Delivery, Intraday, Margin, CoverOrder, BracketOrder}` exists |
+| **Exchange Enum** | Redefined in `honba-kokoro-oms`, `honba-kokoro-ledger`, `honba-me-market`, `honba-te-*` | **CANONICAL** in `tantra-core::Exchange` with variants `{Nse, Bse, Nfo, Mcx, Cds}` | ✅ Correct - single source of truth |
+| **Product Type** | Redefined in multiple places | **ADDED** to `tantra-core::ProductType` (if missing) | ⚠️ **VERIFY**: Ensure `ProductType::{Delivery, Intraday, Margin, CoverOrder, BracketOrder}` exists |
 
 **Status**: ✅ RESOLVED (Exchange) | ⚠️ VERIFY (ProductType)
 
-**Action Required**: Verify `ProductType` enum exists in `vyapaar-core/src/types.rs`:
+**Action Required**: Verify `ProductType` enum exists in `tantra-core/src/types.rs`:
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ProductType {
@@ -110,15 +110,15 @@ pub enum ProductType {
 
 ### Conflict #4: Market Finance Ownership
 
-| Aspect | `honba-me-market` (Old) | `vyapaar-market-*` (New) | Resolution |
+| Aspect | `honba-me-market` (Old) | `tantra-market-*` (New) | Resolution |
 |:-------|:------------------------|:-----------------------|:-----------|
-| **Indian Market Profile** | `honba-me-market` owned `NseCalendar`, `CostModel`, `FnoContract`, statutory costs | **ASSIGNED** to `vyapaar-market-finance` | ✅ Correct |
-| **Cost Schedule** | STT, Stamp Duty, GST, SEBI, Exchange turnover | **ASSIGNED** to `vyapaar-market-finance::india::costs` | ✅ Correct |
-| **Macro/Financial Series** | Mixed with market data | **ASSIGNED** to `vyapaar-market-finance` | ✅ Correct |
+| **Indian Market Profile** | `honba-me-market` owned `NseCalendar`, `CostModel`, `FnoContract`, statutory costs | **ASSIGNED** to `tantra-market-finance` | ✅ Correct |
+| **Cost Schedule** | STT, Stamp Duty, GST, SEBI, Exchange turnover | **ASSIGNED** to `tantra-market-finance::india::costs` | ✅ Correct |
+| **Macro/Financial Series** | Mixed with market data | **ASSIGNED** to `tantra-market-finance` | ✅ Correct |
 
-**Sub-Crate Split**: `honba-me-feed` → `vyapaar-market-feed` + `vyapaar-market-store`
+**Sub-Crate Split**: `honba-me-feed` → `tantra-market-feed` + `tantra-market-store`
 
-| `vyapaar-market-feed` | `vyapaar-market-store` |
+| `tantra-market-feed` | `tantra-market-store` |
 |:---------------------:|:---------------------:|
 | Live stream traits | Parquet lakehouse storage |
 | `CoalescingTickBuffer` | `lakehouse.rs`, `parquet_ticks.rs` |
@@ -131,22 +131,22 @@ pub enum ProductType {
 
 ### Conflict #5: Zero-I/O Domain Purity
 
-| Crate | `honba-*` Dependencies | `vyapaar-*` Dependencies | Status |
+| Crate | `honba-*` Dependencies | `tantra-*` Dependencies | Status |
 |:------|:----------------------|:------------------------|:-------|
-| `vyapaar-core` | No async | No `tokio` | ✅ Compliant |
-| `vyapaar-risk` | No async | No `tokio` | ✅ Compliant |
-| `vyapaar-ledger` | `honba-kokoro` had `tokio` | **MUST REMOVE** `tokio` from workspace | 🚧 **IN PROGRESS** |
-| `vyapaar-ledger-oms` | Had `#[tokio::test]` | Synchronous only with `now: DateTime<Utc>` | 🚧 **IN PROGRESS** |
-| `vyapaar-ledger-portfolio` | Had `async fn` methods | Synchronous with explicit timestamp | 🚧 **IN PROGRESS** |
-| `vyapaar-market-*` | Mixed `tokio`/`async-trait` | Compute crates: no `tokio`; Adapters: `tokio` OK | 🚧 **IN PROGRESS** |
-| `vyapaar-exec-*` | Had `tokio` | Async OK (application layer) | 🚧 **IN PROGRESS** |
-| `vyapaar-runtime-*` | Had `tokio` | Async OK (application layer) | 🚧 **IN PROGRESS` |
+| `tantra-core` | No async | No `tokio` | ✅ Compliant |
+| `tantra-risk` | No async | No `tokio` | ✅ Compliant |
+| `tantra-ledger` | `honba-kokoro` had `tokio` | **MUST REMOVE** `tokio` from workspace | 🚧 **IN PROGRESS** |
+| `tantra-ledger-oms` | Had `#[tokio::test]` | Synchronous only with `now: DateTime<Utc>` | 🚧 **IN PROGRESS** |
+| `tantra-ledger-portfolio` | Had `async fn` methods | Synchronous with explicit timestamp | 🚧 **IN PROGRESS** |
+| `tantra-market-*` | Mixed `tokio`/`async-trait` | Compute crates: no `tokio`; Adapters: `tokio` OK | 🚧 **IN PROGRESS** |
+| `tantra-exec-*` | Had `tokio` | Async OK (application layer) | 🚧 **IN PROGRESS** |
+| `tantra-runtime-*` | Had `tokio` | Async OK (application layer) | 🚧 **IN PROGRESS` |
 
 **Key Rule**:
-- **Domain Layer (L0-L1)**: `vyapaar-core`, `vyapaar-risk`, `vyapaar-ledger-*` — **ZERO `tokio`**
-- **Application Layer (L2+)**: `vyapaar-market-*`, `vyapaar-exec-*`, `vyapaar-runtime-*` — `tokio` OK
+- **Domain Layer (L0-L1)**: `tantra-core`, `tantra-risk`, `tantra-ledger-*` — **ZERO `tokio`**
+- **Application Layer (L2+)**: `tantra-market-*`, `tantra-exec-*`, `tantra-runtime-*` — `tokio` OK
 
-**Status**: 🚧 **IN PROGRESS** (vyapaar-ledger workspace tokio removal) — **HIGH Priority**
+**Status**: 🚧 **IN PROGRESS** (tantra-ledger workspace tokio removal) — **HIGH Priority**
 
 ---
 
@@ -154,10 +154,10 @@ pub enum ProductType {
 
 | Component | Old Location | New Location | Responsibility |
 |:----------|:-------------|:-------------|:---------------|
-| **Zerodha Kite Wire Format** | `honba-te-zerodha` (mixed) | `vyapaar-exec-zerodha` | ✅ ACL: `zerodha_proto` ↔ `vyapaar_core` |
-| **Upstox Protobuf Wire** | `honba-te-upstox` (mixed) | `vyapaar-exec-upstox` | ✅ ACL: `upstox_proto` ↔ `vyapaar_core` |
-| **Angel One SmartAPI** | `honba-te-angelone` (mixed) | `vyapaar-exec-angelone` | ✅ ACL: `angelone_json` ↔ `vyapaar_core` |
-| **Risk Engine Integration** | `honba-te-router` called `honba_mon::RiskEngine` | `vyapaar-exec-router` calls `vyapaar_risk::RiskEngine` | ✅ ACL: Risk check before broker order |
+| **Zerodha Kite Wire Format** | `honba-te-zerodha` (mixed) | `tantra-exec-zerodha` | ✅ ACL: `zerodha_proto` ↔ `tantra_core` |
+| **Upstox Protobuf Wire** | `honba-te-upstox` (mixed) | `tantra-exec-upstox` | ✅ ACL: `upstox_proto` ↔ `tantra_core` |
+| **Angel One SmartAPI** | `honba-te-angelone` (mixed) | `tantra-exec-angelone` | ✅ ACL: `angelone_json` ↔ `tantra_core` |
+| **Risk Engine Integration** | `honba-te-router` called `honba_mon::RiskEngine` | `tantra-exec-router` calls `tantra_risk::RiskEngine` | ✅ ACL: Risk check before broker order |
 
 **Status**: ✅ RESOLVED (ACL pattern established, implementation pending)
 
@@ -167,12 +167,12 @@ pub enum ProductType {
 
 | Type | Old Location | New Location | Reason |
 |:-----|:-------------|:-------------|:-------|
-| `PortfolioSnapshot` | `honba-core` (shared kernel) | `vyapaar-runtime-persistence` | Repository read model (application layer) |
-| `PortfolioPosition` | `honba-core` (shared kernel) | `vyapaar-runtime-persistence` | Repository read model |
-| `PortfolioHolding` | `honba-core` (shared kernel) | `vyapaar-runtime-persistence` | Repository read model |
-| `PortfolioTotals` | `honba-core` (shared kernel) | `vyapaar-runtime-persistence` | Repository read model |
-| `PortfolioGreeks` | `honba-core` (shared kernel) | `vyapaar-runtime-persistence` | Repository read model |
-| `PortfolioSnapshot` (domain) | N/A | `vyapaar-ledger-portfolio::AccountState` | Domain state machine |
+| `PortfolioSnapshot` | `honba-core` (shared kernel) | `tantra-runtime-persistence` | Repository read model (application layer) |
+| `PortfolioPosition` | `honba-core` (shared kernel) | `tantra-runtime-persistence` | Repository read model |
+| `PortfolioHolding` | `honba-core` (shared kernel) | `tantra-runtime-persistence` | Repository read model |
+| `PortfolioTotals` | `honba-core` (shared kernel) | `tantra-runtime-persistence` | Repository read model |
+| `PortfolioGreeks` | `honba-core` (shared kernel) | `tantra-runtime-persistence` | Repository read model |
+| `PortfolioSnapshot` (domain) | N/A | `tantra-ledger-portfolio::AccountState` | Domain state machine |
 
 **Status**: ✅ RESOLVED (read models moved to application layer)
 
@@ -187,7 +187,7 @@ pub enum ProductType {
 | Crate | Old Pattern | New Pattern | Status |
 |:------|:-----------|:-----------|:-------|
 | `honba-*` | `#[cfg(test)] mod tests` inline in `src/` | `crates/*/tests/*.rs` | 🚧 Migration in progress |
-| `vyapaar-*` | — | Strict parallel `tests/` directory | ✅ Policy established |
+| `tantra-*` | — | Strict parallel `tests/` directory | ✅ Policy established |
 
 **Rule**:
 ```
@@ -201,16 +201,16 @@ pub enum ProductType {
 
 ### Conflict #9: Agent-Runtime Dependency Cycle
 
-| Aspect | `honba-nou` (Old) | `vyapaar-agent` (New) | Resolution |
+| Aspect | `honba-nou` (Old) | `tantra-agent` (New) | Resolution |
 |:-------|:-----------------|:---------------------|:-----------|
-| **Dependency on Strategy** | `honba-nou-trader-loop` → `honba-ya-strategy` | `vyapaar-agent-trader-loop` → `vyapaar_risk` only | ✅ Cycle broken |
-| **Strategy as Dependency** | `vyapaar-runtime` could depend on `vyapaar-agent` | **FORBIDDEN**: `vyapaar-runtime` depends on `vyapaar-core` only | ✅ Dependency graph simplified |
+| **Dependency on Strategy** | `honba-nou-trader-loop` → `honba-ya-strategy` | `tantra-agent-trader-loop` → `tantra_risk` only | ✅ Cycle broken |
+| **Strategy as Dependency** | `tantra-runtime` could depend on `tantra-agent` | **FORBIDDEN**: `tantra-runtime` depends on `tantra-core` only | ✅ Dependency graph simplified |
 
 **New Dependency Graph**:
 ```
-vyapaar-core ← vyapaar-risk ← vyapaar-agent
+tantra-core ← tantra-risk ← tantra-agent
                               ↑
-              vyapaar-runtime depends only on vyapaar-core
+              tantra-runtime depends only on tantra-core
 ```
 
 **Status**: ✅ RESOLVED (dependency cycle removed)
@@ -223,9 +223,9 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 
 | Question | Options |
 |:---------|:-------|
-| **Where does `Signal` belong?** | A) `vyapaar-core` (domain primitive)<br>B) `vyapaar-runtime-strategy` (application signal)<br>C) `vyapaar-agent` (AI signal generation) |
-| **Current State** | `vyapaar-core/src/signal.rs` contains `Signal`, `SignalDirection`, `SignalHorizon`, `Timeframe` |
-| **Recommendation** | **A) `vyapaar-core`** - Signals are domain primitives (like `Order`, `Fill`) |
+| **Where does `Signal` belong?** | A) `tantra-core` (domain primitive)<br>B) `tantra-runtime-strategy` (application signal)<br>C) `tantra-agent` (AI signal generation) |
+| **Current State** | `tantra-core/src/signal.rs` contains `Signal`, `SignalDirection`, `SignalHorizon`, `Timeframe` |
+| **Recommendation** | **A) `tantra-core`** - Signals are domain primitives (like `Order`, `Fill`) |
 
 **Decision Required**: None - current placement is correct.
 
@@ -235,11 +235,11 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 
 | Question | Options |
 |:---------|:-------|
-| **Where does `Screener` belong?** | A) `vyapaar-runtime` (strategy scanning)<br>B) `vyapaar-ui` (UI screening UI) |
-| **Current State** | `vyapaar-core/src/screener.rs` contains `ScreenerScanRequest`, `ScreenerRow`, `FilterOp`, `MetricDefinition` |
-| **Recommendation** | **A) `vyapaar-runtime`** - Screener is strategy tool, UI consumes runtime API |
+| **Where does `Screener` belong?** | A) `tantra-runtime` (strategy scanning)<br>B) `tantra-ui` (UI screening UI) |
+| **Current State** | `tantra-core/src/screener.rs` contains `ScreenerScanRequest`, `ScreenerRow`, `FilterOp`, `MetricDefinition` |
+| **Recommendation** | **A) `tantra-runtime`** - Screener is strategy tool, UI consumes runtime API |
 
-**Decision Required**: Move `screener.rs` to `vyapaar-runtime-strategy` or keep in `vyapaar-core`?
+**Decision Required**: Move `screener.rs` to `tantra-runtime-strategy` or keep in `tantra-core`?
 
 ---
 
@@ -247,17 +247,17 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 
 | Question | Options |
 |:---------|:-------|
-| **What goes in `vyapaar-market-finance`?** | A) Only `NseCalendar`, `CostModel`<br>B) Also `indicators`, `signals`, `normalizer` |
+| **What goes in `tantra-market-finance`?** | A) Only `NseCalendar`, `CostModel`<br>B) Also `indicators`, `signals`, `normalizer` |
 | **Current State** | Crate exists but empty stub |
 | **Recommendation** | **A) Only canonical market data** - indicators/signals belong in separate crates |
 
-**Decision Required**: Keep `vyapaar-market-finance` narrow (calendar/costs) or expand?
+**Decision Required**: Keep `tantra-market-finance` narrow (calendar/costs) or expand?
 
 ---
 
 ## 4. Migration Checklist
 
-### Tier 0: Shared Kernel (`vyapaar-core`) ✅
+### Tier 0: Shared Kernel (`tantra-core`) ✅
 - [x] `Exchange::{Nse, Bse, Nfo, Mcx, Cds}` unified
 - [x] Strongly-typed IDs: `ClientOrderId`, `AlgoId`, `AccountId`, `TransactionId`
 - [x] Self-validating `Price::try_new`, `Quantity::try_new`
@@ -265,55 +265,55 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 - [ ] ⚠️ Decision on `signal.rs` location
 - [ ] Verify `ProductType` enum exists
 
-### Tier 1A: Risk Gate (`vyapaar-risk`) ✅
+### Tier 1A: Risk Gate (`tantra-risk`) ✅
 - [x] Zero `tokio` dependency
 - [x] Explicit `now: DateTime<Utc>` on all checks
 - [ ] Extract inline tests to `tests/`
 
-### Tier 1B: Ledger Domain (`vyapaar-ledger`) 🚧
+### Tier 1B: Ledger Domain (`tantra-ledger`) 🚧
 - [ ] **REMOVE `tokio`** from workspace dependencies
-- [ ] Implement `vyapaar-ledger-oms` with `OrderStateMachine`
-- [ ] Implement `vyapaar-ledger-portfolio` with `PortfolioAggregate`
-- [ ] Implement `vyapaar-ledger-journal` with double-entry ledger
+- [ ] Implement `tantra-ledger-oms` with `OrderStateMachine`
+- [ ] Implement `tantra-ledger-portfolio` with `PortfolioAggregate`
+- [ ] Implement `tantra-ledger-journal` with double-entry ledger
 - [ ] Extract all tests to `tests/`
 
-### Tier 2A: Market (`vyapaar-market`) 🚧
-- [ ] Implement `vyapaar-market-finance` (NseCalendar, CostModel, India pack)
-- [ ] Split `vyapaar-market-feed` / `vyapaar-market-store`
-- [ ] Implement `vyapaar-market-indicators`, `vyapaar-market-signals`
+### Tier 2A: Market (`tantra-market`) 🚧
+- [ ] Implement `tantra-market-finance` (NseCalendar, CostModel, India pack)
+- [ ] Split `tantra-market-feed` / `tantra-market-store`
+- [ ] Implement `tantra-market-indicators`, `tantra-market-signals`
 - [ ] Extract all tests to `tests/`
 
-### Tier 2B: Execution (`vyapaar-exec`) 🚧
-- [ ] Implement `vyapaar-exec-router` with `vyapaar_risk::RiskEngine` gate
+### Tier 2B: Execution (`tantra-exec`) 🚧
+- [ ] Implement `tantra-exec-router` with `tantra_risk::RiskEngine` gate
 - [ ] Implement ACL modules for all brokers (Zerodha, Upstox, Angel One, Fyers)
 - [ ] Extract all tests to `tests/`
 
-### Tier 3A: Agent (`vyapaar-agent`) 🚧
-- [ ] Implement `vyapaar-agent-tools`, `vyapaar-agent-plugins`, `vyapaar-agent-report`
-- [ ] Ensure no upward dependency on `vyapaar-runtime`
+### Tier 3A: Agent (`tantra-agent`) 🚧
+- [ ] Implement `tantra-agent-tools`, `tantra-agent-plugins`, `tantra-agent-report`
+- [ ] Ensure no upward dependency on `tantra-runtime`
 - [ ] Extract all tests to `tests/`
 
-### Tier 3B: Runtime (`vyapaar-runtime`) 🚧
-- [ ] Implement `vyapaar-runtime-jobs`
-- [ ] Move `src/tests/*` to `tests/` (both `vyapaar-runtime-strategy` and `vyapaar-runtime-testing`)
+### Tier 3B: Runtime (`tantra-runtime`) 🚧
+- [ ] Implement `tantra-runtime-jobs`
+- [ ] Move `src/tests/*` to `tests/` (both `tantra-runtime-strategy` and `tantra-runtime-testing`)
 - [ ] Extract all tests to `tests/`
 
-### Tier 4: FFI Bridge (`vyapaar-ffi`) ✅
-- [x] Port PyO3 FFI bridge (`vyapaar-ffi-py`)
-- [x] Implement schema codegen (`vyapaar-ffi-codegen`)
-- [x] Build `vyapaar` wheel with `vyapaar._vyapaar` native module
+### Tier 4: FFI Bridge (`tantra-ffi`) ✅
+- [x] Port PyO3 FFI bridge (`tantra-ffi-py`)
+- [x] Implement schema codegen (`tantra-ffi-codegen`)
+- [x] Build `tantra` wheel with `tantra._tantra` native module
 - [x] Ensure GIL release (`py.detach` / `py.allow_threads`) during Rust actor execution
 
-### Tier 5: Workstations (`vyapaar-ui`) 🚧
-- [ ] Implement `vyapaar-cli`, `vyapaar-tui`, `vyapaar-highlight`
+### Tier 5: Workstations (`tantra-ui`) 🚧
+- [ ] Implement `tantra-cli`, `tantra-tui`, `tantra-highlight`
 - [ ] Extract all tests to `tests/`
-- [ ] Verify WASM portability (`cargo check -p vyapaar-ui-app --target wasm32-unknown-unknown`)
+- [ ] Verify WASM portability (`cargo check -p tantra-ui-app --target wasm32-unknown-unknown`)
 
 ### Tier 6: Python Ecosystem 🚧
-- [ ] **vyapaar-data**: Fix `pyproject.toml` (remove `rust_decimal`, add `duckdb`, `polars`, `pyarrow`, `pydantic`)
-- [ ] **vyapaar-adapters**: Fix `pyproject.toml`, configure entry points for broker adapters
-- [ ] **vyapaar-strategies**: Fix `pyproject.toml`, port strategy catalog
-- [ ] **vyapaar-examples**: Port runnable reference scripts
+- [ ] **tantra-data**: Fix `pyproject.toml` (remove `rust_decimal`, add `duckdb`, `polars`, `pyarrow`, `pydantic`)
+- [ ] **tantra-adapters**: Fix `pyproject.toml`, configure entry points for broker adapters
+- [ ] **tantra-strategies**: Fix `pyproject.toml`, port strategy catalog
+- [ ] **tantra-examples**: Port runnable reference scripts
 - [ ] All: Extract tests to `tests/` directories
 
 ---
@@ -326,7 +326,7 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 | #2 | Portfolio FIFO matching in repository | ✅ Resolved | None - fixed |
 | #3 | Exchange/ProductType redefinition | ✅ Resolved | None - canonical types in core |
 | #4 | Market finance ownership | ✅ Resolved | None - clear split |
-| #5 | Zero-I/O domain purity | 🚧 In progress | **HIGH** - vyapaar-ledger tokio must be removed |
+| #5 | Zero-I/O domain purity | 🚧 In progress | **HIGH** - tantra-ledger tokio must be removed |
 | #6 | ACL boundaries | ✅ Pattern established | None - implementation pending |
 | #7 | Read model vs domain state | ✅ Resolved | None - clear separation |
 | #8 | Test organization | 🚧 In progress | Medium - parallel tests required |
@@ -339,16 +339,16 @@ vyapaar-core ← vyapaar-risk ← vyapaar-agent
 ## 6. Next Steps
 
 ### Immediate (This Week)
-1. **Remove `tokio` from `vyapaar-ledger/Cargo.toml` workspace dependencies**
-2. **Verify `ProductType` enum exists** in `vyapaar-core/src/types.rs`
+1. **Remove `tokio` from `tantra-ledger/Cargo.toml` workspace dependencies**
+2. **Verify `ProductType` enum exists** in `tantra-core/src/types.rs`
 3. **Document screener/signal ownership** decision in this file
 4. **Fix Python `pyproject.toml` files** (remove invalid `rust_decimal`, add proper dependencies)
 
 ### Short Term (This Month)
-1. Implement `vyapaar-ledger-oms`, `vyapaar-ledger-portfolio`, `vyapaar-ledger-journal`
-2. Implement `vyapaar-market-finance` with India market profile
+1. Implement `tantra-ledger-oms`, `tantra-ledger-portfolio`, `tantra-ledger-journal`
+2. Implement `tantra-market-finance` with India market profile
 3. Extract all tests to `tests/` directories (Rust + Python)
-4. Implement schema codegen and FFI bridge (`vyapaar-ffi`)
+4. Implement schema codegen and FFI bridge (`tantra-ffi`)
 
 ### Medium Term (Next Quarter)
 1. Implement ACL modules in all broker executors

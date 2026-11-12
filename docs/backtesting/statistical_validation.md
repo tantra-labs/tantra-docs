@@ -1,4 +1,4 @@
 # Statistical Validation
 
 !!! note "Moved / coming soon"
-    See [Statistical Validation](https://vyapaar-labs.github.io/vyapaar/book/backtesting/statistical_validation.html) in the mdBook.
+    See [Statistical Validation](https://tantra-labs.github.io/tantra/book/backtesting/statistical_validation.html) in the mdBook.

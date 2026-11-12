@@ -33,7 +33,7 @@ Set the API key in the environment:
 
 Verify the provider works:
 
-    from vyapaar.ai.llm import LLMProvider
+    from tantra.ai.llm import LLMProvider
     llm = LLMProvider.anthropic(model="claude-sonnet-4-5")
     response = llm.complete("Say OK.")
     print(response)
@@ -42,7 +42,7 @@ Verify the provider works:
 
 The journal is the loop's memory. Create an empty one:
 
-    from vyapaar.ai.autoresearch import Journal
+    from tantra.ai.autoresearch import Journal
 
     journal = Journal("./data/journals")
     journal.initialize()
@@ -59,9 +59,9 @@ nothing.
 
 Create `autoresearch.py`:
 
-    from vyapaar.ai.autoresearch import ResearchLoop, LoopConfig
-    from vyapaar.ai.llm import LLMProvider
-    from vyapaar.algo_analytics import ValidationThresholds
+    from tantra.ai.autoresearch import ResearchLoop, LoopConfig
+    from tantra.ai.llm import LLMProvider
+    from tantra.algo_analytics import ValidationThresholds
 
     config = LoopConfig(
         research_question=(
@@ -96,7 +96,7 @@ Create `autoresearch.py`:
 
 ## Step 4: Run It
 
-    from vyapaar.ai.autoresearch import ResearchLoop
+    from tantra.ai.autoresearch import ResearchLoop
 
     loop = ResearchLoop(config)
     loop.run(iterations=100)
@@ -138,7 +138,7 @@ At the end:
 
 After the loop completes:
 
-    from vyapaar.ai.autoresearch import Journal
+    from tantra.ai.autoresearch import Journal
     journal = Journal("./data/journals")
 
     # All validated hypotheses
@@ -177,7 +177,7 @@ Three things to check before trusting the result:
 3. **Is the parameter surface a plateau or a spike?** Run a small
    sweep around the winning parameters:
 
-       from vyapaar.algo_analytics import parameter_surface
+       from tantra.algo_analytics import parameter_surface
 
        surface = parameter_surface(
            strategy=survivor.strategy_class,

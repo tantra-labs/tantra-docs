@@ -1,6 +1,6 @@
 # Getting Started
 
-This section walks through installing Vyapaar and running your first
+This section walks through installing Tantra and running your first
 backtest. It assumes no prior experience with the codebase.
 
 ## What You Will Need
@@ -14,7 +14,7 @@ backtest. It assumes no prior experience with the codebase.
 ## The Path
 
 1. **[Installation](installation.md)** — install Rust, Python, and the
-   Vyapaar workspace. Verify the build with the dependency hierarchy
+   Tantra workspace. Verify the build with the dependency hierarchy
    check and a minimal test run.
 2. **[Your First Backtest](first-backtest.md)** — run a moving-average
    crossover on the NIFTY 50 universe, inspect the cost breakdown, and

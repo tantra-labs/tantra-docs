@@ -1,8 +1,8 @@
-# व्यापार・文档 vyapaar-docs
+# व्यापार・文档 tantra-docs
 
 > *Documentation: Comprehensive architecture, API references, tutorials, and guides built via MkDocs Material.*
 
-Official documentation site for the Vyapaar trading platform ecosystem.
+Official documentation site for the Tantra trading platform ecosystem.
 
 ## Structure
 

@@ -21,7 +21,7 @@ A strategy that:
 BANKNIFTY options data is not part of the synthetic dataset. Import a
 truncated real dataset that ships with the repository:
 
-    from vyapaar.algo_import.nse import import_nse_bhavcopy_fno
+    from tantra.algo_import.nse import import_nse_bhavcopy_fno
 
     import_nse_bhavcopy_fno(
         path="tests/data/FO_Bhavcopy_2023_2024.zip",
@@ -32,7 +32,7 @@ truncated real dataset that ships with the repository:
 This imports daily EOD option data for BANKNIFTY contracts covering
 2023–2024. Check that it loaded:
 
-    from vyapaar.algo.data import ParquetCatalog
+    from tantra.algo.data import ParquetCatalog
     catalog = ParquetCatalog("./data/catalog")
     print(catalog.list_options(underlying="BANKNIFTY"))
 
@@ -40,8 +40,8 @@ This imports daily EOD option data for BANKNIFTY contracts covering
 
 Create `banknifty_straddle.py`:
 
-    from vyapaar.strategies.base import Strategy
-    from vyapaar.india.options import OptionChain, Index, OptionType
+    from tantra.strategies.base import Strategy
+    from tantra.india.options import OptionChain, Index, OptionType
 
 
     class BankNiftyStraddle(Strategy):
@@ -86,7 +86,7 @@ Create `banknifty_straddle.py`:
 
 Append the configuration:
 
-    from vyapaar import Strategy
+    from tantra import Strategy
 
     if __name__ == "__main__":
         session = Strategy.backtest(
@@ -167,7 +167,7 @@ Options strategies are more prone to overfitting than equity
 strategies because the parameter space (strike selection, delta
 threshold, exit timing) is larger relative to the signal.
 
-    from vyapaar.algo_analytics import walk_forward, monte_carlo
+    from tantra.algo_analytics import walk_forward, monte_carlo
 
     wf = walk_forward(session, BankNiftyStraddle,
                      train_months=12, test_months=6, n_folds=4)

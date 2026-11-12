@@ -1,42 +1,42 @@
 # Adapter Configuration
 
-How the broker adapters in `vyapaar-adapters` are configured: constructor
+How the broker adapters in `tantra-adapters` are configured: constructor
 injection, the pydantic `AdapterConfig`/`BrokerCredentials` models, the Zone 3
 `configs/*.toml` templates, paper mode, and credential handling. For the package
 overview see [Adapters Package](../api/adapters-package.md); for broker-by-broker
 differences see [Brokers](brokers.md); for the Rust-side production adapters see
 [Adapter Interface](../architecture/adapter_interface.md).
 
-> Synced against `vyapaar-adapters` source on 2026-11-12.
+> Synced against `tantra-adapters` source on 2026-11-12.
 
 ## What is implemented
 
-All seven brokers live in **one package** (`vyapaar-adapters`, import name
-`vyapaar_adapters`) — there are no separate per-broker distributions:
+All seven brokers live in **one package** (`tantra-adapters`, import name
+`tantra_adapters`) — there are no separate per-broker distributions:
 
 | Broker | Module | Implemented | Contract-certified |
 |---|---|---|---|
-| Dhan | `vyapaar_adapters.dhan` | Yes (REST) | Yes (`tests/test_dhan.py`) |
-| Zerodha (Kite) | `vyapaar_adapters.zerodha` | Yes (REST, incl. real candle history) | Yes (`tests/test_zerodha.py`) |
-| Angel One | `vyapaar_adapters.angelone` | Yes (REST) | No (gap 0001) |
-| Upstox | `vyapaar_adapters.upstox` | Yes (REST) | No (gap 0001) |
-| Fyers | `vyapaar_adapters.fyers` | Yes (REST) | No (gap 0001) |
-| Kotak | `vyapaar_adapters.kotak` | Yes (REST) | No (gap 0001) |
-| IIFL | `vyapaar_adapters.iifl` | Yes (REST) | No (gap 0001) |
+| Dhan | `tantra_adapters.dhan` | Yes (REST) | Yes (`tests/test_dhan.py`) |
+| Zerodha (Kite) | `tantra_adapters.zerodha` | Yes (REST, incl. real candle history) | Yes (`tests/test_zerodha.py`) |
+| Angel One | `tantra_adapters.angelone` | Yes (REST) | No (gap 0001) |
+| Upstox | `tantra_adapters.upstox` | Yes (REST) | No (gap 0001) |
+| Fyers | `tantra_adapters.fyers` | Yes (REST) | No (gap 0001) |
+| Kotak | `tantra_adapters.kotak` | Yes (REST) | No (gap 0001) |
+| IIFL | `tantra_adapters.iifl` | Yes (REST) | No (gap 0001) |
 
 "Certified" here means canned-payload contract tests against `MockTransport` exist
 for the wire→canonical translation (exact `Decimal` fields, enum mappings, error
 paths). The adapters are development/research-plane Python (see
 [Brokers](brokers.md#the-static-ip-requirement)); the Rust production path is
-`vyapaar-market`/`vyapaar-exec`.
+`tantra-market`/`tantra-exec`.
 
 ## Constructor injection
 
 Adapters take everything explicitly — no implicit environment reads:
 
 ```python
-from vyapaar_adapters.common import BrokerCredentials, MockTransport, UrllibTransport
-from vyapaar_adapters.dhan import DhanAdapter
+from tantra_adapters.common import BrokerCredentials, MockTransport, UrllibTransport
+from tantra_adapters.dhan import DhanAdapter
 
 dhan = DhanAdapter(
     transport=UrllibTransport(timeout=15.0),   # default; MockTransport in tests
@@ -56,7 +56,7 @@ Dhan sends `access-token` + `client-id`; Zerodha composes
 
 ## The pydantic config models
 
-`vyapaar_adapters.common.config` defines the declarative shape:
+`tantra_adapters.common.config` defines the declarative shape:
 
 ```python
 class BrokerCredentials(BaseModel):
@@ -105,12 +105,12 @@ credential assembly is code-side.
 
 There are two paper paths:
 
-1. **Deterministic paper broker** — `vyapaar_adapters.paper.PaperBroker` fills
+1. **Deterministic paper broker** — `tantra_adapters.paper.PaperBroker` fills
    orders from a quote map with exact `Decimal` arithmetic (market fills at the
    quote, limit fills on crossing). No credentials, no network. Combined with
    `RecordingAdapter`/`ReplayingAdapter` it produces replayable JSONL fixtures, so
    CI is fully deterministic. See
-   [Adapters Package](../api/adapters-package.md#paper-broker-fixture-replay-vyapaar_adapterspaper).
+   [Adapters Package](../api/adapters-package.md#paper-broker-fixture-replay-tantra_adapterspaper).
 2. **Broker REST in paper mode** — the `paper` field of `AdapterConfig` /
    `configs/paper.toml` declares the intent; the wiring that routes a loaded config
    into a `PaperBroker` is part of pending gap 0007.
@@ -128,12 +128,12 @@ realism upgrade is tracked as improvement gap 0006.
 - Token lifetimes are broker-specific (Zerodha's access token is daily;
   Dhan's can be long-lived) — see [Brokers](brokers.md#authentication-differences).
 - There is no TOTP/headless login flow yet (gap 0005): tokens must be obtained
-  outside Vyapaar today.
+  outside Tantra today.
 
 ## Registry resolution
 
 `AdapterConfig.broker` names resolve through
-`vyapaar_adapters.registry.load_adapters()` — the `vyapaar.adapters` entry-point
+`tantra_adapters.registry.load_adapters()` — the `tantra.adapters` entry-point
 group with a built-in `BROKER_ADAPTERS` fallback (kept in sync by
 `tests/test_registry.py`). Naming an unknown broker is a `KeyError` at dict access,
 not a silent fallback to paper.
@@ -141,7 +141,7 @@ not a silent fallback to paper.
 ## Verification
 
 ```bash
-cd vyapaar-adapters
+cd tantra-adapters
 make test    # pytest -q — offline, MockTransport only, no live credentials
 make lint    # ruff check .
 make check   # lint + format-check + tests

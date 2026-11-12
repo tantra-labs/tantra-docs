@@ -1,6 +1,6 @@
 # Tutorials
 
-End-to-end walkthroughs that combine several parts of Vyapaar into a
+End-to-end walkthroughs that combine several parts of Tantra into a
 complete workflow. Each tutorial is self-contained and can be
 completed in 30–60 minutes.
 
@@ -8,7 +8,7 @@ completed in 30–60 minutes.
 
 - **[First NIFTY 50 Strategy](first-nifty50-strategy.md)** — a moving
   average crossover on the NIFTY 50 universe. Start here if you are
-  new to Vyapaar.
+  new to Tantra.
 - **[BANKNIFTY Options Backtest](banknifty-options-backtest.md)** — a
   short straddle on BANKNIFTY weekly options. Covers expiry cycles,
   Greeks, and the STT asymmetry between premium and exercise.

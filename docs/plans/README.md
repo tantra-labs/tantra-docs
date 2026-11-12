@@ -1,4 +1,4 @@
-# Plans Index — `vyapaar-docs`
+# Plans Index — `tantra-docs`
 
 Per workspace rule `.agents/rules/gap-tracking.md`:
 - Gaps are individual features (`docs/gaps/XXXX-*.md`).

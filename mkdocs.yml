@@ -1,7 +1,7 @@
-site_name: Vyapaar Labs Documentation
-site_url: https://docs.vyapaar-labs.io
-repo_url: https://github.com/vyapaar-labs/vyapaar-docs
-repo_name: vyapaar-labs/vyapaar-docs
+site_name: Tantra Labs Documentation
+site_url: https://docs.tantra-labs.io
+repo_url: https://github.com/tantra-labs/tantra-docs
+repo_name: tantra-labs/tantra-docs
 
 theme:
   name: material
@@ -59,7 +59,7 @@ nav:
       - Ledger Performance (Trade Journal): architecture/ledger_performance.md
       - Ledger Allocation (Portfolio Optimization): architecture/ledger_allocation.md
       - Runtime Job Scheduler: architecture/runtime_jobs.md
-      - Runtime Overview (vyapaar-runtime): architecture/runtime_overview.md
+      - Runtime Overview (tantra-runtime): architecture/runtime_overview.md
       - Runtime Chat Agent: architecture/runtime_chat.md
       - System Design & Bounded Contexts: design/architecture.md
       - DDD Conflicts & Resolutions: architecture/ddd_conflicts_resolutions.md
@@ -77,8 +77,8 @@ nav:
       - Contracts from Rust: architecture/contracts_from_rust.md
       - Algo Designer & Simulator: architecture/algo_designer_and_simulator.md
       - Using the Simulator: architecture/simulator_usage.md
-      - vyapaar-ui Simulator Port: architecture/kao_simulator_port.md
-      - vyapaar-ui Strategy Studio: architecture/strategy_studio.md
+      - tantra-ui Simulator Port: architecture/kao_simulator_port.md
+      - tantra-ui Strategy Studio: architecture/strategy_studio.md
       - Risk Migration Plan: architecture/migration_plan_kokoro_risk_to_mon.md
       - Tradebook (Journal & Replay): architecture/tradebook.md
   - Indian Markets:
@@ -133,7 +133,7 @@ nav:
   - API Reference:
       - Python Ecosystem: api/python/index.md
       - Python SDK (Client): api/python-sdk.md
-      - Adapters Package (vyapaar-adapters): api/adapters-package.md
+      - Adapters Package (tantra-adapters): api/adapters-package.md
       - Adapters (Typed Registry, planned): api/adapters.md
       - REST API: api/rest.md
       - API Specification: api/api-reference.md

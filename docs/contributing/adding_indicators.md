@@ -1,14 +1,14 @@
 # Adding Indicators
 
 An indicator is a stateful object that consumes a stream of values and
-produces a single value (or a small tuple). Vyapaar's indicators are
+produces a single value (or a small tuple). Tantra's indicators are
 implemented in Rust and exposed to Python via PyO3.
 
 Adding a new indicator involves:
 
-1. Implementing the indicator in `crates/vyapaar-strategies/`.
+1. Implementing the indicator in `crates/tantra-strategies/`.
 2. Adding unit tests.
-3. Exposing it to Python in `python/vyapaar/strategies/indicators/`.
+3. Exposing it to Python in `python/tantra/strategies/indicators/`.
 4. Documenting it in `docs/strategies/indicators.md`.
 
 ## The Indicator Trait
@@ -34,7 +34,7 @@ Rate of Change is the percentage change over a period:
 
     ROC(n) = (price_t - price_{t-n}) / price_{t-n}
 
-Implementation in `crates/vyapaar-strategies/src/momentum/roc.rs`:
+Implementation in `crates/tantra-strategies/src/momentum/roc.rs`:
 
     use crate::indicator::Indicator;
     use std::collections::VecDeque;
@@ -116,7 +116,7 @@ indicators built on news data), create the directory and add
 
 Add the new module to the appropriate `mod.rs`:
 
-    // crates/vyapaar-strategies/src/momentum/mod.rs
+    // crates/tantra-strategies/src/momentum/mod.rs
     pub mod cci;
     pub mod roc;         // new
     pub mod rsi;
@@ -125,7 +125,7 @@ Add the new module to the appropriate `mod.rs`:
 
 Then re-export from the crate root:
 
-    // crates/vyapaar-strategies/src/lib.rs
+    // crates/tantra-strategies/src/lib.rs
     pub use momentum::{CCI, ROC, RSI, Stochastic, WilliamsR};
 
 ## Unit Tests
@@ -207,10 +207,10 @@ Both are worth knowing.
 ## Exposing to Python
 
 Create a Python wrapper in
-`python/vyapaar/strategies/indicators/<name>.py`:
+`python/tantra/strategies/indicators/<name>.py`:
 
-    from vyapaar._lib import ROC as _ROC
-    from vyapaar.strategies.indicators.base import Indicator
+    from tantra._lib import ROC as _ROC
+    from tantra.strategies.indicators.base import Indicator
 
 
     class ROC(Indicator):
@@ -240,7 +240,7 @@ Create a Python wrapper in
         def is_ready(self) -> bool:
             return self._inner.is_ready()
 
-Add it to `python/vyapaar/strategies/indicators/__init__.py`:
+Add it to `python/tantra/strategies/indicators/__init__.py`:
 
     from .roc import ROC
 
@@ -265,7 +265,7 @@ And to the type stubs in `__init__.pyi`:
 Add a benchmark in `benchmarks/src/indicator_bench.rs`:
 
     use criterion::{black_box, criterion_group, criterion_main, Criterion};
-    use vyapaar_strategies_indicators::ROC;
+    use tantra_strategies_indicators::ROC;
 
     fn bench_roc(c: &mut Criterion) {
         let prices: Vec<f64> = (0..10_000).map(|i| 100.0 + i as f64 * 0.1).collect();
@@ -285,7 +285,7 @@ Add a benchmark in `benchmarks/src/indicator_bench.rs`:
 
 Run:
 
-    cargo bench -p vyapaar-benchmarks -- roc
+    cargo bench -p tantra-benchmarks -- roc
 
 An indicator that takes more than a few nanoseconds per update needs
 investigation. Most indicators should be sub-nanosecond in release
@@ -312,11 +312,11 @@ Before opening a pull request:
 - [ ] Registered in `mod.rs` and re-exported from `lib.rs`
 - [ ] Unit tests for warm-up, correctness, and reset
 - [ ] Verified against a reference implementation (if applicable)
-- [ ] Python wrapper in `python/vyapaar/strategies/indicators/`
+- [ ] Python wrapper in `python/tantra/strategies/indicators/`
 - [ ] Wrapper exported in `__init__.py` and `__init__.pyi`
 - [ ] Benchmark added
 - [ ] Documentation updated in `docs/strategies/indicators.md`
-- [ ] `cargo test -p vyapaar-strategies` passes
+- [ ] `cargo test -p tantra-strategies` passes
 - [ ] `cargo clippy` passes with no warnings
 - [ ] `dependency_graph.py` still passes
 

@@ -25,9 +25,9 @@ quarterly based on Jensen's Alpha over a trailing 1-year window. A backtest
 that uses today's list for a 2020 start date will include stocks that
 were not in the index then.
 
-Vyapaar names the universe `nifty200_alpha30` (alias `alpha30`):
+Tantra names the universe `nifty200_alpha30` (alias `alpha30`):
 
-    from vyapaar.markets.india.universes import resolve_universe
+    from tantra.markets.india.universes import resolve_universe
 
     today = resolve_universe("nifty200_alpha30")   # 30 InstrumentIds, today's list
 
@@ -41,7 +41,7 @@ the Parquet catalog.
 weighted" is a composition of universe, selector, weighting and schedule.
 Create `alpha30_momentum.py`:
 
-    from vyapaar.strategies.portfolio import (
+    from tantra.strategies.portfolio import (
         EqualWeight,
         MonthlyFirstSession,
         NamedUniverse,
@@ -103,7 +103,7 @@ universe as it exists *now* rather than as it existed *then*.
 
 Append:
 
-    from vyapaar import Strategy
+    from tantra import Strategy
 
     if __name__ == "__main__":
         session = Strategy.backtest(
@@ -125,7 +125,7 @@ Run it:
 Cross-sectional strategies must beat naive alternatives, or the
 complexity is not justified. Compare against two benchmarks:
 
-    from vyapaar.algo_analytics import compare_to_benchmarks
+    from tantra.algo_analytics import compare_to_benchmarks
 
     comparison = compare_to_benchmarks(
         result=result,
@@ -153,7 +153,7 @@ premium.
 
 ## Step 6: Validate
 
-    from vyapaar.algo_analytics import validate, ValidationConfig
+    from tantra.algo_analytics import validate, ValidationConfig
 
     report = validate(
         session=session,

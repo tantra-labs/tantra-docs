@@ -1,11 +1,11 @@
 # Development Setup
 
-This document covers setting up Vyapaar for local development: the
+This document covers setting up Tantra for local development: the
 toolchain, the test loop, the pre-commit hooks, and the common
 workflows.
 
-If you only want to *use* Vyapaar, see
-[Installation](https://vyapaar-labs.github.io/vyapaar-docs/getting-started/installation.md). This document is
+If you only want to *use* Tantra, see
+[Installation](https://tantra-labs.github.io/tantra-docs/getting-started/installation.md). This document is
 for people changing the code.
 
 ## Prerequisites
@@ -25,8 +25,8 @@ Install the extra tools:
 
 ## Clone and Bootstrap
 
-    git clone https://github.com/vyapaar-labs/vyapaar.git
-    cd vyapaar
+    git clone https://github.com/tantra-labs/tantra.git
+    cd tantra
 
     # Install git hooks
     pre-commit install
@@ -60,10 +60,10 @@ The development cycle depends on which layer you are working on.
     cargo watch -x "check --workspace"
 
     # Run just the crate you're working on
-    cargo test -p vyapaar-marketssages
+    cargo test -p tantra-marketssages
 
     # Run a specific test
-    cargo test -p vyapaar-market -- calendar
+    cargo test -p tantra-market -- calendar
 
 Rust incremental builds are fast for a single crate. Full workspace
 builds take 30–90 seconds on the first pass and a few seconds
@@ -126,7 +126,7 @@ Tests live in three places:
     cargo test --workspace
 
     # Just one crate, with output
-    cargo test -p vyapaar-market -- --nocapture
+    cargo test -p tantra-market -- --nocapture
 
     # Doc tests only
     cargo test --workspace --doc
@@ -177,15 +177,15 @@ set of mutual fund NAVs. It is enough for most integration tests.
 ### Rust
 
     # Verbose logging
-    RUST_LOG=debug cargo test -p vyapaar-strategies -- --nocapture
+    RUST_LOG=debug cargo test -p tantra-strategies -- --nocapture
 
     # A specific module
-    RUST_LOG=vyapaar_strategies::cache=trace cargo run --example cache_demo
+    RUST_LOG=tantra_strategies::cache=trace cargo run --example cache_demo
 
 ### Python
 
     # Enable debug logging
-    VYAPAAR_LOG_LEVEL=DEBUG pytest tests/unit/test_engine.py -v
+    TANTRA_LOG_LEVEL=DEBUG pytest tests/unit/test_engine.py -v
 
     # Drop into pdb on failure
     pytest tests/unit/test_engine.py --pdb
@@ -196,20 +196,20 @@ The backtest engine can write a structured event log to Parquet and
 replay it deterministically. This is the primary debugging tool for
 bugs that only appear under specific market conditions:
 
-    vyapaar.backtest(strategy, event_log="./debug/events.parquet")
+    tantra.backtest(strategy, event_log="./debug/events.parquet")
 
 Then:
 
-    vyapaar debug replay ./debug/events.parquet --break-on order_submitted
+    tantra debug replay ./debug/events.parquet --break-on order_submitted
 
 ## Working with Brokers
 
-Broker adapters live in `vyapaar-adapters`, not in the core repository.
+Broker adapters live in `tantra-adapters`, not in the core repository.
 If you are testing adapter code, clone that repository as a sibling:
 
     parent/
-    ├── vyapaar-labs/
-    │   ├── vyapaar-adapters/
+    ├── tantra-labs/
+    │   ├── tantra-adapters/
     │   └── ...
 
 The adapter test suite is fully offline: canned `MockTransport` payloads and
@@ -229,7 +229,7 @@ See [Adding Adapters](adding_adapters.md).
 
 ### Add a new crate
 
-1. Create `crates/vyapaar-<name>/` with `Cargo.toml`, `src/lib.rs`,
+1. Create `crates/tantra-<name>/` with `Cargo.toml`, `src/lib.rs`,
    `README.md`, and `tests/`.
 2. Add it to the workspace `members` list in the root `Cargo.toml`.
 3. Add its dependencies to `[workspace.dependencies]`.
@@ -246,14 +246,14 @@ whether it belongs in an existing crate.
 ### Update the market calendar
 
 The calendar lives in
-`crates/vyapaar-market/src/india/calendar/` and `vyapaar.markets.india.calendar`. NSE publishes the
+`crates/tantra-market/src/india/calendar/` and `tantra.markets.india.calendar`. NSE publishes the
 following year's calendar in December. When the new calendar is
 released:
 
 1. Add calendar data for the new year.
 2. Add the year to the `Calendar::for_year()` match.
 3. Add tests for the new year.
-4. Bump the patch version of `vyapaar-market`.
+4. Bump the patch version of `tantra-market`.
 
 When NSE issues an amendment, update the same file and bump the patch
 version again. Historical calendars are never modified — a 2025

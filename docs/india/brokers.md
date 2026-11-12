@@ -1,6 +1,6 @@
 # Broker Adapters
 
-Vyapaar connects to Indian brokers through the adapters in the `vyapaar-adapters`
+Tantra connects to Indian brokers through the adapters in the `tantra-adapters`
 package. Each adapter is a module of that single package implementing the same
 contract — the `Adapter` protocol (`connect`, `disconnect`, `get_quote`,
 `get_bars`, `place_order`, `cancel_order`, `get_positions`, `get_margin`) — but the
@@ -17,7 +17,7 @@ below).*
 
 ## Adapter Status
 
-All seven brokers are **implemented** as modules of the single `vyapaar-adapters`
+All seven brokers are **implemented** as modules of the single `tantra-adapters`
 package, with wire→canonical translation and entry-point registration. Contract
 certification (canned-payload tests against `MockTransport`) currently covers
 **Dhan** and **Zerodha** only; the other five are implemented but untested
@@ -29,13 +29,13 @@ be pre-provisioned. Track the parity work in the repo's plan 0003.
 
 | Broker | Module | Implemented | Contract-certified |
 |--------|-----------------|-------------|--------------------|
-| Zerodha | `vyapaar_adapters.zerodha` | Yes (REST) | Yes |
-| Dhan | `vyapaar_adapters.dhan` | Yes (REST) | Yes |
-| Angel One | `vyapaar_adapters.angelone` | Yes (REST) | No (gap 0001) |
-| Upstox | `vyapaar_adapters.upstox` | Yes (REST) | No (gap 0001) |
-| Fyers | `vyapaar_adapters.fyers` | Yes (REST) | No (gap 0001) |
-| Kotak | `vyapaar_adapters.kotak` | Yes (REST) | No (gap 0001) |
-| IIFL | `vyapaar_adapters.iifl` | Yes (REST) | No (gap 0001) |
+| Zerodha | `tantra_adapters.zerodha` | Yes (REST) | Yes |
+| Dhan | `tantra_adapters.dhan` | Yes (REST) | Yes |
+| Angel One | `tantra_adapters.angelone` | Yes (REST) | No (gap 0001) |
+| Upstox | `tantra_adapters.upstox` | Yes (REST) | No (gap 0001) |
+| Fyers | `tantra_adapters.fyers` | Yes (REST) | No (gap 0001) |
+| Kotak | `tantra_adapters.kotak` | Yes (REST) | No (gap 0001) |
+| IIFL | `tantra_adapters.iifl` | Yes (REST) | No (gap 0001) |
 
 ## The Primary Brokers
 
@@ -52,7 +52,7 @@ The brokers most commonly used by algorithmic traders in India:
 
 ## Dhan Adapter
 
-Dhan (`vyapaar_adapters.dhan`, `DhanAdapter`) is a REST adapter over the DhanHQ
+Dhan (`tantra_adapters.dhan`, `DhanAdapter`) is a REST adapter over the DhanHQ
 v2 API with headers `access-token` and `client-id`. It maps the canonical
 `NSE`/`BSE`/`NFO`/`MCX` exchanges to Dhan segments (`NSE_EQ`, `BSE_EQ`,
 `NSE_FNO`, `MCX_COMM`), order types to `LIMIT`/`MARKET`/`SL`/`SL_M`, and the
@@ -68,7 +68,7 @@ parse the cancel response (gap 0003).
 
 ## Zerodha Adapter
 
-Zerodha (`vyapaar_adapters.zerodha`, `ZerodhaAdapter`) is a REST adapter over
+Zerodha (`tantra_adapters.zerodha`, `ZerodhaAdapter`) is a REST adapter over
 Kite Connect with `Authorization: token <api_key>:<access_token>` headers. It is
 the most complete module today:
 
@@ -87,7 +87,7 @@ the most complete module today:
 
 Kite's WebSocket ticker is *not* implemented in this package — streaming is
 tracked as gap 0004, and the Rust-side binary decoder lives in
-`vyapaar-market` (see
+`tantra-market` (see
 [Adapter Interface](../architecture/adapter_interface.md)).
 
 ## The Static IP Requirement
@@ -101,7 +101,7 @@ in India.
 - **Angel One and Zerodha** do not, which means their write paths can
   be tested only after registering a static IP with the broker.[reference:24]
 
-For a research-first platform like Vyapaar, this means: **do backtesting
+For a research-first platform like Tantra, this means: **do backtesting
 and paper trading with any adapter, but only go live after registering a
 static IP with your broker**. The Sandbox adapter, which simulates
 execution locally over real market data, does not require a static IP.
@@ -128,11 +128,11 @@ In every case, credentials are supplied to the adapter constructor through
 sourced from your environment or secret store; see
 [Adapter Configuration](adapter_configuration.md).
 
-The `vyapaar-adapters` package has no headless login flow yet (gap 0005): there
+The `tantra-adapters` package has no headless login flow yet (gap 0005): there
 is no TOTP generation, OAuth handshake, or token refresh in the package, so
-today you obtain the access token outside Vyapaar and inject it. Automating
+today you obtain the access token outside Tantra and inject it. Automating
 that daily handshake is the Rust-side
-[headless auth](../architecture/adapter_interface.md#32-headless-authentication-vyapaar-exec-auth)
+[headless auth](../architecture/adapter_interface.md#32-headless-authentication-tantra-exec-auth)
 design; the Python side is tracked as gap 0005.
 
 Because every adapter is synchronous REST over an injected transport, there is
@@ -173,14 +173,14 @@ messages.
 
 [reference:26]
 
-The `vyapaar-adapters` package is REST-only today (gap 0004): it does not
+The `tantra-adapters` package is REST-only today (gap 0004): it does not
 consume postbacks or WebSocket order streams. Order-state updates come from
 pull-style reads of the order book endpoints; wiring push notifications is part
 of the streaming work tracked in the adapter repo's plan 0003.
 
 ## Brokerage Defaults
 
-Vyapaar's cost model ships with per-broker brokerage defaults, current as
+Tantra's cost model ships with per-broker brokerage defaults, current as
 of the last verification date:
 
 | Broker | Equity delivery | Equity intraday | F&O |
@@ -217,7 +217,7 @@ resolution are described in
 ## Paper vs Live
 
 The offline path is the deterministic **paper broker**
-(`vyapaar_adapters.paper.PaperBroker`): market orders fill at the simulated
+(`tantra_adapters.paper.PaperBroker`): market orders fill at the simulated
 quote, limit orders on crossing, positions and bars are maintained with exact
 `Decimal` arithmetic, and sessions can be recorded to JSONL fixtures and
 replayed in CI. It needs no credentials and no network. Its fill model is
@@ -228,7 +228,7 @@ Live mode is the same module classes with a real `UrllibTransport` and real
 credentials. Because the adapters are development/research-plane Python, live
 order placement additionally requires the broker-side prerequisites
 (static IP registration — see above). Engine-level paper simulation
-(backtesting against the simulator) is a `vyapaar-runtime` concern, not an
+(backtesting against the simulator) is a `tantra-runtime` concern, not an
 adapter one.
 
 ## Rate Limits
@@ -240,21 +240,21 @@ All Indian broker APIs impose rate limits. The limits differ:
 - Dhan: 25 requests/second.
 - Angel One: 3 requests/second for historical data.
 
-Rate limiting is not yet implemented in the `vyapaar-adapters` package — the
+Rate limiting is not yet implemented in the `tantra-adapters` package — the
 Python adapters are synchronous REST over an injected transport with no
 throttling layer. Keep per-broker budgets in mind when polling; the
 token-bucket rate limiter exists on the Rust production path
-(`vyapaar-exec`, see
-[Adapter Interface](../architecture/adapter_interface.md#33-token-bucket-rate-limiter-vyapaar-exec-ratelimit)),
+(`tantra-exec`, see
+[Adapter Interface](../architecture/adapter_interface.md#33-token-bucket-rate-limiter-tantra-exec-ratelimit)),
 and an adapter-side throttle is a candidate improvement for the parity plan.
 
 ## Adding a New Broker
 
 New brokers are added as **modules of the single package** (not separate
 distributions): subclass `BaseRestAdapter` in
-`vyapaar_adapters/<broker>.py`, translate wire→canonical with exact
+`tantra_adapters/<broker>.py`, translate wire→canonical with exact
 `Decimal`s, add a `tests/test_<broker>.py` contract test against
-`MockTransport`, register under the `vyapaar.adapters` entry point **and**
+`MockTransport`, register under the `tantra.adapters` entry point **and**
 `BROKER_ADAPTERS`, and add `configs/<broker>.toml`.
 
 The full walkthrough with the checklist is in

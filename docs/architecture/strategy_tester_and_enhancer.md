@@ -1,8 +1,8 @@
 # Strategy Tester & Automatic Strategy Enhancer
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-runtime-backtest / vyapaar-runtime-enhancer`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-runtime-backtest / tantra-runtime-enhancer`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Research-to-Production Parity**: Inspired by **Jesse's** elegant declarative optimization engine and institutional quant testing methodologies (Marcos López de Prado), Vyapaar combines a high-throughput, microsecond-fidelity event-driven strategy backtester with an automated strategy enhancer powered by Genetic Algorithms, Bayesian Optimization, Walk-Forward Analysis, and AI-native prompt mutation.
+> **Research-to-Production Parity**: Inspired by **Jesse's** elegant declarative optimization engine and institutional quant testing methodologies (Marcos López de Prado), Tantra combines a high-throughput, microsecond-fidelity event-driven strategy backtester with an automated strategy enhancer powered by Genetic Algorithms, Bayesian Optimization, Walk-Forward Analysis, and AI-native prompt mutation.
 
 ---
 
@@ -12,13 +12,13 @@ Quantitative trading history is littered with strategies that produced spectacul
 1. **Unrealistic Market Microstructure**: Ignoring order book depth, exchange freeze limits, spread crossing, statutory Indian taxes (STT, GST, Stamp Duty), and T+1 Demat settlement.
 2. **Backtest Overfitting (Data Dredging)**: Running brute-force parameter sweeps until a curve-fitted parameter set happens to exploit random historical noise.
 
-Vyapaar's **Strategy Tester & Automatic Enhancer** enforces an unbending anti-overfitting doctrine:
+Tantra's **Strategy Tester & Automatic Enhancer** enforces an unbending anti-overfitting doctrine:
 
 ```text
  ┌────────────────────────────────────────────────────────────────────────┐
- │            VYAPAAR STRATEGY TESTER & AUTOMATIC ENHANCER                  │
+ │            TANTRA STRATEGY TESTER & AUTOMATIC ENHANCER                  │
  ├────────────────────────────────────────────────────────────────────────┤
- │  TIER 1: HIGH-THROUGHPUT EVENT-DRIVEN SIMULATOR (`vyapaar-runtime-backtest`) │
+ │  TIER 1: HIGH-THROUGHPUT EVENT-DRIVEN SIMULATOR (`tantra-runtime-backtest`) │
  │  - Microsecond event loop with research-live parity                    │
  │  - Exact statutory Indian cost model (STT, Stamp Duty, GST, Turnover)  │
  │  - NSE trading calendar, 15:20 MIS square-off, T+1 settlement          │
@@ -32,7 +32,7 @@ Vyapaar's **Strategy Tester & Automatic Enhancer** enforces an unbending anti-ov
  │  - Deflated Sharpe Ratio (DSR) & Probability of Backtest Overfitting   │
  │  - Monte Carlo Simulation: Trade sequence permutation & slippage shock │
  ├────────────────────────────────────────────────────────────────────────┤
- │  TIER 4: AI-NATIVE CLOSED-LOOP STRATEGY REFLECTION (`vyapaar-agent`)       │
+ │  TIER 4: AI-NATIVE CLOSED-LOOP STRATEGY REFLECTION (`tantra-agent`)       │
  │  - AI Agent diagnoses drawdown clusters & regime failure modes         │
  │  - Autonomous rule mutation & parameter boundary expansion             │
  └────────────────────────────────────────────────────────────────────────┘
@@ -40,9 +40,9 @@ Vyapaar's **Strategy Tester & Automatic Enhancer** enforces an unbending anti-ov
 
 ---
 
-## 2. Institutional Strategy Tester (`vyapaar-runtime-backtest`)
+## 2. Institutional Strategy Tester (`tantra-runtime-backtest`)
 
-The backtesting engine executes against pure `vyapaar-core` types, guaranteeing **100% byte-for-byte behavioral parity with live execution**:
+The backtesting engine executes against pure `tantra-core` types, guaranteeing **100% byte-for-byte behavioral parity with live execution**:
 
 ### 2.1 Microstructure Simulation Features
 * **Zero Lookahead Bias**: Point-in-time tick/bar replay. Future prices are strictly inaccessible to the strategy.
@@ -54,10 +54,10 @@ The backtesting engine executes against pure `vyapaar-core` types, guaranteeing 
 * **Exact Indian Statutory Cost Accounting**:
   - Securities Transaction Tax (STT): 0.1% for Delivery, 0.025% sell-side for MIS equity, 0.0625% for Option premium.
   - State Stamp Duty, NSE turnover charges, SEBI turnover fees, and 18% GST.
-  - All debited instantaneously via the `vyapaar-ledger-book` double-entry accounting engine.
+  - All debited instantaneously via the `tantra-ledger-book` double-entry accounting engine.
 
 ```rust
-// vyapaar-runtime-backtest/src/engine.rs — the real configuration struct
+// tantra-runtime-backtest/src/engine.rs — the real configuration struct
 let config = BacktestConfig {
     starting_cash: dec!(1_000_000.00),        // ₹10 Lakhs (default)
     product_type: ProductType::Delivery,      // Delivery vs Intraday
@@ -76,19 +76,19 @@ source; a bars-only run is refused with `l2_requires_ticks`), sweep/parameter
 grids, and a warm-up window during which strategy intents are recorded but not
 executed. For the full run-level configuration (strategy manifest, data source,
 seed, `[risk]` limits) see [`BacktestRunConfig` in
-`vyapaar-runtime-config`](https://github.com/vyapaar-labs/vyapaar-runtime/blob/main/docs/design/code-config.md).
+`tantra-runtime-config`](https://github.com/tantra-labs/tantra-runtime/blob/main/docs/design/code-config.md).
 
 ---
 
 ## 3. Automatic Strategy Enhancer (like Jesse)
 
-Inspired by Jesse's optimization engine, Vyapaar allows strategies to define their genetic parameter space declaratively. The enhancer then discovers resilient parameter regions rather than brittle, overfit points.
+Inspired by Jesse's optimization engine, Tantra allows strategies to define their genetic parameter space declaratively. The enhancer then discovers resilient parameter regions rather than brittle, overfit points.
 
 ### 3.1 Declarative Strategy DNA
 Strategy parameters expose their search ranges directly in Python:
 
 ```python
-from vyapaar import Parameter
+from tantra import Parameter
 
 class TrendBreakout(Strategy):
     # Declarative search space
@@ -133,15 +133,15 @@ The ultimate defense against overfitting. The historical dataset is divided into
 ## 4. Rigorous Overfitting Guardrails: DSR, PBO & Monte Carlo
 
 ### 4.1 Deflated Sharpe Ratio (DSR)
-Following Marcos López de Prado's seminal research, running $N$ backtest trials will eventually produce a high Sharpe ratio purely by chance. Vyapaar automatically computes the **Deflated Sharpe Ratio (DSR)**:
+Following Marcos López de Prado's seminal research, running $N$ backtest trials will eventually produce a high Sharpe ratio purely by chance. Tantra automatically computes the **Deflated Sharpe Ratio (DSR)**:
 
 $$\text{DSR} = P\left( \widehat{\text{SR}} > \text{SR}_0 \mid N, \gamma_3, \gamma_4, V \right)$$
 
 * Adjusts for the number of trials ($N$), return skewness ($\gamma_3$), kurtosis ($\gamma_4$), and variance of trial Sharpe ratios ($V$).
-* **Implemented gate** (`vyapaar-runtime-enhancer::overfitting_guardrails`): a strategy is considered robust when **DSR ≥ 3.0**; values **< 1.5** are flagged as likely overfitting. The combined guard requires `dsr >= 3.0 && pbo < 0.5` (these are the actual thresholds the engine enforces; earlier prose versions citing 0.95 were aspirational).
+* **Implemented gate** (`tantra-runtime-enhancer::overfitting_guardrails`): a strategy is considered robust when **DSR ≥ 3.0**; values **< 1.5** are flagged as likely overfitting. The combined guard requires `dsr >= 3.0 && pbo < 0.5` (these are the actual thresholds the engine enforces; earlier prose versions citing 0.95 were aspirational).
 
 ### 4.2 Probability of Backtest Overfitting (PBO)
-Using Combinatorially Symmetric Cross-Validation (CSCV), Vyapaar slices historical sub-periods, constructs out-of-sample combinations, and measures the probability that the in-sample optimal strategy underperforms the median out-of-sample. **PBO ≥ 0.5** suggests likely overfitting and fails the guardrail.
+Using Combinatorially Symmetric Cross-Validation (CSCV), Tantra slices historical sub-periods, constructs out-of-sample combinations, and measures the probability that the in-sample optimal strategy underperforms the median out-of-sample. **PBO ≥ 0.5** suggests likely overfitting and fails the guardrail.
 
 ### 4.3 Monte Carlo Permutation & Stress Testing
 Once candidate parameters are selected, the Monte Carlo engine (`monte_carlo_stress`) evaluates alternative market histories — the simulation count (`n_simulations`) is caller-specified per run:
@@ -154,10 +154,10 @@ Once candidate parameters are selected, the Monte Carlo engine (`monte_carlo_str
 
 ## 5. StockSharp Odysseus & Genetic Strategy Synthesis
 
-Inspired by **StockSharp Odysseus (`StockSharp.Algo.Analytics / Odysseus`)**, Vyapaar incorporates automated genetic strategy synthesis and market regime analytics:
+Inspired by **StockSharp Odysseus (`StockSharp.Algo.Analytics / Odysseus`)**, Tantra incorporates automated genetic strategy synthesis and market regime analytics:
 
 ### 5.1 AST-Based Rule Tree Synthesis (Odysseus Port)
-Rather than tuning a fixed set of scalar numbers, Odysseus generates and evolves an **Abstract Syntax Tree (AST)** of trading logic (`vyapaar-runtime-enhancer::odysseus`, rayon-parallelized for up to 1,000 rule-tree genomes/second):
+Rather than tuning a fixed set of scalar numbers, Odysseus generates and evolves an **Abstract Syntax Tree (AST)** of trading logic (`tantra-runtime-enhancer::odysseus`, rayon-parallelized for up to 1,000 rule-tree genomes/second):
 * **Condition Nodes**: comparisons of a market signal (`mid_price`, `spread`, `bid_depth`, `ask_depth`, …) against a threshold.
 * **Action Nodes**: order sides (buy / sell / hold) submitted against L2 order-book depth.
 * **Composite Nodes**: boolean `AND` / `OR` / `NOT` over child conditions.
@@ -179,13 +179,13 @@ graph TD
 * **Multi-Objective Pareto Selection**: Selects candidates that dominate the multi-dimensional frontier across Sharpe, Sortino, Profit Factor, and Max Drawdown.
 
 ### 5.3 Market Regime Clustering (StockSharp Analytics)
-Regime detection lives in `vyapaar-agent` (not the runtime enhancer): `vyapaar-agent-genetic` classifies market states (`DetectedRegime`, including high-volatility states) and the research loop tags hypotheses with the regime at entry, the dominant regime, and the failure regime, so failed strategies are diagnosed per market state.
+Regime detection lives in `tantra-agent` (not the runtime enhancer): `tantra-agent-genetic` classifies market states (`DetectedRegime`, including high-volatility states) and the research loop tags hypotheses with the regime at entry, the dominant regime, and the failure regime, so failed strategies are diagnosed per market state.
 
 ---
 
 ## 6. AI-Native Automatic Strategy Enhancer Loop
 
-Beyond numerical hyperparameter tuning, Vyapaar's AI Engine (`vyapaar-agent`) provides an **autonomous qualitative strategy refinement loop**:
+Beyond numerical hyperparameter tuning, Tantra's AI Engine (`tantra-agent`) provides an **autonomous qualitative strategy refinement loop**:
 
 ```text
  ┌──────────────────────────────────────────────────────────────┐
@@ -211,7 +211,7 @@ Beyond numerical hyperparameter tuning, Vyapaar's AI Engine (`vyapaar-agent`) pr
                                 │ Mutated Strategy Spec
                                 ▼
  ┌──────────────────────────────────────────────────────────────┐
- │ 4. RE-EVALUATE OUT-OF-SAMPLE IN VYAPAAR-YA-BACKTEST            │
+ │ 4. RE-EVALUATE OUT-OF-SAMPLE IN TANTRA-YA-BACKTEST            │
  │    - Must improve Out-of-Sample Sharpe without reducing WFE  │
  │    - Log iteration to immutable Hypothesis Journal           │
  └──────────────────────────────────────────────────────────────┘
@@ -220,9 +220,9 @@ Beyond numerical hyperparameter tuning, Vyapaar's AI Engine (`vyapaar-agent`) pr
 This delivers a true automated quant assistant that does not merely fiddle with knobs, but logically refines trading hypotheses within strict mathematical guardrails.
 
 > **Scaffolding note**: the closed-loop integration lives in
-> `vyapaar-runtime-enhancer::ai_refinement` — `StrategyDiagnostic` (Sharpe,
+> `tantra-runtime-enhancer::ai_refinement` — `StrategyDiagnostic` (Sharpe,
 > Sortino, max drawdown, win/loss counts, fees, profit factor) and the loop
 > types feeding the mutated-spec re-evaluation. The LLM-side wiring (prompting,
-> MCP, hypothesis journal) is `vyapaar-agent`'s research loop; the runtime
+> MCP, hypothesis journal) is `tantra-agent`'s research loop; the runtime
 > enhancer provides the diagnostics and re-evaluation boundary, and the
 > end-to-end loop is not yet fully wired.

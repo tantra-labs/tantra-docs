@@ -1,8 +1,8 @@
 # Actor Runtime & Event Loop Architecture
 
-> **[STATUS: IMPLEMENTED]** — `vyapaar-runtime-actors`. See [Platform Conformance Matrix](../conformance_matrix.md).
+> **[STATUS: IMPLEMENTED]** — `tantra-runtime-actors`. See [Platform Conformance Matrix](../conformance_matrix.md).
 
-> **Concurrency Architecture**: Inspired by the actor architectures of **NautilusTrader** and **Barter-rs**, `vyapaar-runtime-actors` organizes runtime execution as a Tokio actor pipeline. Actors own their state and communicate exclusively via strongly typed, bounded `tokio::sync::mpsc` channels — no shared mutable state, and no coupling to Python's Global Interpreter Lock (GIL).
+> **Concurrency Architecture**: Inspired by the actor architectures of **NautilusTrader** and **Barter-rs**, `tantra-runtime-actors` organizes runtime execution as a Tokio actor pipeline. Actors own their state and communicate exclusively via strongly typed, bounded `tokio::sync::mpsc` channels — no shared mutable state, and no coupling to Python's Global Interpreter Lock (GIL).
 
 ---
 
@@ -12,7 +12,7 @@ Actors communicate solely via `tokio::sync::mpsc` channels whose mailbox size is
 
 ```text
  ┌──────────────────────────────────────────────────────────────────────┐
- │                    VYAPAAR ACTOR PIPELINE RUNTIME                     │
+ │                    TANTRA ACTOR PIPELINE RUNTIME                     │
  ├──────────────────────────────────────────────────────────────────────┤
  │                                                                      │
  │   ┌───────────────────────┐                                          │
@@ -31,7 +31,7 @@ Actors communicate solely via `tokio::sync::mpsc` channels whose mailbox size is
  │              │ sized OrderRequest                                    │
  │              ▼                                                       │
  │   ┌───────────────────────┐                                          │
- │   │       RiskActor       │ synchronous vyapaar-risk gate            │
+ │   │       RiskActor       │ synchronous tantra-risk gate            │
  │   └──────────┬────────────┘  + injected SqliteAuditLedger             │
  │              │ approved OrderRequest                                 │
  │              ▼                                                       │
@@ -47,7 +47,7 @@ Actors communicate solely via `tokio::sync::mpsc` channels whose mailbox size is
 ```
 
 There is **no** separate `AuditPersistenceActor`: audit persistence is a
-`vyapaar_runtime_persistence::SqliteAuditLedger` injected directly into the
+`tantra_runtime_persistence::SqliteAuditLedger` injected directly into the
 `RiskActor` and `ExecutionActor` (`.with_audit_ledger(...)`), which write rows
 inline — risk refusals, order registrations, acks, rejections, cancels — with
 risk-breach events mirrored into the persistence crate's type.
@@ -58,7 +58,7 @@ risk-breach events mirrored into the persistence crate's type.
 * **Role**: Market-data distributor. Ingests `MarketDataMsg::IngestTick`/`IngestBar`, filters by the active subscription set, forwards ticks to every strategy sender with `try_send` (a full mailbox logs a warning and drops, counted in metrics), and broadcasts canonical `Tick`s over a `tokio::sync::broadcast` channel (`resubscribe_ticks()`).
 * **Coalescing**: a builder-tuned buffer — `with_max_buffer_size` (default **100**, not a 65,536-entry buffer) and `with_coalesce_interval_ms` (default **50 ms**). The event loop is `tokio::select! { biased }` between message intake and the coalesce flusher.
 * **Backpressure policies**: `BackpressurePolicy::{Passthrough, CoalesceLatest, DropNewest, DropOldest}` — `CoalesceLatest` is the default; buffered modes keep only the latest tick per instrument on flush, and full-buffer behaviour is policy-driven with per-drop metrics.
-* **Normalization** happens upstream in `vyapaar-market` adapters: this actor receives canonical `vyapaar_core::Tick`/`Bar` values, never raw broker frames.
+* **Normalization** happens upstream in `tantra-market` adapters: this actor receives canonical `tantra_core::Tick`/`Bar` values, never raw broker frames.
 
 ### 2.2 `StrategyActor<S: Strategy>`
 * **Role**: Executes strategy signal generation against ticks, bars, and fill reports.
@@ -66,10 +66,10 @@ risk-breach events mirrored into the persistence crate's type.
 * **Synchronous reply discipline**: the actor emits `RiskMsg::EvaluateOrder` (or `PositionSizingMsg::SizeOrder` when sizing is wired) and **awaits the oneshot reply**, so one order's fate is known before the next decision. It stamps W3C trace context (`derive_or_create_trace_context`) and emits the `OrderGenerated` span.
 
 ### 2.3 `PositionSizingActor` (optional, wired by `spawn_with_position_sizing`)
-* **Role**: Order sizing between strategy and risk, behind the hexagonal `PositionSizer` port. Default sizer `SimplePositionSizer` delegates to the pure `vyapaar_core::sizing::calculate_position_size`, defaulting to `SizingMethod::FixedFractional { risk_pct: 0.01 }`.
+* **Role**: Order sizing between strategy and risk, behind the hexagonal `PositionSizer` port. Default sizer `SimplePositionSizer` delegates to the pure `tantra_core::sizing::calculate_position_size`, defaulting to `SizingMethod::FixedFractional { risk_pct: 0.01 }`.
 * **Determinism**: entry price is the limit price, else a ₹100.00 placeholder; portfolio state arrives only via explicit `UpdatePortfolio` messages (no hidden fill sync); sizer errors forward the unadjusted order.
 
-### 2.4 `RiskActor` (Subsystem: `vyapaar-risk`)
+### 2.4 `RiskActor` (Subsystem: `tantra-risk`)
 * **Role**: Pre-trade compliance gatekeeper. Calls the synchronous `risk_engine.check_order(&request, now)`:
   1. Validates the registered SEBI `algo_id`.
   2. Evaluates Order-to-Trade Ratio (OTR) windows (`RecordCancellation`/`RecordFill` feed them).
@@ -78,14 +78,14 @@ risk-breach events mirrored into the persistence crate's type.
 * **Refusal path**: warn + `RiskBreachEvent` (rule code carried) + metrics + an audit row via the injected ledger + `Err(BrokerError::RiskRefusal(...))` on the oneshot + an `ExecutionMsg::RiskBreachEvent` emission.
 * **Approval path**: forwards `ExecuteOrder` with a fresh oneshot and relays the broker result to the strategy.
 
-### 2.5 `ExecutionActor` (Subsystem: `vyapaar-exec`)
+### 2.5 `ExecutionActor` (Subsystem: `tantra-exec`)
 * **Role**: Outbound dispatcher. Optional `.with_oms(OrderStateMachine)` gives **idempotency**: a duplicate `client_order_id` is rejected as `InvalidRequest` without re-sending; the order is registered at `PendingNew` before the timed `broker.place_order` call.
-* **Broker integration**: any `BrokerExecutor` port (injected, `vyapaar-exec-core`); rate limiting, slicing, and SOR live in the `vyapaar-exec` repo behind that port.
+* **Broker integration**: any `BrokerExecutor` port (injected, `tantra-exec-core`); rate limiting, slicing, and SOR live in the `tantra-exec` repo behind that port.
 * **Audit**: acks, rejections, and cancels write rows via the injected `SqliteAuditLedger`; cancels emit the `Cancelled` span, an audit row, and `RiskMsg::RecordCancellation` (OTR credit).
 * **Drain on stop**: the run loop drains remaining queued messages (`try_recv`) before returning `ActorStatus::Stopped`.
 
 ### 2.6 `PortfolioActor` (standalone)
-Not wired by the `Supervisor` — a host wires it itself. It owns a single default account and processes fills with FIFO tax-lot matching (`apply_fill_to_account`), exact-`Decimal` statutory fees (STT 0.1% delivery / 0.025% intraday sell-side, NSE turnover ₹2.97/crore, SEBI ₹10/crore, stamp duty 0.015% buy-side, 18% GST, DP ₹13.50 + GST on delivery sell), and a `vyapaar-ledger-journal` double-entry posting. `GetSnapshot` computes MTM unrealized PnL from marks; `SettleTrades` is a **stub**.
+Not wired by the `Supervisor` — a host wires it itself. It owns a single default account and processes fills with FIFO tax-lot matching (`apply_fill_to_account`), exact-`Decimal` statutory fees (STT 0.1% delivery / 0.025% intraday sell-side, NSE turnover ₹2.97/crore, SEBI ₹10/crore, stamp duty 0.015% buy-side, 18% GST, DP ₹13.50 + GST on delivery sell), and a `tantra-ledger-journal` double-entry posting. `GetSnapshot` computes MTM unrealized PnL from marks; `SettleTrades` is a **stub**.
 
 ## 3. Pipeline Variants & Python Isolation
 
@@ -126,12 +126,12 @@ Lifecycle spans as `tracing::info_span!` with W3C `traceparent` fields carried i
 
 ---
 
-## 5. Python Runtime Integration (`vyapaar.event_loop`)
+## 5. Python Runtime Integration (`tantra.event_loop`)
 
-When running inside Python or interactive Jupyter environments, `vyapaar-ffi` embeds and manages the Tokio actor runtime:
+When running inside Python or interactive Jupyter environments, `tantra-ffi` embeds and manages the Tokio actor runtime:
 
 ```python
-from vyapaar import event_loop
+from tantra import event_loop
 
 # Context manager: Starts Tokio worker threads, drains on exit
 with event_loop.running(worker_threads=4):
@@ -152,6 +152,6 @@ event_loop.stop()
 
 ## Related documents
 
-* [`vyapaar-runtime` per-crate design docs](https://github.com/vyapaar-labs/vyapaar-runtime/tree/main/docs/design) — `code-actors.md` is the source-level reference for this page.
+* [`tantra-runtime` per-crate design docs](https://github.com/tantra-labs/tantra-runtime/tree/main/docs/design) — `code-actors.md` is the source-level reference for this page.
 * [Platform Conformance Matrix](../conformance_matrix.md) — implementation status.
 * [REST API](../api/rest.md) — the HTTP surface that feeds the pipeline.

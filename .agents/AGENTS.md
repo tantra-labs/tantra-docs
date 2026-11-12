@@ -1,4 +1,4 @@
-# `vyapaar-docs` Agent Guidelines & Architecture Invariants
+# `tantra-docs` Agent Guidelines & Architecture Invariants
 
 **Subsystem**: Documentation (MkDocs & mdBook)
 **Language**: Markdown
@@ -7,10 +7,10 @@
 ---
 
 ## 1. Role & Architectural Hints
-* `vyapaar-docs` is the official knowledge base:
+* `tantra-docs` is the official knowledge base:
   1. Built using MkDocs Material and mdBook.
   2. Single source of truth for Indian equity regulations, cost models (STT, GST, stamp duty), SEBI algo circulars, and strategy tutorials.
-  3. Code snippets in docs must correspond to tested code in `vyapaar-examples` or `vyapaar-strategies`.
+  3. Code snippets in docs must correspond to tested code in `tantra-examples` or `tantra-strategies`.
 
 ---
 
