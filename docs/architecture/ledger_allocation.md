@@ -27,10 +27,14 @@
 
 | Variant | Formula | Meaning |
 |---------|---------|---------|
-| `MeanVariance` | Maximize `(μᵀw − r_f) / √(wᵀΣw)` | Markowitz tangency portfolio (max Sharpe) |
-| `RiskParity` | Equal risk contribution `wᵢ(Σw)ᵢ` across instruments | Hierarchical-style equal risk (Phase 1) |
+| `MeanVariance` | Maximize `(μᵀw − r_f) / √(wᵀΣw)` | Markowitz tangency portfolio (max Sharpe); box constraints enforced by projected-gradient Sharpe ascent |
+| `RiskParity` | Equal risk contribution `wᵢ(Σw)ᵢ` across instruments | Equal risk (damped fixed point with per-iterate exact projection) |
+| `Hrp` | Hierarchical Risk Parity | Correlation-distance single-linkage dendrogram → quasi-diagonalization → recursive-bisection risk allocation (pure `Decimal`) |
+| `BlackLitterman` | `((τΣ)⁻¹ + PᵀΩ⁻¹P)⁻¹·((τΣ)⁻¹π + PᵀΩ⁻¹q)` | View-blended posterior; prior `π = τ·Σ·w_mkt` reverse-optimized from benchmark weights |
 
-Phases 2–4 (Hrp/Herc, Black-Litterman, discrete/whole-share allocation) are declared but return `NotImplemented` — explicitly out of scope for Phase 1.
+Phases 2–4 (Hrp, Black-Litterman, discrete/whole-share allocation) were
+declared-but-`NotImplemented` after Phase 1 and are **implemented** since plan
+0003 (`tantra-ledger` commit `9f8ec22`, 2026-11-13).
 
 ### `Constraint::WeightBounds`
 
@@ -40,7 +44,9 @@ Phases 2–4 (Hrp/Herc, Black-Litterman, discrete/whole-share allocation) are de
 | `min` | `Decimal` | Minimum weight |
 | `max` | `Decimal` | Maximum weight |
 
-Box bounds per instrument, projected via iterative clip-and-renormalize: clip each weight to `[min, max]`, re-scale remaining in-bound weights to re-sum to 1, repeat until stable.
+Box bounds are enforced by exact projection onto the bounded simplex
+(`project_box_simplex` water-fills `{min ≤ w ≤ max, Σw = 1}`), replacing the
+Phase 1 clip-and-renormalize heuristic.
 
 ### `PortfolioState` — read-adapter
 
@@ -63,7 +69,10 @@ Custom JSON serialization as a sorted array of `{instrument, weight}` entries.
 
 ### `optimize()` — pure entry point
 
-Solves the unconstrained optimum exactly, then projects into the box via iterative clip-and-renormalize. Exact bound-constrained QP is a follow-on (Phase 4+).
+Solves each objective in exact `Decimal` and enforces the box by exact
+projection onto the bounded simplex (see above). `allocate_discrete(target,
+equity, prices, lot_sizes)` additionally maps the continuous `TargetWeights`
+onto whole-lot `Quantity`s via iterative largest-remainder rounding.
 
 ---
 
@@ -97,20 +106,27 @@ for (instrument, weight) in &target_weights.weights {
 
 ## 4. Tests
 
-17 tests in `tests/optimize_tests.rs` cover: mean-variance tangency, risk-parity equal risk contribution, weight-bounds projection, clip-and-renormalize convergence, `PortfolioState` construction, `TargetWeights` JSON serialization, and decimal-exactness invariants.
+32 tests in `tests/optimize_tests.rs` cover: mean-variance tangency (exact and
+box-constrained), risk-parity equal risk contribution, HRP inverse-variance
+goldens (2- and 3-asset diagonals, correlated 2-asset), Black-Litterman
+no-views → market weights + view-blend golden + serde round-trip, exact
+bounded-simplex projection, discrete whole-lot allocation, `PortfolioState`
+construction, `TargetWeights` JSON serialization, and decimal-exactness
+invariants.
 
-`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test --workspace` all pass.
+`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and
+`cargo test --workspace` all pass.
 
 ---
 
-## 5. Future Phases (Open)
+## 5. Objectives (all phases implemented)
 
 | Phase | Objective | Status |
 |-------|-----------|--------|
 | Phase 1 | MeanVariance, RiskParity | ✅ Implemented |
-| Phase 2 | Hrp (Hierarchical Risk Parity) / Herc | ⬜ Declared, returns `NotImplemented` |
-| Phase 3 | BlackLitterman | ⬜ Declared, returns `NotImplemented` |
-| Phase 4 | Discrete / whole-share allocation | ⬜ Declared, returns `NotImplemented` |
+| Phase 2 | Hrp (Hierarchical Risk Parity) | ✅ Implemented (plan 0003) |
+| Phase 3 | BlackLitterman | ✅ Implemented (plan 0003) |
+| Phase 4 | Discrete / whole-share allocation | ✅ Implemented (plan 0003) |
 
 ---
 

@@ -128,12 +128,18 @@ Derived closed trade from a portfolio `MatchedLot` plus user annotation — one 
 
 | Field | Type | Meaning |
 |-------|------|---------|
-| `version` | `u8` | `EDGE_SCORE_VERSION = 1` |
+| `version` | `u32` | `EDGE_SCORE_VERSION = 2` (weighted spec) |
 | `score` | `Option<Decimal>` | `None` if fewer than `MIN_CLOSED_TRADES_FOR_SCORE = 5` trades |
 | `components` | `EdgeScoreComponents` | Six component scores |
 | `closed_trades` | `u64` | Trades used |
 
-`EdgeScoreComponents` — six independently scored components (each 0–100): `win_rate`, `profit_factor`, `avg_win_loss`, `drawdown`, `recovery`, `consistency`. Equal-weight blend.
+`EdgeScoreComponents` — six independently scored components (each 0–100):
+`win_rate`, `profit_factor`, `avg_win_loss`, `drawdown`, `recovery`,
+`consistency`, blended with the documented `EDGE_WEIGHT_*` weights (profit
+factor 0.25, win rate 0.20, drawdown 0.20, avg win/loss 0.15, recovery 0.10,
+consistency 0.10). Payoff ratios score 0.5/1/2 → 0/50/100;
+`MetricsInput::new(trades, as_of)` takes `as_of` explicitly — no wall-clock
+query exists in the crate.
 
 **Entry points:** `compute_metrics(trades) -> PerformanceMetrics`, `compute_edge_score(metrics, trades) -> EdgeScore`. Both pure and deterministic.
 
