@@ -1,0 +1,30 @@
+# Tantra
+
+> Tantra (व्यापार) — a Rust + Python quantitative trading platform for Indian markets, exposing backtesting, risk gating, forecasting, and analytics to coding agents through a universal MCP gateway.
+
+- [Home](https://docs.tantra-labs.io/): Tantra documentation home.
+- [MCP Quickstart](https://docs.tantra-labs.io/getting-started/mcp/): install the tantra CLI, launch the MCP gateway, and run your first tool.
+- [MCP Gateway](https://docs.tantra-labs.io/ai/mcp_gateway/): the 22-tool MCP gateway reference — transports, Two-Tier Gateway Discovery, and the full tool catalog.
+- [Universal Result Protocol](https://docs.tantra-labs.io/ai/result_protocol/): the tantra/result/v1 envelope every tool returns.
+- [Agent Personas](https://docs.tantra-labs.io/ai/personas/): the 9 canonical agent personas.
+- [Quantitative Toolsets](https://docs.tantra-labs.io/ai/toolsets/): index of the 15 quantitative engines.
+- [Market toolset](https://docs.tantra-labs.io/ai/toolsets/market/): real-time quotes, OHLCV candles, order books, holiday calendars.
+- [Technicals toolset](https://docs.tantra-labs.io/ai/toolsets/technicals/): indicators and candlestick patterns.
+- [Scanner toolset](https://docs.tantra-labs.io/ai/toolsets/scanner/): field-level screening for Indian equities and derivatives.
+- [Analytics toolset](https://docs.tantra-labs.io/ai/toolsets/analytics/): tearsheets, Sharpe, Sortino, drawdowns, rolling statistics.
+- [Validation toolset](https://docs.tantra-labs.io/ai/toolsets/validation/): DSR and PBO backtest-overfitting statistics.
+- [Allocation toolset](https://docs.tantra-labs.io/ai/toolsets/allocation/): mean-variance, risk parity, and hierarchical risk parity portfolio construction.
+- [Risk toolset](https://docs.tantra-labs.io/ai/toolsets/risk/): pre-trade SEBI margin checks, VaR, Expected Shortfall.
+- [Regimes toolset](https://docs.tantra-labs.io/ai/toolsets/regimes/): hidden Markov model regime detection.
+- [Volatility toolset](https://docs.tantra-labs.io/ai/toolsets/volatility/): GARCH family modeling, realized volatility, volatility cones.
+- [Ledger toolset](https://docs.tantra-labs.io/ai/toolsets/ledger/): tax-lot matching and Section 112A capital-gains computation.
+- [Calc toolset](https://docs.tantra-labs.io/ai/toolsets/calc/): Indian statutory costs (STT, GST, stamp duty, exchange charges).
+- [Research toolset](https://docs.tantra-labs.io/ai/toolsets/research/): genetic strategy generation and closed-loop mutation.
+- [Backtest toolset](https://docs.tantra-labs.io/ai/toolsets/backtest/): backtesting runtime with market impact and slippage.
+- [Forecast toolset](https://docs.tantra-labs.io/ai/toolsets/forecast/): Theta, ETS, Holt-Winters, ARIMA, TBATS, and gradient-boost forecasting.
+- [Derivatives toolset](https://docs.tantra-labs.io/ai/toolsets/derivatives/): options pricing and analytics (Black-Scholes-Merton price and Greeks).
+- [Research Loop](https://docs.tantra-labs.io/ai/research_loop/): the LLM hypothesis-generation loop over past hypotheses and outcomes.
+- [RL Training](https://docs.tantra-labs.io/ai/rl_training/): reinforcement learning agents on the backtest simulator.
+- [OmniRoute Setup](https://docs.tantra-labs.io/ai/omniroute_setup/): the free-tier LLM router powering tantra-agent-llm.
+- [REST API](https://docs.tantra-labs.io/api/rest/): headless REST and WebSocket gateway reference.
+- [Python SDK](https://docs.tantra-labs.io/api/python/): the tantra Python SDK reference.

@@ -1,6 +1,26 @@
 # `tantra-docs` — Inter-Agent Handoff
 
 ## Phase / Slice Status
+* **T11 track COMPLETE (2026-11-15) — docs plans 0001 + 0003 Implemented**:
+  - **T11.1 — MCP gateway & 15-engine reference**: `docs/ai/mcp_gateway.md` overhauled
+    into the complete 22-tool gateway reference (stdio + SSE/HTTP transports, Two-Tier
+    Gateway Discovery `tantra_search_tools`/`tantra_describe_tool`/`tantra_read_result`,
+    universal `tantra/result/v1` envelope, `_jq` filter, no `tantra_call_tool`); 16 pages
+    under `docs/ai/toolsets/` (index + all 15 engines: market, technicals, scanner,
+    analytics, validation, allocation, risk, regimes, volatility, ledger, calc, research,
+    backtest, forecast, derivatives) with exact shipped tool schemas + honest stub notes
+    (data gaps 0017/0018/0020–0022, market 0006); 4 client guides
+    `docs/ai/clients/{claude_code,cursor,vs_code,gemini}.md`; `docs/ai/result_protocol.md`;
+    `docs/ai/personas.md` (9 personas); `docs/getting-started/mcp.md`; `docs/llms.txt`;
+    nav + `ai/index.md` + `getting-started/index.md` wired.
+  - **T11.2 — EE+ strategy user guide**: `docs/strategies/elephant-edge/` — index,
+    overview, level-map, signals, stops-positioning, studio. Grounded in the research
+    basis + shipped SDK (gap 0006) with honest status banners: strategy engine / Studio /
+    `level_map`+`oi_walls` chat tools documented as **planned** citing strategies plan
+    0001, ui plan 0006, agent plan 0011. Code snippets use only shipped tested SDK models
+    (`tantra_strategies.sdk.{levels,stop_protection,order}`).
+  - Plan docs `docs/plans/0001` + `0003` removed (moved to Implemented in the index per
+    gap-tracking §4); workspace task list T11 rows closed.
 * **Adapters docs sync (COMPLETE, 2026-11-12)**: rewrote the site's adapter
   story against the actual `tantra-adapters` source (single package, 7 broker
   modules, REST-only, Decimal-only). The old pages described a **non-existent**
@@ -34,8 +54,8 @@
     `architecture/index.md` + `api/python/index.md` rows updated;
     `getting-started/installation.md` + `contributing/development_setup.md`
     adapter install/testing sections rewritten.
-* Gate: `mkdocs build --strict` **PASS** (0 anchor warnings; only the known
-  informational `docs/plans/*`-outside-nav warning).
+* Gate: `mkdocs build --strict` **PASS** (0 warnings; only the known
+  informational `docs/plans/README.md`-outside-nav warning).
 * Runtime docs pass (2026-11-12, earlier same day) — see the folded summary
   below.
 
@@ -48,6 +68,10 @@
 * Heading anchors strip backticks/dots (`### 3.2 Headless Authentication
   (`tantra-exec-auth`)` → `#32-headless-authentication-tantra-exec-auth`);
   deep-link to the post-slugify form or the strict build flags it.
+* **MCP gateway truth (verified 2026-11-15)**: 22 tools (6 base, 13 `tantra_*`
+  quant, 3 discovery). There is **no `tantra_call_tool`** — invocation is the
+  standard MCP `tools/call` with the exact tool name. 15 engines (the old doc
+  listed 13 — `forecast` and `derivatives` were missing).
 * `tantra-adapters` wire truth (verified 2026-11-12): all 7 broker modules
   implemented + entry-pointed; contract tests only for dhan/zerodha;
   `zerodha.get_bars` is the only real OHLCV path; all 7 `cancel_order`
@@ -65,12 +89,11 @@
   (parse/config/codec/public-api added 2026-11-12).
 
 ## Immediate Next Step
-* None in this repo. Monitor sub-repo HANDOFF.md files: when
-  `tantra-adapters` plan 0003 Phase A lands (5 broker contract tests, real
-  `get_bars`, parsed `cancel_order`), update the status tables in
-  `api/adapters-package.md`, `india/brokers.md`,
-  `india/adapter_configuration.md`, and the conformance matrix row; when the
-  SDK-side `tantra.adapters` registry lands, re-sync `api/adapters.md`.
+* None in this repo. When the EE+ upstream slices land (strategy engine,
+  Studio, `level_map`/`oi_walls` chat tools), update the corresponding
+  `docs/strategies/elephant-edge/` pages from "planned" to "shipped" and drop
+  the status banners. When the SDK-side `tantra.adapters` registry lands,
+  re-sync `api/adapters.md`.
 
 ## Operating Invariants
 * `mkdocs build --strict` must stay green; docs code snippets must match tested

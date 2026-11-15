@@ -19,6 +19,8 @@ backtest. It assumes no prior experience with the codebase.
 2. **[Your First Backtest](first-backtest.md)** — run a moving-average
    crossover on the NIFTY 50 universe, inspect the cost breakdown, and
    read the tearsheet.
+3. **[MCP Quickstart](mcp.md)** — connect an AI coding agent (Claude
+   Code, Cursor, VS Code, Gemini CLI) to the quantitative MCP gateway.
 
 ## After the First Backtest
 

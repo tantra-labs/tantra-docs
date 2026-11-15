@@ -13,6 +13,16 @@ most likely to be misunderstood.
   agents on the backtest simulator.
 - **[MCP Gateway](mcp_gateway.md)** — exposing Tantra's capabilities to
   external AI agents via Model Context Protocol.
+- **[Result Protocol](result_protocol.md)** — the universal
+  `tantra/result/v1` envelope every MCP tool returns.
+- **[Agent Personas](personas.md)** — the 9 canonical research personas
+  behind the research loop.
+- **[Client Connection Guides](clients/claude_code.md)** — wiring Claude
+  Code, Cursor, VS Code Copilot, and Gemini CLI to the MCP gateway.
+- **[MCP Quickstart](../getting-started/mcp.md)** — install, launch,
+  connect, run a first tool.
+- **[Quantitative Toolsets](../ai/toolsets/index.md)** — index of the 15
+  quantitative engines behind the gateway.
 - **[NL Verification](nl_verification.md)** — describing a strategy in
   plain English, having Tantra implement it, and getting a
   plain-English critique.
@@ -68,7 +78,7 @@ NoFX untrusted-AI principle (LLMs propose; `tantra-risk` gates):
 | Trader loop | `tantra-agent-trader-loop` | Event-driven loop: build prompt → `LlmProvider` → parse → validate → `RiskEngine` gate |
 | LLM providers | `tantra-agent-llm` | Anthropic, OpenAI, Gemini, Ollama/vLLM, `ScriptedFakeLlm`, `OpenAiCompatibleProvider` (OmniRoute free-tier) |
 | Deterministic replay | `tantra-agent-replay` | SHA-256 prompt/completion cassette archive for byte-for-byte backtest replay |
-| MCP server | `tantra-agent-mcp` | 7 quantitative tools (`get_indicator_catalog`, `check_spec`, `run_backtest`, `evaluate_metrics`, `optimize_strategy`, `explain_decision`, `forecast`) |
+| MCP server | `tantra-agent-mcp` | 22 tools (6 base, 13 quantitative, 3 discovery) over stdio and SSE/HTTP; Two-Tier Gateway Discovery (`tantra_search_tools` / `tantra_describe_tool` / `tantra_read_result`) |
 | Analytics engines | `tantra-agent-analytics` | DSR, PBO, walk-forward, regime classification, cointegration, cost stress, Monte Carlo, tearsheet |
 | Genetic synthesizer | `tantra-agent-genetic` | StockSharp Odysseus-style genetic programming & rule-tree strategy synthesizer |
 | Forecasting | `tantra-agent-forecast` | ARIMA, ETS, TBATS, Theta, gradient boost |

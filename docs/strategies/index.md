@@ -16,6 +16,9 @@ response to market events; the strategy responds by placing orders.
   selection, weighting and rebalance schedule, with the `params` grammar.
 - **[Position Management](position_management.md)** — sizing models,
   stop losses, and portfolio construction.
+- **[Elephant Edge (EE+) intraday guide](elephant-edge/index.md)** — the
+  planned smart-money intraday playbook: the Elephant level map, signals,
+  stops and positioning (strategy engine planned; SDK shipped).
 - **[Step Manifests and Chaining](step_manifests_and_chaining.md)** — the
   `step.toml` manifest, the screen/filter/size/execute stage model and the
   chain validator.

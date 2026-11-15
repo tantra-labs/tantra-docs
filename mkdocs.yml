@@ -52,6 +52,7 @@ nav:
       - Installation: getting-started/installation.md
       - First Backtest: getting-started/first-backtest.md
       - Loading Data: getting-started/loading-data.md
+      - MCP Quickstart: getting-started/mcp.md
   - Architecture:
       - architecture/index.md
       - Overview: architecture/overview.md
@@ -98,6 +99,13 @@ nav:
       - Portfolio Construction: strategies/portfolio_construction.md
       - Position Management: strategies/position_management.md
       - Step Manifests and Chaining: strategies/step_manifests_and_chaining.md
+      - Elephant Edge (EE+):
+          - strategies/elephant-edge/index.md
+          - Overview: strategies/elephant-edge/overview.md
+          - Level Map: strategies/elephant-edge/level-map.md
+          - Signals: strategies/elephant-edge/signals.md
+          - Stops & Positioning: strategies/elephant-edge/stops-positioning.md
+          - Studio: strategies/elephant-edge/studio.md
   - Backtesting:
       - backtesting/index.md
       - Three-Tier Pipeline: backtesting/three_tier_pipeline.md
@@ -111,6 +119,30 @@ nav:
       - Research Loop: ai/research_loop.md
       - RL Training: ai/rl_training.md
       - MCP Gateway: ai/mcp_gateway.md
+      - Result Protocol: ai/result_protocol.md
+      - Personas: ai/personas.md
+      - MCP Clients:
+          - Claude Code: ai/clients/claude_code.md
+          - Cursor: ai/clients/cursor.md
+          - VS Code: ai/clients/vs_code.md
+          - Gemini CLI: ai/clients/gemini.md
+      - Quantitative Toolset:
+          - ai/toolsets/index.md
+          - Market: ai/toolsets/market.md
+          - Technicals: ai/toolsets/technicals.md
+          - Scanner: ai/toolsets/scanner.md
+          - Analytics: ai/toolsets/analytics.md
+          - Validation: ai/toolsets/validation.md
+          - Allocation: ai/toolsets/allocation.md
+          - Risk: ai/toolsets/risk.md
+          - Regimes: ai/toolsets/regimes.md
+          - Volatility: ai/toolsets/volatility.md
+          - Ledger: ai/toolsets/ledger.md
+          - Calc: ai/toolsets/calc.md
+          - Research: ai/toolsets/research.md
+          - Backtest: ai/toolsets/backtest.md
+          - Forecast: ai/toolsets/forecast.md
+          - Derivatives: ai/toolsets/derivatives.md
       - NL Verification: ai/nl_verification.md
       - Free-Tier LLM Backend (OmniRoute): ai/omniroute_setup.md
       - Fincept vs. Quantcept: ai/fincept-vs-quantcept.md
