@@ -1,93 +1,125 @@
 # Your First Backtest
 
-This walkthrough runs a simple moving-average crossover on the NIFTY 50
-universe and produces a performance tearsheet. No broker credentials are
-required.
+This walkthrough runs a 10/30 SMA crossover on synthetic RELIANCE bars,
+offline, with no broker credentials and no data downloads. It uses the wheel
+session orchestrator (`Tantra.backtest`) — the same path production workflows
+use.
 
 ## The Strategy
 
-We'll buy when the 20-day SMA crosses above the 50-day SMA, and sell when it
-crosses back below. Position size is equal-weight across the universe.
-
 Create `first_backtest.py`:
 
-    from tantra import Strategy
-    from tantra.indicators import Sma
-    from tantra.markets.india.universes import resolve_universe
+```python
+from decimal import Decimal
+
+from tantra import Strategy
+from tantra.indicators import Sma
+from tantra.backtest.session import Tantra
 
 
-    class SmaCrossover(Strategy):
-        name = "sma_crossover"
-        fast_period = 20
-        slow_period = 50
+class SmaCrossover(Strategy):
+    name = "sma_crossover"
 
-        def on_start(self):
-            self.fast = Sma(self.fast_period)
-            self.slow = Sma(self.slow_period)
+    def __init__(self, fast: int = 10, slow: int = 30):
+        super().__init__()
+        self.fast = Sma(fast)
+        self.slow = Sma(slow)
 
-        def on_bar(self, bar):
-            f = self.fast.update(bar.close)
-            s = self.slow.update(bar.close)
-            if f is None or s is None:
-                return
-            pos = self.position(bar.instrument_id)
-            if f > s and pos <= 0:
-                self.buy(bar.instrument_id, quantity=10.0)
-            elif f < s and pos > 0:
-                self.sell(bar.instrument_id, quantity=pos)
+    def on_bar(self, bar) -> None:
+        f = self.fast.update(bar.close)
+        s = self.slow.update(bar.close)
+        if f is None or s is None:
+            return                     # never signal on a partial window
+        pos = self.position(bar.instrument_id)
+        if f > s and pos <= 0:
+            self.buy(bar.instrument_id, Decimal("10"))
+        elif f < s and pos > 0:
+            self.sell(bar.instrument_id, pos)
+```
 
+## The Data
 
-    session = Strategy.backtest(
-        SmaCrossover(),
-        symbol="RELIANCE",
-        start="2023-01-01",
-        end="2024-12-31",
-        cash=1_000_000,
-    )
-    result = session.run()
+`Tantra.backtest` needs `bars=` or a `data=` provider. For a first run, use
+the examples' synthetic bar generator — a straight-line ramp you control, so
+the result is identical on every machine:
 
-    result.print_report()
+```python
+from tantra_examples.synthetic import trending_bars
+
+symbol = "RELIANCE"
+bars = trending_bars(symbol, 120)      # 120 daily bars starting at ₹2500
+```
+
+(With a real provider, pass `data=` and `start=`/`end=` instead — see
+[Loading Data](loading-data.md).)
 
 ## Running It
 
-    python3 first_backtest.py
+```python
+result = Tantra.backtest(
+    SmaCrossover(),
+    symbol=symbol,
+    exchange="NSE",
+    bars=bars,
+    cash=1_000_000,
+    algo_id="my-first-backtest",
+).run()
 
-Expected output:
+print(result.strategy_name)
+print(result.metrics)
+```
 
-    Backtest: SmaCrossover  (2023-01-01 → 2024-12-31)
-    Initial capital: ₹1,000,000
+```bash
+source .venv/bin/activate
+python first_backtest.py
+```
 
-    Trades:     412
-    Win rate:   54.1%
-    CAGR:       14.2%
-    Sharpe:     1.18
-    Sortino:    1.62
-    Max DD:     -11.4%
-    Total P&L:  ₹298,450
+Expected output shape (numbers will differ — it is a synthetic ramp):
+
+```text
+sma_crossover
+{'total_return_pct': 5.2, 'max_drawdown_pct': -0.8,
+ 'final_equity': 1052000.0, 'n_fills': 6, 'n_trades': 6}
+```
 
 ## What Just Happened
 
-The backtest session orchestrated:
+The session orchestrator wired up, in order:
 
-1. **Cost model** — every fill was charged STT, exchange fees, GST, stamp
-   duty, and statutory levies via canonical Indian market costs.
-2. **Next-open fill simulation** — fills execute at next session's open with
-   causal execution timing (ADR 0016).
-3. **Portfolio accounting** — P&L, position tracking, and drawdown were
-   computed bar-by-bar by the engine ledger, not by the strategy.
+1. **Next-open fill simulation** — every market order fills at the **next**
+   session's open, so a buy placed on bar *k* can never fill at bar *k*'s
+   open (causal execution timing).
+2. **Indian delivery costs** — the default cost model is
+   `india.equity.delivery` (STT, exchange fees, GST, stamp duty, statutory
+   levies), applied per fill.
+3. **T+N settlement** — cash settles on the configured settlement lag.
+4. **Exact Decimal accounting** — cash and positions are `decimal.Decimal`
+   throughout; `float` appears only at the metrics/equity-curve boundary.
 
 ## Inspecting the Result
 
-    result.trades           # List of executed fills
-    result.equity_curve     # Time series of portfolio value
-    result.positions        # Position history
-    result.metrics          # Full statistics dictionary
+```python
+result.metrics          # total_return_pct, max_drawdown_pct, final_equity, n_fills
+result.equity_curve     # [(ts, equity), ...]
+```
+
+For fills, orders, and events at the compiled level, use the low-level
+`tantra.run` path (every order is validated by the SEBI pre-trade risk
+gate):
+
+```python
+from tantra import run
+summary = run(SmaCrossover(), bars, algo_id="my-first-backtest")
+print(summary.summary())   # Backtest(algo=...): bars=... orders_filled=... refusals=...
+```
 
 ## Next Steps
 
+- **[Loading Data](loading-data.md)** — synthetic vs. lakehouse vs. Parquet
+  bar files.
+- **[User Guide → Python SDK](../user-guide/python.md)** — the full SDK
+  surface (indicators, paper sessions, adapters).
 - **[Cost Modeling](../backtesting/cost_modeling.md)** — how the Indian
   equity cost model is defined and how to customize it.
-- **[Latency Modeling](../backtesting/latency_modeling.md)** — why realistic
-  latency matters more for intraday than for delivery strategies.
-- **[Statistical Validation](../backtesting/statistical_validation.md)** —
-  how to tell if a 1.18 Sharpe is real or lucky.
+- **[Avoiding Backtest Biases](../backtesting/avoiding_backtest_biases.md)** —
+  how to tell if a 5% result on a synthetic ramp is real or an artifact.

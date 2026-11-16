@@ -1,6 +1,26 @@
 # `tantra-docs` — Inter-Agent Handoff
 
 ## Phase / Slice Status
+* **T14.16 (docs, 2026-11-16) — headless user guide + installation rewrite
+  COMPLETE** (`docs/plans/0005` → Implemented): new `docs/user-guide/` —
+  `index.md` (four headless surfaces, web-UI-not-ready banner, decision
+  table), `cli.md` (full `tantra` command reference organized by job, grounded
+  in `tantra-ui` `tantra-cli` `args.rs`), `rest-api.md` (`tantra serve` + curl
+  workflows, envelope, `/ws/live`; full wire reference stays `api/rest.md`),
+  `python.md` (strategy authoring, `Tantra.backtest(...).run()`, wheel CLI,
+  data sources, zero-floats), `ai.md` (LLM backends `TANTRA_GGUF_PATH` /
+  `TANTRA_LLM_BASE_URL`, `ask`/`chat`/`tools`/`mcp config`/`jobs`).
+  Rewrote `docs/getting-started/installation.md` (real superproject:
+  `git clone --recurse-submodules`, `make prepare` single venv + wheel,
+  `make prod` prod-profile build, `tantra` binary at
+  `tantra-ui/target/prod/tantra`, rust-version 1.85), `first-backtest.md`
+  (real `Tantra.backtest` API on synthetic `trending_bars`; the old page
+  taught a non-existent `Strategy.backtest(...)` / `result.print_report()`),
+  `loading-data.md` (synthetic / lakehouse `tantra-data` / Parquet
+  `SYMBOL.EXCHANGE.parquet` for `tantra serve`; removed the non-existent
+  `tantra data load`). Paper trading cross-linked to `docs/paper-trading/`
+  (plan 0004, not duplicated). Nav (User Guide section) + home +
+  getting-started indexes wired; `mkdocs build --strict` green.
 * **T14.15 (docs, 2026-11-16) — paper-trading user guide COMPLETE**
   (`docs/plans/0004` → Implemented): new `docs/paper-trading/` section —
   `index.md` (one engine / four embeddings, determinism + zero-floats notes),
@@ -102,14 +122,18 @@
   (parse/config/codec/public-api added 2026-11-12).
 
 ## Immediate Next Step
-* Paper trading track is COMPLETE (T14.15, close-out). None outstanding in this
-  repo. If a later phase changes the paper wire contract (fill fields / `/ws/live`
-  event names), re-sync `docs/paper-trading/` (sources of truth: `docs/api/rest.md`
-  + runtime plan `0005`). When the EE+ upstream slices land (T12.4 strategy engine,
-  T12.9 Studio, T12.8 `level_map`/`oi_walls` chat tools — all tracked in their
-  own repos), drop the "planned" banners on the `docs/strategies/elephant-edge/`
-  pages. When the SDK-side `tantra.adapters` registry lands, re-sync
-  `api/adapters.md`.
+* User-guide + installation track COMPLETE (T14.16, close-out). None
+  outstanding in this repo. When a later phase changes the paper wire contract
+  (fill fields / `/ws/live` event names), re-sync `docs/paper-trading/`
+  (sources of truth: `docs/api/rest.md` + runtime plan `0005`). If the
+  `tantra` CLI subcommand set changes (`tantra-ui` `tantra-cli` `args.rs`),
+  re-sync `docs/user-guide/cli.md`. When the web UI becomes the stable daily
+  driver, replace the "web UI not yet your daily driver" banner in
+  `docs/user-guide/index.md`. When the EE+ upstream slices land (T12.4
+  strategy engine, T12.9 Studio, T12.8 `level_map`/`oi_walls` chat tools —
+  all tracked in their own repos), drop the "planned" banners on the
+  `docs/strategies/elephant-edge/` pages. When the SDK-side `tantra.adapters`
+  registry lands, re-sync `api/adapters.md`.
 
 ## Operating Invariants
 * `mkdocs build --strict` must stay green; docs code snippets must match tested

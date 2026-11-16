@@ -53,10 +53,11 @@ Existing open-source trading platforms solve isolated problems, but none provide
 
 ## Where to Start
 
-1. [Installation Guide](getting-started/installation.md) — Set up Rust toolchains, Python packages, and broker credentials.
-2. [First Backtest Tutorial](getting-started/first-backtest.md) — Run an event-driven dual moving average backtest on NIFTY 50.
-3. [Architecture Overview](architecture/overview.md) — Deep dive into the bounded context separation, crate hierarchy, and actor topology.
-4. [Indian Market Calendar](india/market_calendar.md) — Understand exchange session windows, Muhurat trading, and settlement rules.
-5. [Indian Cost Modeling](india/cost_model.md) — Learn how statutory STT, GST, and exchange fees are calculated.
-6. [Platform Conformance Matrix](conformance_matrix.md) — Track implementation readiness across all 15 platform repositories.
+1. [Installation Guide](getting-started/installation.md) — Set up Rust toolchains, the Python wheel, and the `tantra` CLI in one workspace.
+2. [First Backtest Tutorial](getting-started/first-backtest.md) — Run an event-driven dual moving average backtest on synthetic bars.
+3. [User Guide](user-guide/index.md) — the four headless work surfaces (CLI, REST API, Python SDK, AI/MCP) that are the stable daily driver while the web UI matures.
+4. [Architecture Overview](architecture/overview.md) — Deep dive into the bounded context separation, crate hierarchy, and actor topology.
+5. [Indian Market Calendar](india/market_calendar.md) — Understand exchange session windows, Muhurat trading, and settlement rules.
+6. [Indian Cost Modeling](india/cost_model.md) — Learn how statutory STT, GST, and exchange fees are calculated.
+7. [Platform Conformance Matrix](conformance_matrix.md) — Track implementation readiness across all 15 platform repositories.
 7. [Paper Trading Exchange](paper-trading/index.md) — Validate order logic against a real-exchange mimic — no broker credentials, no risk.

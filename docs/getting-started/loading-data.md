@@ -1,53 +1,88 @@
-# Loading Data: `tantra data load`
+# Loading Data
 
-Reads a Parquet bar file for one instrument and prints a summary. Nothing is
-written; use it to check a file before a backtest or before `tantra serve`.
+Backtests and `tantra serve` both need bars. Which source you use depends on
+what you are doing:
 
-```bash
-tantra data load <file.parquet> <SYMBOL> [--exchange NSE|BSE]
+| Need | Source | Where |
+|:-----|:-------|:------|
+| A reproducible first run, no downloads | **Synthetic bars** (`tantra_examples.synthetic`) | this page |
+| A point-in-time research catalog | **Lakehouse** (`tantra-data`: DuckDB + Parquet, bhavcopy, corporate actions, coverage ledgers) | below |
+| A headless data API over Parquet | **Bar files** (`SYMBOL.EXCHANGE.parquet`) fed to `tantra serve` | below |
+
+## Synthetic Bars (first runs and tests)
+
+The examples package ships deterministic bar generators — identical on every
+machine, so first runs and tutorials are reproducible:
+
+```python
+from tantra_examples.synthetic import trending_bars, oscillating_bars
+
+bars = trending_bars("RELIANCE", 120)      # ramp from ₹2500
+bars = oscillating_bars("RELIANCE", 120)   # mean-reverting series
 ```
 
+`trending_bars(symbol, n)` / `oscillating_bars(symbol, n)` return
+`tantra.bar.Bar` objects with weekday timestamps. These are the bars used by
+[Your First Backtest](first-backtest.md).
+
+## Lakehouse (`tantra-data`)
+
+`tantra-data` is the point-in-time lakehouse: NSE bhavcopy ingestion,
+corporate actions (splits, bonuses, dividends, rights), point-in-time
+fundamentals, coverage ledgers, and a Hive-partitioned Parquet catalog with
+`DECIMAL128(18,4)` pricing (zero floats). Installed editable by
+`make prepare`:
+
 ```bash
-tantra data load bars/INFY.parquet INFY                    # NSE (default)
-tantra data load bars/INFY.parquet INFY --exchange BSE     # BSE
-tantra data load bars/INFY.parquet NSE:INFY                # qualified
+source .venv/bin/activate
+python -c "import tantra_data; print(tantra_data.__version__)"
 ```
 
-Output (stdout):
+Its CLI handles catalog provisioning and bhavcopy ingestion (see the
+`tantra-data` repo and [Indian Markets → Universes](../india/universes.md)
+for how universes and as-of queries work).
+
+## Bar Files for `tantra serve`
+
+The headless API server reads a directory of Parquet bar files, one per
+instrument, named `SYMBOL.EXCHANGE.parquet`:
 
 ```text
-<count> bars loaded from <file> (NSE:INFY)
-first: ts_event=<ns> close=<price>
-last:  ts_event=<ns> close=<price>
+bars/
+├── RELIANCE.NSE.parquet
+├── INFY.NSE.parquet
+└── NIFTY50.NSE.parquet
 ```
 
-The `first`/`last` lines are omitted for an empty file. Only `.parquet` sources
-are supported; any other extension fails with
-`unsupported source extension: <file> (expected .parquet)`.
+Boot the server over that directory:
 
-## Symbol forms
+```bash
+tantra serve --data-dir ./bars
+# listening on http://127.0.0.1:8000
+```
+
+Then query bars, quotes, screener scans, and backtests over HTTP — see
+[REST API Workflows](../user-guide/rest-api.md).
+
+## Symbol Forms
 
 | Form | Where | Example |
-|---|---|---|
-| Input: bare symbol | CLI argument | `INFY` (exchange from `--exchange`, default NSE) |
-| Input: qualified | CLI argument | `NSE:INFY`, `BSE:INFY` |
-| Display | ids in output, REST paths, `InstrumentId` | `INFY.NSE` |
+|------|-------|---------|
+| Input: bare symbol | Python `InstrumentId` | `InstrumentId("INFY", "NSE")` |
+| Input: qualified `EXCHANGE:SYMBOL` | Python order APIs, CLI flags | `NSE:INFY`, `NSE:NIFTY50-INDEX` |
+| Display / REST path | REST routes, output ids | `INFY.NSE` |
 
-Input is `EXCHANGE:SYMBOL`; the display form is `SYMBOL.EXCHANGE`. Do not pass
-`INFY.NSE` to the CLI, and do not use `NSE:INFY` in a REST path. Exchange codes
-are case-insensitive (`nse` works). The summary line above prints the
-qualified form `NSE:INFY`.
+The Python SDK normalizes these for you: `tantra.instrument_id(...)` accepts
+either form and returns a canonical `InstrumentId`; compiled
+`OrderRequest`s and the paper exchange take `EXCHANGE:SYMBOL` strings
+directly.
 
-## Errors
+## Arrow / Polars Bridges
 
-| Cause | Message |
-|---|---|
-| Exchange not NSE or BSE | `unknown exchange "XYZ" (supported: NSE, BSE)` |
-| Qualifier and `--exchange` disagree (`BSE:INFY --exchange NSE`) | `symbol qualifier BSE conflicts with exchange NSE` |
-| Empty symbol, whitespace, a second `:` | `invalid symbol "..." (expected SYMBOL or EXCHANGE:SYMBOL)` |
+The wheel converts bars and ticks to Arrow and Polars zero-copy:
 
-A qualifier and `--exchange` that agree (`NSE:INFY --exchange NSE`) are accepted.
-Exit status is non-zero on any error.
-
-Name files `SYMBOL.EXCHANGE.parquet` (for example `INFY.NSE.parquet`) when they
-are meant for [`tantra serve`](../api/rest.md).
+```python
+from tantra.data import bars_to_arrow, bars_to_polars
+arrow_table = bars_to_arrow(bars)        # pyarrow.Table
+frame = bars_to_polars(bars)             # polars.DataFrame
+```

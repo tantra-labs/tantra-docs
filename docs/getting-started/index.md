@@ -13,19 +13,24 @@ backtest. It assumes no prior experience with the codebase.
 
 ## The Path
 
-1. **[Installation](installation.md)** — install Rust, Python, and the
-   Tantra workspace. Verify the build with the dependency hierarchy
-   check and a minimal test run.
+1. **[Installation](installation.md)** — clone the superproject, build the
+   Rust workspaces in the `prod` profile, and build the shared Python venv
+   with the `tantra` wheel.
 2. **[Your First Backtest](first-backtest.md)** — run a moving-average
-   crossover on the NIFTY 50 universe, inspect the cost breakdown, and
-   read the tearsheet.
-3. **[MCP Quickstart](mcp.md)** — connect an AI coding agent (Claude
+   crossover on synthetic bars, inspect the cost breakdown, and read the
+   metrics.
+3. **[Loading Data](loading-data.md)** — synthetic, lakehouse, and Parquet
+   bar sources.
+4. **[MCP Quickstart](mcp.md)** — connect an AI coding agent (Claude
    Code, Cursor, VS Code, Gemini CLI) to the quantitative MCP gateway.
 
 ## After the First Backtest
 
 Once the first backtest runs, the natural next reads are:
 
+- **[User Guide → Overview](../user-guide/index.md)** — the four headless
+  work surfaces (CLI, REST API, Python SDK, AI/MCP) that are the stable
+  daily driver while the web UI matures.
 - **[Architecture → Overview](../architecture/overview.md)** — why
   the codebase is organized the way it is.
 - **[India → Cost Model](../india/cost_model.md)** — the cost
@@ -36,7 +41,7 @@ Once the first backtest runs, the natural next reads are:
 ## A Note on Data
 
 Backtests need historical data. The tutorials use a small synthetic
-dataset that ships with the repository, so no downloads are required
-for the first run. For real backtests, the
-[Installation](installation.md) guide covers how to populate the
-catalog from NSE bhavcopy or a broker API.
+dataset that ships with the `tantra-examples` package, so no downloads are
+required for the first run. For real backtests, the
+[Loading Data](loading-data.md) guide covers the lakehouse catalog and
+NSE bhavcopy ingestion.

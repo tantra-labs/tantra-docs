@@ -57,9 +57,9 @@ nav:
       - user-guide/index.md
       - The `tantra` CLI: user-guide/cli.md
       - REST API Workflows: user-guide/rest-api.md
-      - Paper Trading: user-guide/paper-trading.md
       - Python SDK: user-guide/python.md
       - AI & Automation: user-guide/ai.md
+      - Paper Trading (guide): paper-trading/index.md
   - Architecture:
       - architecture/index.md
       - Overview: architecture/overview.md
