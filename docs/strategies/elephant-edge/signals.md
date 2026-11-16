@@ -95,4 +95,5 @@ cluster.
 - [The Level Map](level-map.md) — where the bands and scores come from
 - [Stops & Positioning](stops-positioning.md) — what happens after the signal
 - [EE+ overview](overview.md)
+- [Reference & Worked Example](reference.md)
 - [Strategies overview](../index.md)

@@ -111,4 +111,5 @@ mirrored in the [Level Map](level-map.md), [Signals](signals.md) and
 - [Signals](signals.md)
 - [Stops & Positioning](stops-positioning.md)
 - [EE+ Studio & Chat Tools](studio.md)
+- [Reference & Worked Example](reference.md)
 - [Strategies overview](../index.md)

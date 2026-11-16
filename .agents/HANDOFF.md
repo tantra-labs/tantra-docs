@@ -21,6 +21,7 @@
     (`tantra_strategies.sdk.{levels,stop_protection,order}`).
   - Plan docs `docs/plans/0001` + `0003` removed (moved to Implemented in the index per
     gap-tracking §4); workspace task list T11 rows closed.
+- **T12.10 (docs, 2026-11-15)** — EE+ guide completed with `docs/strategies/elephant-edge/reference.md` (parameter reference, declarative configuration + `config.toml` example, worked session walk-through; snippets use only shipped gap-0006 SDK models; cross-repo deps T12.4 engine / T12.8 chat tools / T12.9 Studio stay planned — the guide's "planned" banners remain until those land). Nav + index + cross-links wired; `mkdocs build --strict` green.
 * **Adapters docs sync (COMPLETE, 2026-11-12)**: rewrote the site's adapter
   story against the actual `tantra-adapters` source (single package, 7 broker
   modules, REST-only, Decimal-only). The old pages described a **non-existent**
@@ -89,11 +90,11 @@
   (parse/config/codec/public-api added 2026-11-12).
 
 ## Immediate Next Step
-* None in this repo. When the EE+ upstream slices land (strategy engine,
-  Studio, `level_map`/`oi_walls` chat tools), update the corresponding
-  `docs/strategies/elephant-edge/` pages from "planned" to "shipped" and drop
-  the status banners. When the SDK-side `tantra.adapters` registry lands,
-  re-sync `api/adapters.md`.
+* None in this repo. When the EE+ upstream slices land (T12.4 strategy engine,
+  T12.9 Studio, T12.8 `level_map`/`oi_walls` chat tools — all tracked in their
+  own repos), drop the "planned" banners on the `docs/strategies/elephant-edge/`
+  pages. When the SDK-side `tantra.adapters` registry lands, re-sync
+  `api/adapters.md`.
 
 ## Operating Invariants
 * `mkdocs build --strict` must stay green; docs code snippets must match tested

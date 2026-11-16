@@ -127,4 +127,5 @@ ledger slices can react.
 - [Signals](signals.md) — what a signal carries into stop placement
 - [Position management](../position_management.md) — the broader SDK position rules
 - [EE+ overview](overview.md)
+- [Reference & Worked Example](reference.md)
 - [Strategies overview](../index.md)

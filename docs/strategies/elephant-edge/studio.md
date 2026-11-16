@@ -72,4 +72,5 @@ stores, so every model and the Studio's rendering logic are fully testable offli
 - [The Level Map](level-map.md) — the data the Studio draws
 - [Signals](signals.md)
 - [Stops & Positioning](stops-positioning.md)
+- [Reference & Worked Example](reference.md)
 - [Strategies overview](../index.md)

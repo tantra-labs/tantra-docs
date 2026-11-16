@@ -106,6 +106,7 @@ nav:
           - Signals: strategies/elephant-edge/signals.md
           - Stops & Positioning: strategies/elephant-edge/stops-positioning.md
           - Studio: strategies/elephant-edge/studio.md
+          - Reference & Worked Example: strategies/elephant-edge/reference.md
   - Backtesting:
       - backtesting/index.md
       - Three-Tier Pipeline: backtesting/three_tier_pipeline.md

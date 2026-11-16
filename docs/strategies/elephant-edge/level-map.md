@@ -177,4 +177,4 @@ degrade honestly: until the upstream data gaps close (`tantra-market` gap 0005 f
 live level data, `tantra-data` gap 0016 for open-interest history), a `LiveContext` raises
 `LevelsUnavailable` / `OptionsUnavailable`. `SimulatedContext` seeds its level and OI
 stores so the models are fully testable today. See also [EE+ Studio & Chat Tools](studio.md)
-and the [EE+ overview](overview.md).
+and the [EE+ overview](overview.md), and the [Reference & Worked Example](reference.md).
