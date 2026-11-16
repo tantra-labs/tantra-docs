@@ -53,6 +53,13 @@ nav:
       - First Backtest: getting-started/first-backtest.md
       - Loading Data: getting-started/loading-data.md
       - MCP Quickstart: getting-started/mcp.md
+  - User Guide:
+      - user-guide/index.md
+      - The `tantra` CLI: user-guide/cli.md
+      - REST API Workflows: user-guide/rest-api.md
+      - Paper Trading: user-guide/paper-trading.md
+      - Python SDK: user-guide/python.md
+      - AI & Automation: user-guide/ai.md
   - Architecture:
       - architecture/index.md
       - Overview: architecture/overview.md
@@ -115,6 +122,12 @@ nav:
       - Latency Modeling: backtesting/latency_modeling.md
       - Avoiding Backtest Biases: backtesting/avoiding_backtest_biases.md
       - Pitfalls in Examples: backtesting/pitfalls_in_examples.md
+  - Paper Trading:
+      - paper-trading/index.md
+      - Python SDK: paper-trading/python.md
+      - CLI: paper-trading/cli.md
+      - REST & WebSocket: paper-trading/rest-ws.md
+      - Web & TUI: paper-trading/web.md
   - AI & Quant Research:
       - ai/index.md
       - Research Loop: ai/research_loop.md

@@ -1,6 +1,18 @@
 # `tantra-docs` — Inter-Agent Handoff
 
 ## Phase / Slice Status
+* **T14.15 (docs, 2026-11-16) — paper-trading user guide COMPLETE**
+  (`docs/plans/0004` → Implemented): new `docs/paper-trading/` section —
+  `index.md` (one engine / four embeddings, determinism + zero-floats notes),
+  `python.md` (seeded `PaperSession` round trip; faithful excerpt of
+  `tantra-examples/examples/basic/06_paper_trading.py`, covered by its 6-test
+  suite incl. two-runs-identical), `cli.md` (`tantra paper --mode embedded`
+  golden demo: sell VWAP `100.6667`, net 0, cash `1_000_000`; `--mode server`
+  → `paper serve`), `rest-ws.md` (`paper serve --tape` / `--mis-square-off`,
+  `/orders` + `/positions/close` + `/positions` + `/portfolio` + `/ws/live`,
+  fill fields, exact JSON cited to `docs/api/rest.md` + runtime plan `0005`),
+  `web.md` (`PaperPanel` embedded vs server; TUI `/positions`). Nav + home
+  index wired; `mkdocs build --strict` green.
 * **T11 track COMPLETE (2026-11-15) — docs plans 0001 + 0003 Implemented**:
   - **T11.1 — MCP gateway & 15-engine reference**: `docs/ai/mcp_gateway.md` overhauled
     into the complete 22-tool gateway reference (stdio + SSE/HTTP transports, Two-Tier
@@ -90,7 +102,10 @@
   (parse/config/codec/public-api added 2026-11-12).
 
 ## Immediate Next Step
-* None in this repo. When the EE+ upstream slices land (T12.4 strategy engine,
+* Paper trading track is COMPLETE (T14.15, close-out). None outstanding in this
+  repo. If a later phase changes the paper wire contract (fill fields / `/ws/live`
+  event names), re-sync `docs/paper-trading/` (sources of truth: `docs/api/rest.md`
+  + runtime plan `0005`). When the EE+ upstream slices land (T12.4 strategy engine,
   T12.9 Studio, T12.8 `level_map`/`oi_walls` chat tools — all tracked in their
   own repos), drop the "planned" banners on the `docs/strategies/elephant-edge/`
   pages. When the SDK-side `tantra.adapters` registry lands, re-sync

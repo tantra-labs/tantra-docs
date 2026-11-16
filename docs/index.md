@@ -59,3 +59,4 @@ Existing open-source trading platforms solve isolated problems, but none provide
 4. [Indian Market Calendar](india/market_calendar.md) — Understand exchange session windows, Muhurat trading, and settlement rules.
 5. [Indian Cost Modeling](india/cost_model.md) — Learn how statutory STT, GST, and exchange fees are calculated.
 6. [Platform Conformance Matrix](conformance_matrix.md) — Track implementation readiness across all 15 platform repositories.
+7. [Paper Trading Exchange](paper-trading/index.md) — Validate order logic against a real-exchange mimic — no broker credentials, no risk.
