@@ -40,7 +40,7 @@ All routes below are implemented. Routes marked `501` answer `not_implemented` a
 | `GET` | `/docs` | Swagger UI |
 | `GET` | `/instruments` | Filters `exchange`, `symbol`; id order |
 | `GET` | `/instruments/{id}` | `{id}` is `SYMBOL.EXCHANGE`, split on the last dot |
-| `GET` | `/quotes` | `symbols` (comma list), `venue`, `as_of` (inclusive) |
+| `GET` | `/quotes` | `symbols` (comma list), `venue`, `as_of` (inclusive). Each quote optionally carries `last_price`, `day_high`, `day_low`, `prev_close`, `volume` session-summary fields when the live feed has them (gap 0010) |
 | `GET` | `/bars/{id}` | `tf`, `from`, `to`; half-open `[from, to)`, ascending `ts_event` |
 | `POST` | `/bars` | Ingest bars |
 | `GET` | `/depth/{id}` | `depth` 1..=50, default 5 — over bars returns 404 `market_data_unavailable` |
