@@ -1,506 +1,306 @@
-# Experimental-Analysis Workbench
+# Experimental-Analysis Workbench (Novice Trader's Guide)
 
-The **Experimental-Analysis** tab in `tantra-ui-web` is a multi-asset quantitative
-research workbench (`NSE`, `NFO`, `BSE`, `MCX`, `CDS`, equities, ETFs, FX, and
-commodities). Every calculation runs in exact `rust_decimal::Decimal` arithmetic
-via `tantra-market-finance` (`/api/v2/experimental-analysis/*`) with **zero
-fabrication**: when 5-minute bars, live option quotes, or archived events are
-absent for a symbol/date window, the page states so explicitly rather than
-synthesizing data.
+Trading without statistics is guessing. The **Experimental-Analysis** page lets you look at what a stock, ETF, index, currency, or commodity **actually did in the past**—measured with exact numbers—so you can base every trade on **odds, payoff size, and risk limits** instead of gut feeling.
 
-This guide explains how to read every control, KPI, chart, and study tab—plus
-dedicated playbooks for the **Contrarian (Mean-Reversion) Strategy** and
-structuring **Iron Condors & Condor Wings**.
+Every number is computed directly from real historical market bars (Lakehouse v3) and live broker feeds when connected. Whenever 5-minute intraday data, live option quotes, or archived events are missing for a symbol, the page tells you honestly instead of making up fake data.
 
 ---
 
-## 1. Left Control Rail: How Inputs Shape Every Number
+## 1. How to Use Statistics & Probability to Take a Trade
 
-Always check the header strip (`Instrument`, `Range`, `Periods`, `Source`) and
-the left control rail before interpreting any metric. Changing any setting
-recomputes the active study cleanly.
+Before looking at individual buttons, keep this **5-step trading checklist** in mind. Everything on this page helps you answer these five questions before you click Buy or Sell:
+
+| Step | Question to Answer | Key Stat / Probability on This Page | Trade Action |
+| :--- | :--- | :--- | :--- |
+| **1. Odds (Win Rate)** | How often does this trade work? | `Positive / Negative Periods %`, `Markov Next-Streak %`, `Fill Rate %` | Never take a trade blindly—know whether the historical odds are `35%`, `50%`, or `70%`. |
+| **2. Size of Wins vs. Losses** | When I'm right vs. wrong, how much do I make or lose? | `Average Return`, `Profit Factor`, `Green vs Red Mean/Median` | A `40%` win rate still makes money if average wins are `2×` bigger than average losses (`Profit Factor > 1.3`). |
+| **3. Where to Put Entries, Targets & Stops** | Where does price *rarely* go vs. *usually* go? | `Probability-Based Levels`, `Return Percentiles (P95/P5)`, `H-L Range` | Place **stops** outside normal noise (`75%–90%`), **targets** near `P50–P75`, and **option strikes** where odds are on your side (`80%–90%`). |
+| **4. When to Enter** | Is today stretched, calm, or before a big news event? | `Streak Analysis`, `Tab 2 Outliers`, `Tab 3 Peak HOD/LOD`, `Tab 12 Events` | Don't chase a `5+` green streak; wait past `09:15–09:30` whipsaws; don't sell tight options right before Earnings/RBI news. |
+| **5. Do Profits Survive Fees?** | After brokerage, STT, GST, and spread, is anything left? | `Net After Spread & Costs` + `Statutory Costs` (`Gross → Net`) | Only trade setups whose **Net** Profit Factor stays well above `1.0` after costs. |
+
+!!! tip "A Simple Example: Turning Probability into a Real Trade"
+    Suppose NIFTY is at **`24,000`** and **Tab 1 (`Probability-Based Levels`)** says:
+
+    - **`90% ABOVE` = `23,550`** → In 9 out of 10 past weeks, NIFTY finished **above** `23,550`.
+    - **`50% ABOVE` = `24,100`** → Half of past weeks finished above `24,100`.
+    - **`10% ABOVE` = `24,550`** → Only 1 out of 10 past weeks climbed above `24,550`.
+
+    Now you immediately know:
+    - **Buying shares/futures**: `23,550` is a data-backed floor for a stop-loss, and `24,100–24,550` is a realistic target zone (don't expect `+5%` in one week when only 10% of weeks cross `24,550`).
+    - **Selling options**: Selling a `23,550 Put` or `24,550 Call` has an ~90% historical win rate *per leg*—and adding protective wings turns it into a capped-risk **Iron Condor**.
+
+---
+
+## 2. Left Sidebar: Setting Up Your Test
+
+Every control on the left rail changes what gets calculated across all 13 tabs. Always check the top strip (**Instrument · Range · Periods · Source**) first so you know what sample you are looking at.
 
 ### Feed & Lakehouse Card
+- **Connected / Historical / Offline**: Shows whether live broker quotes are streaming (`Connected`) or you are studying archived Lakehouse bars (`Historical`).
+- **Indexed Symbols & F&O Contracts**: How many symbols and F&O contracts are loaded right now.
 
-- **Connected / Historical / Offline**: Shows whether a live broker adapter is
-  streaming (`Live Feed`) or the workbench is evaluating archived Lakehouse v3
-  bars (`Historical`).
-- **Indexed Symbols & F&O Contracts**: Total instruments and derivative
-  contracts loaded by `tantra-runtime`.
+### Study Family
+- **`Period & Expiry Returns`** *(default)*: Unlocks all **13 study tabs** below.
+- **`Buyback / Corporate Event Study`**: Replaces the main view with an event timeline showing how a stock moves **20 days before and 20 days after** buybacks/corporate actions.
+- **`Earnings / Macro Reaction Study`**: Shows how a stock reacts **20 days before and after** earnings releases or RBI/Fed macro dates (`All`, `IN`, or `US`).
 
-### Study Family (`Application Mode`)
+### Asset Class Universe, Instrument & Analysis Period
+Pick your market (**Indices**, **F&O Stocks**, **ETFs**, **Equities**, **Forex**, **Commodities**) and how historical bars are sliced into "periods":
 
-1. **`Period & Expiry Returns`** *(default)* — Unlocks all 13 horizontal study
-   tabs (Returns, Outliers, Intraday, Gaps, 5-Day, Cycle Progress, Correlation,
-   Options Overlay, Strike Lab, ORB, Forecasting, Rebalance, AI Assistant).
-2. **`Buyback / Corporate Event Study`** — Switches the canvas to an aligned
-   `[-20d, +20d]` Cumulative Abnormal Return (`CAR`) study around corporate
-   actions and buybacks.
-3. **`Earnings / Macro Reaction Study`** — Switches to a `[-20d, +20d]`
-   event-window study with a toggle between **Earnings / Filings** and
-   **Macro Calendar** (filterable by `All`, `IN`, or `US`).
-
-### Asset Class Universe & Analysis Period Schedule
-
-| Asset Class | Default Period | Other Supported Schedules |
+| Market | Default Period | Why It Matters for Trading |
 | :--- | :--- | :--- |
-| **Indices** | `Weekly Expiry` | `Week +1 Carry`, `Monthly Expiry`, `Daily` |
-| **F&O Stocks** | `Monthly Expiry` | `Weekly Expiry`, `Calendar Monthly`, `Daily` |
-| **ETFs / Equities** | `Calendar Monthly` | `Calendar Weekly` (Mon–Fri), `Daily` |
-| **Forex** | `Front-Month Cycle` | `Calendar Weekly`, `Daily` |
-| **Commodities** | `MCX Expiry Cycle` (rolls on the 20th, holiday-adjusted backward) | `Calendar Monthly`, `Daily` |
+| **Indices** | `Weekly Expiry` | Matches weekly NIFTY/SENSEX/BANKNIFTY option expiries so stats line up with real option trades. |
+| **F&O Stocks** | `Monthly Expiry` | Matches monthly stock F&O expiries. |
+| **ETFs / Equities** | `Calendar Monthly` | Groups by calendar month (or switch to `Calendar Weekly` / `Daily` for swing trading). |
+| **Forex / Commodities** | `Front-Month / MCX Expiry Cycle` | Follows contract roll dates automatically. |
 
-!!! note "NSE/SEBI September 3, 2025 Weekly-Expiry Regime Cutover"
-    When studying Indian `Indices` or `F&O Stocks` on `Weekly Expiry` or
-    `Monthly Expiry` across `2025-09-03`, the period slicer automatically aligns
-    historical boundaries to the exchange calendar in effect on each date:
+!!! note "Sep 3, 2025 Expiry Day Switch"
+    Indian index weekly expiries changed weekdays on **September 3, 2025** (for example NIFTY moved from Thursday to Tuesday, SENSEX to Thursday). The workbench automatically aligns pre-cutover and post-cutover dates so historical averages aren't corrupted.
 
-    - **NIFTY 50 / Generic NSE**: `Fri→Thu` before `2025-09-03`, bridged by
-      `Fri Aug 29 → Tue Sep 2, 2025`, then `Wed→Tue` from `2025-09-03` onward.
-    - **SENSEX**: `Mon→Fri` (pre-2025), `Wed→Tue` (`2025-01-01` to `2025-09-02`),
-      `Fri→Thu` from `2025-09-03` onward.
-    - **BANKNIFTY / FINNIFTY / MIDCPNIFTY**: Respects each index's historical
-      weekday switches and trading-holiday backward adjustments.
+### Calculation Type (`OC`, `H-L`, `CC`)
+- **`OC` (Open to Close)** *(default)*: Measures return from the **start** of each cycle to the **end** of that cycle (ignores overnight/weekend gaps). Best for asking: *"If I enter at cycle open and exit at expiry close, what happens?"*
+- **`CC` (Close to Close)**: Measures return from **last cycle's close** to **this cycle's close** (includes gaps). Best for holding continuous ETFs, delivery trades, or rolling futures.
+- **`H-L` (High to Low)**: Measures total swing size (`(High - Low) ÷ Open × 100`). Because `High` is always `≥ Low`, **`H-L` is ALWAYS positive (`0%` or higher)**.
 
-### Calculation Type
+!!! warning "Do Not Misread `H-L`"
+    Switching to `H-L` turns every single bar green! That does **not** mean the asset goes up 100% of the time. Use `H-L` purely to measure **how wide price swings** (for stop-loss distance and option wing width)—switch back to `OC` or `CC` to judge up/down direction.
 
-| Mode | Formula | What it measures |
-| :--- | :--- | :--- |
-| **`OC` (Open to Close)** | `(C_end - O_start) / O_start × 100` | Pure intra-cycle directional move from cycle open to cycle close; excludes gaps between cycles. |
-| **`H-L` (High to Low)** | `(max(H) - min(L)) / O_start × 100` | Total period trading range magnitude (`≥ 0%`). Use for volatility sizing, straddle/wing width calibration, and range expectations—**not** directional bias. |
-| **`CC` (Close to Close)** | `(C_end - C_prev) / C_prev × 100` | Gap-inclusive holding return from prior cycle close to current cycle close. Best for continuous futures/spot carry, ETFs, and FX. |
-
-### F&O Spread, Roll-Basis & Statutory Friction
-
-- **`Gross Spot`** *(default)*: Unadjusted underlying bar returns.
-- **`Include Roll Basis`**: Adds `Roll Basis (bps)` per period (`OC`/`CC`) to model
-  positive futures contango carry or backwardation drag.
-- **`Net After Spread & Costs`**: Applies `Roll Basis (bps)` **and** deducts
-  `Spread (bps)` plus (when **Statutory Costs (STT/Exch/GST)** is toggled on)
-  segment-exact Indian round-trip charges (`NFO` futures STT/stamp/exchange/SEBI
-  + 18% GST, `MCX` CTT, `CDS`, or cash equity delivery).
-
-When friction is active, the **F&O Spread & Roll-Basis Friction Reconciliation**
-card compares **Gross → Net Avg**, **Gross → Net Sharpe**, **Gross → Net Profit
-Factor**, per-cycle basis/fee bps, and **Cumulative Net Delta**. Downstream
-streaks, Markov transitions, percentiles, and outliers automatically recompute on
-the net series so you can spot strategies whose apparent edge disappears under
-real execution friction.
+### F&O Spread & Friction (Making Backtests Honest)
+Real trading costs money on every order. Always test your idea with friction turned on:
+- **`Gross Spot`**: Raw price moves with **zero** fees or slippage.
+- **`Include Roll Basis`**: Models futures roll premium/discount (`Roll Basis (bps)` — `100 bps = 1%`).
+- **`Net After Spread & Costs`**: Subtracts bid-ask spread (`Spread (bps)`) plus, if **Statutory Costs (STT/Exch/GST)** is checked, actual Indian STT, stamp duty, exchange fees, SEBI turnover charges, and 18% GST.
+- **Reconciliation Card**: When friction is enabled, this card compares **Gross → Net Avg**, **Gross → Net Sharpe**, **Gross → Net Profit Factor**, and **Cumulative Net Delta** so you can immediately see if fees kill the strategy.
 
 ---
 
-## 2. Tab-by-Tab Interpretation Guide
+## 3. Section-by-Section Interpretation of Tab 1 (`Returns Analysis`)
 
-### Tab 1 — Returns Analysis
+Tab 1 has **11 sections** from top to bottom. Here is how to read each one and use it in a trade:
 
-1. **Sub-Cycle Carrying Mode**
-   - `Current Period`: Evaluates each single cycle `P_k`.
-   - `Period +1 Carry`: Evaluates overlapping two-cycle carry
-     (`P_k.open → P_{k+1}.close`), showing whether holding one
-     extra cycle improves or dilutes risk-adjusted payoff.
-2. **3×3 Return KPI Grid**
-   - **Average Return, Max Gain, Max Loss, Return Std Dev**: Arithmetic mean,
-     best/worst single cycle, and sample standard deviation (`n - 1`).
-   - **Positive / Negative Periods**: Directional win rate and inverse share
-     (exact `0%` neutral cycles are reported separately).
-   - **Sharpe Ratio & Sortino Ratio**: Computed per evaluated period as
-     `μ / σ` and `μ / σ_downside` (MAR = `0%`). Because
-     these are per-period ratios, compare Sharpe/Sortino across symbols under the
-     *same* schedule (`Weekly` vs `Weekly`, not `Weekly` vs `Monthly`). When
-     **Sortino > Sharpe**, gains come with positive right-tail skew; when
-     **Sortino < Sharpe**, downside tails dominate.
-   - **Profit Factor**: `Σ r+ / |Σ r-|`. Values `< 1.0` indicate net
-     expectancy loss; `1.3–1.8+` after friction indicates a durable positive
-     distribution.
-3. **Return Trajectory Chart (Lollipop / Bars + SMA)**
-   - Green upward stems/bars mark positive cycles, red downward mark negative
-     cycles, with terminal circles scaled by move magnitude.
-   - Toggle **Show Moving Average** (`MA Window` `5–50`, default `20`) to see
-     whether recent period returns are trending above/below their rolling mean or
-     mean-reverting around `0%`.
-   - When the date window crosses `2025-09-03` on Indian derivatives, a vertical
-     dashed marker highlights the **Sep 3, 2025** expiry regime cutover.
-4. **Streak Analysis (Consecutive Directional Runs)**
-   - Exact `0%` neutral periods are excluded before grouping contiguous `r > 0`
-     (`Positive`) and `r < 0` (`Negative`) runs.
-   - **Current Streak Banner** shows the active direction, consecutive run
-     length, and compounded cumulative return so far.
-   - **Diverging Streak Lengths Timeline**, **Distribution of Streak Lengths**,
-     **Positive/Negative Streak Statistics** (`Most Common`, `Median`, `Std Dev`),
-     and the sortable **Streak Details** table let you see immediately when the
-     current run is stretched well beyond normal length (e.g., a 5-period run
-     when the median streak is 1–2 periods).
-5. **Markov Chain Transition Analysis (6-State Streak Engine)**
-   - Streaks are bucketed into six states:
-     `Short + (1-2)`, `Med + (3-4)`, `Long + (5+)`,
-     `Short - (1-2)`, `Med - (3-4)`, `Long - (5+)`.
-   - **6×6 Transition Matrix**: Each row (`Current State (Obs)`) gives the
-     empirical probability (%) of the *next completed streak* landing in each
-     column. The highlighted row matches the currently active streak state.
-   - **Current Streak Probability Prediction**: Aggregates row probabilities into
-     **Next Streak Positive** vs **Next Streak Negative** and highlights the
-     single **Strong Prediction**.
-   - **Steady-State Equilibrium Distribution**: Long-run stationary state
-     frequencies (`π = π P`) after repeated transitions.
+### 3.1 Sub-Cycle Carrying Mode
+- **`Current Period`**: Looks at one cycle at a time (e.g., Monday open to Friday close).
+- **`Period +1 Carry`**: Looks at holding across **two cycles combined** (this cycle's open through *next* cycle's close). Compare both: if returns double cleanly with better Sharpe, holding slightly longer pays off; if gains shrink or drawdowns jump, exit at the end of one cycle.
 
-   !!! warning "Watch Observation Counts `(Obs)`"
-       Rare rows such as `Long + (5+)` or `Long - (5+)` may only have `2–6`
-       historical observations in a 3-year sample. Always check `(Obs)` before
-       treating an 80% or 100% matrix cell as law-of-large-numbers certainty.
+### 3.2 The 9 Summary KPIs (3×3 Grid)
+- **Average Return**: Mean move per period. If positive and meaningfully larger than your costs (`Spread + STT`), the asset has a natural upward drift.
+- **Max Gain / Max Loss**: The biggest winning and losing periods in your sample. Ask yourself: *"If Max Loss happens tomorrow on my position size, can my account survive it?"*
+- **Return Std Dev**: How widely returns bounce around the average. Roughly ~68% of normal periods stay within `Average ± 1 × Std Dev`, and ~95% within `Average ± 2 × Std Dev`.
+- **Positive Periods / Negative Periods**: Your historical win rate vs. loss rate (`Neutral 0%` periods are excluded from directional win/loss share).
+- **Sharpe Ratio**: Average return divided by total volatility (`> 1.0` per cycle is strong; `0.3–0.8` is normal for equities; `< 0` means losing money). Always compare Sharpe under the *same* schedule (`Weekly` vs `Weekly`, not `Weekly` vs `Monthly`).
+- **Sortino Ratio**: Like Sharpe, except it only penalizes **losing** periods (ignores big upside surges). When **Sortino > Sharpe**, big surprises tend to be upside wins; when **Sortino < Sharpe**, downside crashes hurt more.
+- **Profit Factor**: Total gains divided by total losses. `< 1.0` = loses money overall; `1.0–1.2` = fragile after fees; `1.3–1.8+` after costs = solid statistical edge.
 
-6. **Return Percentiles (`P99` down to `P1`)**
-   - Displays linear-interpolated empirical quantiles (`99th`, `95th`, `75th`,
-     `50th`, `25th`, `5th`, `1st`). Compare `|P5|` vs `P95` and `|P1|` vs `P99`
-     for tail asymmetry (crash risk vs melt-up skew).
-7. **Return Distribution (`16-Bucket` & `Granular 10-bps`) + Spot Reference Card**
-   - Anchors every return bucket (`> +5%` down to `< -5%`) to **Current Period
-     Reference Price**, showing exact **Spot Price Ranges** (`ref_price × (1 + r/100)`),
-     cumulative **Percentile Range**, and **Probability** band.
-   - Expand **Granular Distribution (10 Basis Points)** to inspect exact `0.1%`
-     modes and pinning zones.
-8. **Probability-Based Levels (Easy Reference)**
-   - Answers: *"What is the empirical probability that price finishes **ABOVE**
-     this target by period end?"*
-   - Read carefully:
-     - **`90%` / `95%` / `99%` ABOVE** = low **downside** prices (only `10% / 5% / 1%`
-       of historical periods closed *below* them) → **support / short-Put wing zone**.
-     - **`50%` ABOVE** = historical **median** finish.
-     - **`20%` / `10%` ABOVE** = high **upside** prices (only `20% / 10%` of
-       historical periods closed *above* them) → **resistance / short-Call wing zone**.
-9. **Green vs Red Periods Comparison**
-   - Side-by-side count, share, mean, median, std dev, extreme move, and
-     **Magnitude Empirical PDF** (`0–1%`, `1–2%`, ..., `> 5%`) comparing whether
-     down periods are sharper/wider than up periods.
-10. **Conditional Forward Accordions (`|Return| ≥ threshold`)**
-    - Shows average/median next-period return and **Pos Win Rate** immediately
-      following large positive surges (`r ≥ +τ`) vs large negative selloffs
-      (`r ≤ -τ`), for both the active cycle and `Period +1 Carry`.
-11. **Period Returns Table & Daily OHLC Analysis**
-    - Filterable period ledger (`Start Date`, `End Date`, `Entry`, `Exit`,
-      `Return %`, `Regime`), 7-KPI daily strip, embedded candlestick `ChartCanvas`,
-      and paginated `Daily OHLC Data` with `Dividends` and `Splits`.
+### 3.3 Return Trajectory Chart (Lollipop / Bars + Moving Average)
+- **How to read it**: Each green stem going up is a winning cycle; each red stem going down is a losing cycle. Taller stems and bigger circles = larger moves.
+- **Moving Average (`MA Window`)**: Toggle **Show Moving Average** (`5–50` periods) to see whether average performance has been drifting up (momentum regime) or oscillating back and forth across `0%` (mean-reverting / range regime).
+- **Vertical Sep 3, 2025 Marker**: Shows where SEBI's expiry-day regime cutover happened on Indian derivatives.
+
+### 3.4 Streak Analysis (Consecutive Winning & Losing Runs)
+- **Current Streak Banner**: Shows whether the asset is currently in a `Positive` or `Negative` run, how many periods in a row it has lasted, and the total compounded `%` move so far.
+- **Diverging Streak Lengths Timeline & Distribution of Streak Lengths**: Shows how long past streaks normally lasted before snapping.
+- **Positive / Negative Streak Statistics (`Most Common`, `Median`, `Std Dev`) & Streak Details Table**:
+  - **How to trade it**: Compare **Current Streak** against **Median**. If the median green streak is `2` periods and the current green streak is `5` periods, buying *right now* is chasing an overextended rubber band—either tighten trailing stops or check Section 3.5 for a **Contrarian** pullback signal.
+
+### 3.5 Markov Chain Transition Analysis (What Usually Follows Current Streak?)
+Markov analysis doesn't guess from theory—it literally counts every streak in history and asks: *"Once a run reaches this length, what happened next?"*
+
+- **6 Streak States**:
+  - `Short + (1-2)`, `Med + (3-4)`, `Long + (5+)` (green streaks of 1–2, 3–4, or 5+ periods)
+  - `Short - (1-2)`, `Med - (3-4)`, `Long - (5+)` (red streaks of 1–2, 3–4, or 5+ periods)
+- **Current Streak Probability Prediction Card**: Summarizes the highlighted row into two numbers—**Next Streak Positive %** vs **Next Streak Negative %**—and displays **Strong Prediction**.
+- **6×6 Transition Matrix Table**: Each row (`Current State (Obs)`) gives exact historical probabilities (%) of which state came *next*.
+- **Steady-State Equilibrium Distribution**: Shows the long-run balance of states (e.g., if `Short +` + `Med +` + `Long +` total 58%, the asset spends 58% of its long-run life in up-runs).
+
+!!! warning "The #1 Rule for Reading Markov Tables: Check `(Obs)`!"
+    `(Obs)` tells you **how many times that situation actually occurred in your date range**. If `Long + (5+)` shows `100%` chance of flipping negative, but `(Obs) = 2`, that only happened twice! Wait for `(Obs) ≥ 10` before treating a cell as reliable probability—or combine it with Tab 2 and Tab 5.
+
+### 3.6 Return Percentiles (`P99` down to `P1`)
+Ranks every historical period from best to worst:
+- **`P50` (Median)**: Half of all periods finished above this, half below. (Less distorted by one crazy crash than the simple average.)
+- **`P75` / `P25`**: The middle 50% of normal moves—if your profit target is inside `P75`, it is realistic; if it's past `P95`, you are betting on a rare outlier.
+- **`P95` vs `P5` and `P99` vs `P1`**: Compare the upside tail against the downside tail. If `|P5|` (say `-4.8%`) is much bigger than `P95` (`+3.2%`), crashes hit harder than rallies—size your positions smaller and protect downside with puts/stops.
+
+### 3.7 Return Distribution (`16-Bucket` & `Granular 10-bps`) + Spot Reference Card
+- **Spot Reference Card**: Shows the **Current Period Reference Price** so every percentage bucket automatically converts into real **Spot Price Ranges** (`₹` prices).
+- **16-Bucket Table**: Shows how many periods fell into each bucket (`> +5%`, `+4% to +5%`, ..., `< -5%`), the exact rupee range, cumulative percentile, and probability `%`. Tall bars near `-1% to +1%` mean most cycles finish quietly (great for range strategies like **Iron Condors**).
+- **Granular Distribution (10 Basis Points)**: Expands into `0.1%` slices to spot exact pinning zones and clusters.
+
+### 3.8 Probability-Based Levels (Easy Reference)
+This table turns historical statistics directly into **today's rupee price targets** by answering: *"What is the historical probability that price finishes **ABOVE** this price by the end of the cycle?"*
+
+| Table Row (`Prob. ABOVE`) | Price Position vs. Today | How Traders Use It |
+| :--- | :--- | :--- |
+| **`99%` / `95%` / `90%` ABOVE** | **Below** current price (support zone) | Only `1% / 5% / 10%` of past cycles finished *below* here → natural zone for **stop-losses** on longs or **Short Put** strikes. |
+| **`75%` / `80%` ABOVE** | Modestly **below** current price | `75%–80%` odds of finishing above → popular **Short Put** / put credit spread strike level. |
+| **`50%` ABOVE** | Near current price (median finish) | Historical 50/50 dividing line. |
+| **`25%` / `20%` ABOVE** | Modestly **above** current price | Only `20%–25%` of cycles closed higher → realistic **bullish profit target** or **Short Call** strike level. |
+| **`10%` / `5%` / `1%` ABOVE** | Far **above** current price (resistance zone) | Only `1%–10%` of cycles surged past here → extreme upside target or protective **Long Call Wing**. |
+
+### 3.9 Green vs Red Periods Comparison & Magnitude Empirical PDF
+- Places all winning (`Green`) periods side-by-side against losing (`Red`) periods: count, `%` share, average, median, std dev, extreme move, and a magnitude histogram (`0–1%`, `1–2%`, ..., `> 5%`).
+- **How to use it**: Even if an asset wins `55%` of the time, check **Red Mean/Median** vs **Green Mean/Median**. If red drops average `-2.4%` while green gains average `+1.2%`, one red cycle erases two green cycles unless you use a stop-loss.
+
+### 3.10 Conditional Forward Accordions (`After Large Move`)
+Shows what happened in the **next period** (and `Period +1 Carry`) immediately after an unusually big jump (`r ≥ +threshold`) or big selloff (`r ≤ -threshold`):
+- If **After Large Negative Period** has positive average/median return and `Pos Win Rate > 55%`, selloffs tend to **bounce back** (supports buying fear / Contrarian longs).
+- If **After Large Positive Period** turns negative or flat, big rallies tend to **cool off** (take profits instead of chasing).
+
+### 3.11 Period Returns Ledger & Daily OHLC Analysis
+- **Period Returns Table**: Filterable (`All`, `Positive`, `Negative`) ledger of every single cycle (`Start Date`, `End Date`, `Entry`, `Exit`, `Return %`, `Regime`) so you can verify the numbers yourself—zero black box.
+- **Daily OHLC Analysis**: Displays the 7 daily summary cards (`Current Close`, `Period High`, `Period Low`, `Trading Days`, `Avg Daily Ret`, `Daily Ret Std`, `Avg Volume`), an interactive candlestick chart with full left-rail drawing tools (Trend Line, Ray, Horizontal/Vertical Line, Fib Retracement, etc.), and a paginated table of daily bars with **Dividends** and **Splits**.
 
 ---
+
+## 4. Section-by-Section Interpretation of Tabs 2–13
 
 ### Tab 2 — Outliers & Global Events
-
-- **Probability Boundary Coverage (`50%–99%`, default `90%`)**: Sets symmetric
-  empirical fences at the `(100 - C)/2` and `(100 + C)/2` percentiles (for `90%`
-  coverage, outside `[P5, P95]`).
-- **Abraham Wald Survivability Scatter Plot**: Muted dots inside the dashed
-  boundaries are routine noise; highlighted green/red circles outside the fences
-  are structural outliers. Click any dot or any row in the **Outlier Periods
-  Table** (sorted by `|Return %|` descending) to populate **Historical Global
-  News & Events** and query archived macro/news/filings across `[start - 2d,
-  end + 1d]`.
-
----
+- **Probability Boundary Coverage Slider (`50%–99%`, default `90%`)**: Draws upper and lower dashed boundary lines on the **Abraham Wald Survivability Scatter Plot**. Dots inside the lines are normal day-to-day noise; green/red dots outside the lines are **rare extreme shocks** (for `90%`, the top 5% rallies and bottom 5% crashes).
+- **Outlier Periods Table + Historical Global News & Events**: Click any outlier dot or table row to pull up real news/filings from that exact week (`[start - 2d, end + 1d]`).
+- **How to trade it**: Distinguish **emotional overreactions** (good candidates to fade back toward normal) from **fundamental shocks** (earnings disasters, fraud, RBI/Fed rate pivots—do **not** fade these).
 
 ### Tab 3 — Intraday Movement
-
-- Slices `5m` bars into **15-minute** or **Hourly** IST clock buckets (`09:15`,
-  `09:30`, ...).
-- **Avg Range % / Max Range % / Avg |O-C| % / Avg Volume**: Identifies peak
-  liquidity/volatility windows (typically opening `09:15–09:45` and closing
-  `14:45–15:15`).
-- **HOD Hits / LOD Hits**: Counts how often the session High-of-Day (`Peak HOD
-  Clock`) and Low-of-Day (`Peak LOD Clock`) printed in each slot—critical for
-  timing entries after morning whipsaws settle.
-
----
+- **Clock-Slot Table & Bar Profile Chart**: Splits `5m` intraday bars into **15-minute** or **Hourly** buckets (`09:15`, `09:30`, ..., `15:15`).
+- **Avg Range % / Max Range % / Avg |O-C| % / Avg Volume**: Shows when the market moves the most and has the tightest liquidity.
+- **Peak HOD Clock & Peak LOD Clock**: Tells you which 15-minute slots most frequently print the **High of the Day** and **Low of the Day**.
+- **How to trade it**: Many day traders lose money in the noisy `09:15–09:30` opening spike. If HOD/LOD clusters around `09:30–10:00` and quietens mid-day, waiting until after the opening burst improves fill prices and stops fewer whipsaws.
 
 ### Tab 4 — Gap Up / Gap Down
-
-- Compares overnight gap `Gap = (O_t - C_{t-1}) / C_{t-1}` against
-  intraday open-to-close move `(C_t - O_t) / O_t` and **Fill Rate %** (did the
-  session's High/Low touch prior close `C_{t-1}`?).
-- Inspect the **8 Gap Buckets** (`< -2.0%` to `> +2.0%`):
-  - **High `Fill Rate %` + opposite-sign `Avg Intraday O→C`** (e.g., `+0.5% to +1.0%`
-    gap with `70%` fill rate and negative `O→C`) signals a **fade/mean-reversion**
-    gap.
-  - **Low `Fill Rate %` + same-sign `Avg Intraday O→C`** signals a **breakaway**
-    gap where fading is dangerous.
-
----
+- **Overnight Gap Buckets & Fill Expectancy Table**: Splits overnight gaps (`< -2.0%` through `> +2.0%`) into 8 buckets and reports **Fill Rate %** (did price return to yesterday's close?) and **Avg Intraday O→C** (after the open, did it continue or reverse?).
+- **Recent Overnight Gap Events Table**: Lists the latest actual gap days so you can inspect recent behavior.
+- **How to trade it**:
+  - **High `Fill Rate %` (`≥ 65–70%`) + opposite `Avg Intraday O→C`** = **Fade/Fill setup** (e.g., small gap-ups that routinely sell back down to yesterday's close).
+  - **Low `Fill Rate %` + same-direction `Avg Intraday O→C`** = **Breakaway gap** (trend continuation—do **not** short a breakaway gap-up!).
 
 ### Tab 5 — 5-Day Move Analysis
-
-- Tracks rolling 5-trading-day returns (`P99..P1`, `Win Rate`, `σ`) alongside two
-  non-overlapping exhaustion cards:
-  - **Post-Surge Next 5D Expectancy** (after 5-day gain `≥ +τ`)
-  - **Post-Selloff Next 5D Expectancy** (after 5-day drop `≤ -τ`)
-- Negative post-surge or positive post-selloff expectancy flags multi-day
-  overshoot exhaustion.
-
----
+- **Rolling 5-Day Return Trajectory + Percentiles + Win Rate**: Measures how much the asset typically moves over any 5-trading-day sprint.
+- **Post-Surge Next 5D Expectancy & Post-Selloff Next 5D Expectancy**: Checks what happened in the **following 5 days** after a huge 5-day surge or 5-day crash.
+- **How to trade it**: If `Post-Surge Next 5D` turns negative while `Post-Selloff Next 5D` is strongly positive, 5-day extremes consistently mean-revert.
 
 ### Tab 6 — Cycle Progress (0–100%)
-
-- Normalizes every multi-bar cycle onto `0% → 100%` progress in 10% deciles,
-  plotting `P10–P90`, `P25–P75` (IQR), `Median (P50)`, and `Mean`.
-- Reveals *intra-cycle timing*: e.g. whether drift arrives in the first `20–40%`
-  of the expiry and stalls (`60–100%`), or sells off mid-cycle and pins/reverses
-  into `100%` expiry.
-
----
+- **Normalized Path Fan Chart (`0%` Start → `100%` Expiry)**: Compares `P10–P90` (outer band), `P25–P75` (typical band), `Median (P50)`, and `Mean` across every 10% slice of a cycle.
+- **How to trade it**: Tells you *when* during a week or month moves happen. If most upward drift happens in the first `20–40%` of the cycle and stalls in `60–100%`, long buyers should take profits early while option sellers benefit from flat late-cycle theta decay.
 
 ### Tab 7 — Cross-Asset Correlation
-
-- Pick `2–12` instruments and a **Benchmark** plus **Rolling Window** (`5–250`
-  sessions).
-- **Pearson vs Spearman Rank Matrix**: Use **Spearman** to verify whether
-  co-movement holds without single-day crash outliers skewing Pearson.
-- **Pair Beta**, **Latest Raw Spread**, and **Relative Perf Spread (% pts)** with
-  the dual **Rolling Correlation & Relative Spread** chart identify correlation
-  breakdowns and pair-spread divergences.
-
----
+- **Instrument Selector (`2–12` symbols) + Benchmark + Rolling Window (`5–250` days)**:
+  - **Pearson vs. Spearman Correlation Matrices**: Numbers run from `-1.0` (exact opposite) to `+1.0` (locked together). Check **Spearman** alongside Pearson—if Pearson is high only because of one crash day, Spearman exposes it.
+  - **Pair Beta, Latest Raw Spread & Relative Perf Spread**: Dual chart tracks rolling correlation and normalized spread divergence.
+- **How to trade it**: Avoid taking 3 "separate" trades that have `0.90` correlation (that's really 3× risk on the same bet!), or spot when two normally correlated peers diverge for a mean-reverting pair trade.
 
 ### Tab 8 — Options Overlay & Spreads
-
-- Simulates five strategies anchored by `Short Prob %` (`55–98%`) and `Wing Width %`
-  (`0.5–15%`): **Covered Call**, **Bull Call Spread**, **Bear Put Spread**,
-  **Iron Condor**, and **Calendar Spread**.
-- Shows whether pricing comes from **Live Chain** bid/ask depth or **Empirical
-  Unquoted Mode** (`Bid/Ask = —` when offline; zero fabricated quotes).
-- Compare **Net Cycle Credit** vs **Friction Drag / Cycle** (bid-ask spread +
-  statutory taxes), **Probability of Profit (PoP)**, **Cycle Bounds (Max P/L)**,
-  and **Overlay Net Cum / Max Drawdown** against **Buy & Hold**. See
-  [Section 4](#4-iron-condor-condor-wings-guide) for full Iron Condor & wing
-  sizing guidance.
-
----
+- **Strategy Picker (`Covered Call`, `Bull Call Spread`, `Bear Put Spread`, `Iron Condor`, `Calendar Spread`) + `Short Prob %` (`55–98%`) + `Wing Width %` (`0.5–15%`)**:
+  - **Data Mode Banner**: Clearly displays **Live Chain** (using real option Bid/Ask quotes) vs. **Empirical Unquoted Mode** (no fabricated quotes when disconnected).
+  - **Headline Metrics**: **Net Cycle Credit**, **Probability of Profit (PoP)**, **Friction Drag / Cycle**, **Cycle Max Profit / Max Loss**, and **Overlay Net Cum / Max Drawdown** vs. **Buy & Hold**.
+- **How to trade it**: Never look at PoP alone! A trade with `85%` win rate can still lose money over time if the `15%` losses are giant or if 4-leg fees eat the credit. Check that the **Equity Curve (`Overlay Net Cum`)** rises steadily with smaller drawdown (`Overlay DD`) than Buy & Hold. See [Section 6](#6-iron-condor-condor-wings-guide) for full Iron Condor details.
 
 ### Tab 9 — Expiry Strike Lab
-
-- Compares **Empirical Realized Vol (RV)** (annualized from historical period
-  returns) against **Quoted IV Proxy (ATM)** (from live option mid-prices when
-  connected) to report **Vol Risk Premium (`IV − RV`)**:
-  - **`IV − RV > 0`**: Option sellers collect an empirical volatility risk
-    premium (favors Iron Condors / Covered Calls / Credit Spreads).
-  - **`IV − RV < 0`**: Options are cheap relative to realized moves (favors
-    defined-risk debit spreads or staying flat).
-- **Strike Ladder**: Lists `CE`/`PE` strikes, `Moneyness %`, empirical
-  `Exceed Prob %`, live `Bid`/`Ask`/`Mid`, `Spread bps`, `Liquidity` badge
-  (`tight ≤ 40 bps`, `moderate ≤ 120 bps`, `wide > 120 bps`, `unquoted`), and
-  `OI`.
-
----
+- **Vol Risk Premium Card (`IV − RV`)**: Compares **Realized Vol (RV)** (how much price actually moves) against **Quoted IV Proxy (ATM)** (how expensive options are priced):
+  - **`IV − RV > 0`**: Options are **overpriced** compared to real movement → option sellers have a statistical tailwind.
+  - **`IV − RV < 0`**: Options are **cheap** → don't sell underpriced options; favor debit spreads or wait.
+- **Strike Ladder Table**: Shows every `CE` and `PE` strike, `Moneyness %`, historical **`Exceed Prob %`** (how often that strike gets reached), live `Bid`/`Ask`/`Mid`, `Spread bps`, **`Liquidity` badge** (`tight ≤ 40 bps`, `moderate ≤ 120 bps`, `wide > 120 bps`, `unquoted`), and `OI`.
+- **How to trade it**: Choose strikes whose `Exceed Prob %` matches your risk comfort (`10–20%`) **and** whose Liquidity badge is **`tight`** or **`moderate`** (avoid `wide` spreads where slippage kills you).
 
 ### Tab 10 — 15m ORB Flip Backtest
-
-- Simulates Opening Range Breakout (`OR (m)` `5–60`, `Max Flips` `0–10`, `SL %`,
-  `Target %`) over `5m` intraday bars with left-rail spread + statutory fee
-  deductions per leg.
-- Always compare **Gross Sum** vs **Spread+Fee Drag** vs **Net Sum** and inspect
-  `exit_reason` (`target`, `stop_flip`, `stop_max_flips`, `eod`) in the trade
-  ledger. Tight `OR` windows with high `Max Flips` frequently look profitable
-  gross while bleeding negative net due to flip friction.
-
----
+- **Opening Range Breakout (`OR (m)` `5–60`, `Max Flips` `0–10`, `SL %`, `Target %`)**: Simulates buying breakouts above the opening range or selling breakdowns below it, optionally flipping direction when stopped out.
+- **KPI Strip + Simulated ORB Trade Legs Table**: Always compare **Gross Sum** vs. **Spread+Fee Drag** vs. **Net Sum**, and inspect `exit_reason` (`target`, `stop_flip`, `stop_max_flips`, `eod`).
+- **How to trade it**: Notice how high `Max Flips` on choppy days often looks profitable Gross while bleeding Net from repeated whipsaw fees—use this tab to tune `Max Flips` down (`0–2`) and pick symbols that actually trend cleanly after the open.
 
 ### Tab 11 — Forecasting
-
-- Conditions historical forward paths (`T+1` through `T+N`, `2–12` periods) on
-  the current **Markov Streak State** and trailing 5-period **Volatility Regime**
-  (`Low ≤ P33`, `Normal`, `Elevated ≥ P67`).
-- Automatically discloses its **Conditioning Tier** (`Exact Markov + Vol Regime`,
-  or graceful fallback to `Markov State Match` → `Direction Fallback` →
-  `Unconditional Pool` when `< 5` analogs exist).
-- Read the **Quantile Target Price Ladder** (`P10` downside risk, `P50` median
-  target, `P90` upside tail, `Win %`) alongside the **Closest Historical Analog
-  Episodes** before sizing any directional or contrarian trade.
-
----
+- **Conditioning Header (`Current Markov State` + `Volatility Regime`: `Low`, `Normal`, `Elevated`) & `Conditioning Tier`**: Finds historical episodes that looked like *today* and tracks what happened over the next `T+1` to `T+N` periods (`2–12`).
+- **Forward Fan Chart, Quantile Target Price Ladder (`P10`, `P50`, `P90`, `Win %`), & Closest Historical Analog Episodes**:
+  - **How to trade it**: Use `P10` as your realistic **downside risk check**, `P50` as your **base-case target**, and `P90` as your **stretch target**. Always check **Analog Sample Size**: if `< 5` exact matches existed, the page warns you that it fell back to a broader pool.
 
 ### Tab 12 — F&O / Index Rebalance & Event Modes
-
-- Aligns historical events (`F&O Inclusion / Exclusion`, `Buyback / Corporate
-  Actions`, `Earnings / Filings`, or `Macro Calendar`) on `T=0` across a
-  `[-20d, +20d]` trading-day window.
-- **Gold `CAR[-20d, +20d]` curve + `AAR` daily bars + `Avg Vol Surge Ratio`**:
-  - Rising `Pre-Drift [-20d, -1d]` followed by flat/negative `Post +5d/+20d`
-    flags classic *"buy the rumor, sell the news"* pre-positioning.
-  - Persistent drift in `Post +5d` and `Post +20d` flags post-event
-    re-rating/continuation.
-  - Use **Benchmark AR** to strip broad market beta (`raw_return - benchmark`).
-
----
+- **Event Alignment Chart (`CAR[-20d, +20d]` gold curve + `AAR` bars + `Avg Vol Surge Ratio`) + Event Study Ledger**: Measures abnormal performance around `T=0` (`F&O Inclusion/Exclusion`, `Buybacks`, `Earnings`, or `Macro Calendar`), with optional **Benchmark AR** (strips out broad market movement).
+- **How to trade it**: If the gold curve runs up strongly *before* `T=0` (`-20d` to `-1d`) and drops afterward, insiders/funds already bought the rumor and sold the news. If it surges cleanly *after* `T=0`, post-event momentum is real.
 
 ### Tab 13 — AI Study Assistant
-
-- Snapshots your active KPIs, strongest Markov transition, and outlier bounds and
-  provides one-click prompts into `ChatRail` backed by the
-  `experimental_study_summary` and `historical_outlier_news` tools.
+- Captures a live snapshot of your active KPIs, strongest Markov transition, and outlier fences, giving you one-click prompts to send directly to **Quant Copilot** for plain-English second opinions and trade sizing ideas.
 
 ---
 
-## 3. Contrarian (Mean-Reversion) Strategy Playbook
+## 5. Contrarian Strategy Playbook (Using Stats to Fade Extremes)
 
-The original demo highlighted a **Contrarian (mean-reversion / fade-the-extreme)**
-workflow—fading stretched streaks, `>2σ` tail shocks, and overextended overnight
-gaps instead of chasing breakouts. Every signal needed to validate and size that
-strategy is built directly into this page.
+Beginners often buy *after* a huge rally (fear of missing out) and sell *after* a huge crash (panic)—buying the top and selling the bottom. A **Contrarian (Mean-Reversion)** strategy uses probability to do the disciplined opposite: **wait for a statistically extreme stretch, verify that history snaps back, and protect your downside.**
 
-```
-1. Detect Stretch          2. Verify Edge Historically       3. Structure & Size Risk
-──────────────────         ──────────────────────────       ────────────────────────
-• Long streak (5+)   ──▶   • 6×6 Markov Matrix         ──▶  • Prob Levels (80–90%)
-• Outlier (>90–95%)  ──▶   • Forward Conditional |r|≥τ ──▶  • Options Overlay / Condor
-• Exhausted 5D move  ──▶   • 5D Post-Surge / Drop Exp. ──▶  • Strike Lab (IV − RV)
-• Extended Gap Open  ──▶   • Gap Fill % & HOD/LOD Slot ──▶  • Net-of-Friction Check
+```text
+1. Spot the Stretch           2. Check the Odds              3. Verify Risk & Costs
+───────────────────           ─────────────────              ────────────────────
+• Tab 1: Long streak (5+) ──▶ • Markov Next Opposite >55% ─▶ • Tab 11 P10 downside risk
+• Tab 2: Outside 90/95%   ──▶ • News isn't fatal shock    ─▶ • Tab 1 Conditional Forward
+• Tab 5: Huge 5D move     ──▶ • Next-5D reverses          ─▶ • Left Rail: Net After Costs
+• Tab 4: Extended Gap     ──▶ • Fill Rate ≥ 65–70%        ─▶ • Tab 3: Wait past 09:30 AM
 ```
 
-### Signal 1: Streak Exhaustion Fade (Tab 1 — Streaks + Markov)
+### Trade Setup 1: Fading an Exhausted Streak (`Tab 1` + `Tab 11`)
+1. Check **Current Streak** vs. **Median Streak Length**: look for a streak that has reached `Med (3-4)` or `Long (5+)`.
+2. Check that exact row in the **6×6 Markov Matrix** (make sure `(Obs)` is meaningful, ideally `≥ 10`):
+   - **Take the trade** if **Next Streak Opposite** is clearly above `50%` (e.g., `60%+`) and **Strong Prediction** points to reversal.
+   - **Skip the trade** if the matrix shows momentum persistence (streaks frequently extend into `5+`) and **Steady-State** is heavily skewed in the trend direction.
+3. Open **Tab 11 (`Forecasting`)**: check `T+1` `P10` (worst-case risk if you're early) vs. `P50` (expected snap-back target) to place your stop-loss and target.
 
-1. Check the **Current Streak** banner and **Distribution of Streak Lengths**. A
-   streak becomes a contrarian candidate once its length exceeds the instrument's
-   **Median Length** and approaches **`Med (3-4)`** or **`Long (5+)`**.
-2. Look up that exact row in the **6×6 Markov Transition Matrix** (checking
-   `(Obs)` is meaningful, e.g. `≥ 10`):
-   - **Contrarian signal**: `Next Streak Opposite` is significantly above `50%`
-     (e.g., after `Long + (5+)` or `Med - (3-4)`, opposite-side probability is
-     `60%+` and `Strong Prediction` points to reversal).
-   - **Do NOT fade**: If the current `Short/Med` row shows high persistence into
-     longer streaks and **Steady-State** strongly skews to one trend direction,
-     wait for exhaustion rather than stepping in front of trend momentum.
+### Trade Setup 2: Fading a Shock Outlier (`Tab 1` + `Tab 2` + `Tab 5`)
+1. In **Tab 2 (`Outliers & Global Events`)**, set **Probability Boundary Coverage** to **`90%`** or **`95%`** and check if the current period sits outside the dashed fence.
+2. **Click the outlier dot** and read **Historical Global News & Events**: only fade positioning/panic overshoots—never step in front of structural bad news (earnings collapse, governance shock, surprise rate hike).
+3. Double-check **Tab 1 (`Conditional Forward: After Large Move`)** and **Tab 5 (`Post-Surge / Post-Selloff Expectancy`)** to confirm that past shocks on this specific symbol actually bounced back on average.
 
-### Signal 2: Tail Shock & 5-Day Overshoot Fade (Tabs 1, 2 & 5)
+### Trade Setup 3: Fading an Overnight Gap (`Tab 3` + `Tab 4`)
+1. In **Tab 4**, locate today's gap size inside the **8 Gap Buckets**.
+2. Enter a contrarian gap-fade **only** when **both** hold historically:
+   - **`Fill Rate % ≥ 65–70%`**, and
+   - **`Avg Intraday O→C`** has the opposite sign (negative after gap-ups, positive after gap-downs).
+3. Use **Tab 3 (`Peak HOD / LOD Clock`)** to wait past the first `15–30 minutes` (`09:15–09:45`) before entering so initial market orders don't stop you out.
 
-1. In **Tab 2 (`Outliers & Global Events`)**, set **Probability Boundary Coverage**
-   to **`90%`** or **`95%`** (rough `~1.65σ–2σ` empirical tail). Confirm whether
-   the latest period is a tagged `Upside Outlier` or `Downside Outlier`.
-2. Click the outlier point and fetch **Historical Global News & Events**.
-   Contrarian fades work best on *positioning/liquidity overshoots*; be cautious
-   fading structural regime breaks (e.g., major central-bank pivots or earnings
-   guidance shocks).
-3. Verify empirical mean-reversion in two places:
-   - **Tab 1 → Conditional Forward (`|Return| ≥ τ`)**: Look at `After Large
-     Positive Period` (`Mean/Median Next < 0`, low `Pos Win Rate`) or `After
-     Large Negative Period` (`Mean/Median Next > 0`, high `Pos Win Rate`). Check
-     both `Current Period` and `Period +1 Carry` to see whether reversion happens
-     immediately or over a two-cycle horizon.
-   - **Tab 5 → 5-Day Move Analysis**: Confirm `Post-Surge Next 5D Expectancy` is
-     negative (for fading rallies) or `Post-Selloff Next 5D Expectancy` is
-     positive (for buying washouts).
-
-### Signal 3: Gap-Fill Contrarian Fade (Tabs 3 & 4)
-
-1. In **Tab 4 (`Gap Up / Gap Down`)**, locate today's gap size inside the **8 Gap
-   Buckets**.
-2. A contrarian gap-fade setup requires **both**:
-   - High **`Fill Rate %`** (historically `≥ 65–70%`), and
-   - Opposite-sign **`Avg Intraday O→C`** (negative after gap-ups, positive after
-     gap-downs).
-3. Cross-check **Tab 3 (`Intraday Movement`)** for `Peak HOD Clock` / `Peak LOD
-   Clock` and opening `15m` range volatility so your fade entry waits for the
-   initial `09:15–09:30` spike to exhaust rather than getting stopped out in the
-   first 5 minutes.
-
-### Executing & Stress-Testing the Contrarian Trade (Tabs 8, 9, 11 & Rail)
-
-- **Spot / Futures vs Options Expression**:
-  - Check **Tab 11 (`Forecasting`)** under the active `Markov + Vol Regime` to
-    read the `T+1` `P10` tail risk against the `P50` median bounce target.
-  - When **Tab 9 (`Expiry Strike Lab`)** shows **`IV − RV > 0`**, contrarian
-    traders often harvest overpriced panic/euphoria via defined-risk credit
-    spreads or **Iron Condors** (**Tab 8**) placed at the `80%–90%` levels from
-    **Probability-Based Levels** (`tight` or `moderate` liquidity tiers only).
-- **Mandatory Friction Check**: Enable **Net After Spread & Costs** + **Statutory
-  Costs** in the left rail before trusting any contrarian edge—high-frequency
-  fades (especially daily or gap fades) lose rapidly when `Spread (bps)` and
-  STT/GST exceed `Average Return`.
+### Always Run the Friction Check Before Clicking Trade
+Enable **`Net After Spread & Costs`** + **`Statutory Costs`** in the left sidebar. High-frequency contrarian trades (especially daily or gap fades) fail quickly if bid-ask spread and STT/GST exceed `Average Return`.
 
 ---
 
-## 4. Iron Condor & Condor Wings Guide
+## 6. Iron Condor & Condor Wings Guide
 
-An **Iron Condor** (`Tab 8 → Strategy: Iron Condor`) is a defined-risk, 4-leg
-range-bound credit structure: you sell an OTM Call and an OTM Put around spot
-to collect premium, and simultaneously buy further-OTM **protective wings** to cap
-tail loss.
+An **Iron Condor** (`Tab 8 → Strategy: Iron Condor`) is a defined-risk options strategy that earns money when price stays **calm inside a range**—it can profit whether the market goes slightly up, flat, or slightly down.
+
+Think of it like building a **profit zone with safety fences** around today's price:
+
+```text
+   Safety Fence         Danger Line       Today's Price       Danger Line         Safety Fence
+   (Long Put)           (Short Put)          (Spot)          (Short Call)         (Long Call)
+     BUY PE               SELL PE              ●               SELL CE              BUY CE
+  ◀───── Wing Width % ─────▶◀─────── Profit Zone (collect credit) ───────▶◀───── Wing Width % ─────▶
+   Caps worst-case                                                          Caps worst-case
+   crash loss                                                               rally loss
+```
+
+- **Inner Short Strikes (`SELL PE` + `SELL CE`)**: You collect upfront cash (**Net Cycle Credit**). If price stays between these two lines at expiry, you keep the credit.
+- **Outer Condor Wings (`BUY PE` + `BUY CE`)**: You spend a smaller amount of that cash to buy far-out insurance. If a huge crash or rally hits, your loss **stops completely at the Wing**—no unlimited losses.
 
 ### How the Workbench Places Short Strikes & Wings
+1. **`Short Prob %` (`55%–98%`, default `80%`)**: Uses Tab 1's actual historical return distribution to position your inner `SELL PE` and `SELL CE` strikes:
+   - At `80%`, `SELL CE` sits near Tab 1's **`20% ABOVE`** level and `SELL PE` sits near **`80% ABOVE`**. Roughly `60%` of historical cycles finished completely inside `[Short Put, Short Call]`, while each wing individually had only an `~20%` chance of being breached.
+   - Raising `Short Prob %` to `90%` increases your win rate (`Probability of Profit`), but collects smaller credit per cycle.
+2. **`Wing Width %` (`0.5%–15.0%`)**: Sets the distance from each short strike out to its protective **Long Wing** (`BUY PE` / `BUY CE`), snapped to real exchange strike steps (`50` pts for NIFTY, `100` pts for BANKNIFTY/SENSEX).
+   - **Example**: With NIFTY at `24,000`, `Short Call = 24,500`, and `Wing Width % = 2%` (`~480 pts` → `500 pts`), your **Long Call Wing** sits at `25,000`. Maximum possible loss on either side is capped at `Wing Width − Net Credit`.
 
-```
-  Long Put Wing         Short OTM Put          Spot          Short OTM Call         Long Call Wing
-     BUY PE                SELL PE              ●               SELL CE                BUY CE
- ◀────────────── Wing Width % ──────────────▶◀── Short Prob % ──▶◀─── Wing Width % ──────────▶
-  Caps downside       Empirical Q(100-p)                    Empirical Q(p)         Caps upside
-   crash loss         (e.g. 20% = P20)                      (e.g. 80% = P80)        melt-up loss
-```
+### Using the Rest of the Workbench to Size Your Condor
 
-1. **Short Strikes (`Short Prob %`, range `55–98%`)**
-   - `Short OTM Call` (`SELL CE`) is anchored at the `p`-th empirical return
-     quantile (`Q(p)`, floored at `+0.5%`), snapped to the exchange strike step
-     (e.g., `50` pts for NIFTY, `100` pts for BANKNIFTY/SENSEX).
-   - `Short OTM Put` (`SELL PE`) is anchored symmetrically at the `(100 - p)`-th
-     empirical return quantile (`Q(100 - p)`, capped at `-0.5%`).
-   - Example: `Short Prob % = 80` places the short Call near Tab 1's **`20%
-     ABOVE`** level and the short Put near **`80% ABOVE`**—meaning roughly `60%`
-     of historical cycles stayed inside `[short_put, short_call]` at expiry,
-     while each individual short strike had only a `~20%` historical touch/breach
-     rate.
-2. **Condor Wings (`Wing Width %`, range `0.5–15.0%`)**
-   - `Long Call Wing` (`BUY CE`) sits at `short_call_strike + max(spot × wing_width / 100, strike_step)`.
-   - `Long Put Wing` (`BUY PE`) sits at `short_put_strike - max(spot × wing_width / 100, strike_step)`.
-   - Wings turn an unlimited-risk short strangle into a **bounded-loss** structure:
-     - **Max Profit / Cycle**: `Net Cycle Credit` after 4-leg spread & statutory
-       fees (`net_after_friction_pct`).
-     - **Max Loss / Cycle**: `net_after_friction_pct - max(call_wing_width_pct, put_wing_width_pct)`.
-     - **Cycle Gross P/L**: `net_premium_pct - call_loss - put_loss`, where each
-       side's intrinsic loss is capped once spot moves past its protective wing.
-
-### Tuning Condor Wings Using the Rest of the Workbench
-
-| Decision | Where to Look on the Page | What to Check |
+| Trading Question | Where to Look | What Good Numbers Look Like |
 | :--- | :--- | :--- |
-| **1. Should I sell a Condor at all?** | **Tab 9 (`Expiry Strike Lab`)** | Check **Vol Risk Premium (`IV − RV`)**. Run Iron Condors primarily when **`IV − RV > 0`** (options overprice realized moves). Avoid when `IV − RV < 0` or ahead of a high-`Vol Surge Ratio` catalyst in **Tab 12**. |
-| **2. Where to place Short Strikes?** | **Tab 1 (`Probability-Based Levels` + `Green vs Red`)** & **Tab 9 (`Strike Lab`)** | Compare `P80/P90` upside vs `P20/P10` downside. If **Red** periods have fatter left tails (`|P5| > P95`), widen your put buffer (`Short Prob %` `80–90%`). On live chains, verify both short strikes sit in **`tight` (`≤ 40 bps`)** or **`moderate` (`≤ 120 bps`)** liquidity tiers. |
-| **3. How wide should Condor Wings be?** | **Tab 1 (`H-L` mode & `P99/P1`)** & **Tab 2 (`Outliers`)** | Compare `P95` / `P99` tail moves and `H-L` range against `Wing Width %` so protective wings cap worst-case drawdown within risk limits (see narrow vs wide tradeoff below). |
-| **4. Can the 4 legs survive real fees?** | **Tab 8 (`Friction Drag / Cycle` + `Equity Curve`)** | Statutory Indian options charges include sell-side STT (`0.1%` on premium), buy-side stamp (`0.003%`), exchange + SEBI + 18% GST, plus a 4-leg execution drag. Always verify **Overlay Net Cum** beats zero with tolerable **Overlay DD** vs **B&H DD**. |
+| **1. Should I run a Condor this cycle?** | **Tab 9 (`Vol Risk Premium`)** & **Tab 12 (`Events`)** | **`IV − RV > 0`** (options are priced richer than realized movement) and **no** major Earnings/RBI catalyst ahead in Tab 12. |
+| **2. Are my short strikes balanced?** | **Tab 1 (`Probability Levels` & `Green vs Red`)** & **Tab 9 (`Strike Ladder`)** | If **Red** periods fall sharper than **Green** periods rally (`|P5| > P95`), give your Put side extra room (`Short Prob %` `85–90%`). On Tab 9, confirm both short strikes are **`tight`** or **`moderate`** liquidity. |
+| **3. How wide should my Wings be?** | **Tab 1 (`H-L` mode & `P99/P1`)** & **Tab 2 (`Outliers`)** | Pick **Narrow Wings (`0.5%–1.5%`)** for tight max loss & lower margin, or **Wide Wings (`2.5%–6.0%`)** for larger credit & lower percentage fee drag (verify `Overlay DD` in Tab 8 stays within your risk limit). |
+| **4. Do the 4 legs survive real costs?** | **Tab 8 (`Friction Drag / Cycle` & `Equity Curve`)** | Check that **Net Cycle Credit** comfortably beats **Friction Drag / Cycle** across all 4 legs (`SELL CE`, `BUY CE`, `SELL PE`, `BUY PE`) and **Overlay Net Cum** trends up cleanly. |
 
-### Narrow Wings vs Wide Wings Tradeoff
-
-- **Tight Wings (`0.5% – 1.5%`)**:
-  - **Pros**: Smallest `Max Loss` per breached cycle, lowest margin footprint,
-    protects tightly against `Tab 2` crash/gap outliers.
-  - **Cons**: You pay 4× leg spread + statutory taxes on a *small* **Net Cycle
-    Credit**, so `Friction Drag / Cycle` can eat `30–60%+` of gross credit and
-    turn **Overlay Net Cum** negative even with a high `Probability of Profit`.
-- **Wide Wings (`2.5% – 6.0%+`)**:
-  - **Pros**: Larger **Net Cycle Credit**, faster theta decay (because long
-    wings cost much less relative to short strikes), and far lower friction
-    ratio per rupee of credit.
-  - **Cons**: Larger `Max Loss` when a `Tab 2` tail outlier (`> 95%`) slices
-    through the wing—watch **Overlay DD** on the cumulative equity curve before
-    widening further.
-- **Combining Contrarian + Iron Condor**: After a **Contrarian Signal** (e.g., a
-  `Long (5+)` streak exhausts or an `> 90%` outlier triggers an `IV − RV > 0`
-  volatility spike), **Tab 6 (`Cycle Progress`)** often shifts toward mean
-  consolidation. Entering an Iron Condor after the initial shock lets you
-  harvest elevated implied volatility inside the `[short_put, short_call]` tent
-  while keeping hard **Condor Wings** in place in case trend continuation runs
-  further.
+### Narrow Wings vs. Wide Wings at a Glance
+- **Tight Wings (`0.5% – 1.5%`)**: Smallest worst-case loss per trade and lowest margin, **but** paying spread + Indian taxes (sell-side STT, stamp, exchange, SEBI + 18% GST) on all 4 legs can eat `30–60%+` of a small credit and turn `Overlay Net Cum` negative.
+- **Wide Wings (`2.5% – 6.0%+`)**: Larger net credit, faster time decay, and fees become a tiny slice of credit—**but** a rare `Tab 2` tail shock (`> P95`) produces a bigger single-cycle drawdown (`Overlay DD`).
+- **Pro Combination (`Contrarian + Iron Condor`)**: After a **Tab 2** panic outlier or **Tab 1** `Long (5+)` streak exhausts and spikes option prices (`IV − RV > 0` on Tab 9), markets often cool off into sideways consolidation (**Tab 6 `Cycle Progress`**). Selling an Iron Condor *after* the initial shock harvests elevated option premium while your **Condor Wings** protect you in case the trend keeps running.
 
 ---
 
-## 5. Common Interpretation Pitfalls
+## 7. Quick Recap: 5 Beginner Mistakes to Avoid
 
-- **Confusing `H-L` with directional return**: `H-L` is `(High - Low) / Open`
-  and is always `≥ 0%`. Switching to `H-L` makes every period green—use it for
-  range/volatility budgets and wing sizing, then switch back to `OC` or `CC` for
-  win rates, streaks, and directional levels.
-- **Misreading `Probability-Based Levels` polarity**: `90%` in `Probability ABOVE
-  Level` corresponds to a **lower** price (90% chance spot finishes *above* it),
-  whereas `10%` corresponds to an **upper** price (10% chance spot finishes
-  *above* it).
-- **Over-tightening Condor Wings under real friction**: A `0.5%`-wide Iron
-  Condor pays spread and statutory fees across **all four legs** (`SELL CE`,
-  `BUY CE`, `SELL PE`, `BUY PE`). Check **Friction Drag / Cycle** against **Net
-  Cycle Credit** so transaction costs do not consume your theta edge.
-- **Small-sample Markov / Analog confidence**: Always check `(Obs)` in the 6×6
-  Markov table and `Analog Sample Size` + `Conditioning Tier` in Tab 11.
-- **Ignoring Net vs Gross drag**: A positive `Gross Avg` or `Gross Sum` (in
-  Returns or ORB) with negative `Net Avg` / `Net Sum` means the signal does not
-  clear real bid-ask spread and Indian statutory turnover taxes.
+1. **Treating `H-L` green bars as bullish bias**: `H-L` only measures swing magnitude (`≥ 0%`). Always switch back to `OC` or `CC` before judging up/down win rates.
+2. **Reading `Probability-Based Levels` upside-down**: `90% ABOVE` is a **lower** support floor; `10% ABOVE` is a **higher** resistance ceiling.
+3. **Trusting `100%` rows with tiny `(Obs)`**: A Markov row or Tab 11 forecast built from `2–4` historical cases is noise, not statistical certainty.
+4. **Ignoring 4-leg friction on tight Condors or high-flip ORB**: Always turn on **Net After Spread & Costs** + **Statutory Costs** in the left rail before risking real capital.
+5. **Fading real fundamental shocks**: Always click **Tab 2** outliers to check **Historical Global News & Events** before taking a Contrarian trade.
