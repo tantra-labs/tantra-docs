@@ -59,6 +59,7 @@ nav:
       - REST API Workflows: user-guide/rest-api.md
       - Python SDK: user-guide/python.md
       - AI & Automation: user-guide/ai.md
+      - Experimental-Analysis Workbench: user-guide/experimental-analysis.md
       - Paper Trading (guide): paper-trading/index.md
   - Architecture:
       - architecture/index.md

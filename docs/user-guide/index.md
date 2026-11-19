@@ -58,6 +58,9 @@ or Python.
    in Python.
 4. **[AI & Automation](ai.md)** — the headless AI agent, the MCP gateway, and
    autonomous jobs.
+5. **[Experimental-Analysis Workbench](experimental-analysis.md)** — interpreting
+   period/expiry returns, Markov transitions, option overlays, ORB, and the
+   Contrarian (Mean-Reversion) strategy playbook in `tantra-ui-web`.
 
 Paper trading is covered by its own dedicated guide —
 [Paper Trading Exchange](../paper-trading/index.md) — with the CLI session,
@@ -74,7 +77,9 @@ Python `PaperSession`.
   are documented in
   [Strategy Studio](../architecture/strategy_studio.md) and
   [Using the Simulator](../architecture/simulator_usage.md); they are tested
-  but not yet the recommended daily driver.
+  but not yet the recommended daily driver. The quantitative research workbench
+  is covered separately in
+  [Experimental-Analysis Workbench](experimental-analysis.md).
 - **The full REST wire contract.** This guide shows workflows; the complete
   route-by-route reference is [REST Read API and `tantra serve`](../api/rest.md).
 
