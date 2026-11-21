@@ -114,6 +114,7 @@ nav:
           - Signals: strategies/elephant-edge/signals.md
           - Stops & Positioning: strategies/elephant-edge/stops-positioning.md
           - Studio: strategies/elephant-edge/studio.md
+          - Strategy Loop & Hedges: strategies/elephant-edge/strategy-loop.md
           - Reference & Worked Example: strategies/elephant-edge/reference.md
   - Backtesting:
       - backtesting/index.md

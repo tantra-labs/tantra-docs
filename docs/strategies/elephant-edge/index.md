@@ -36,6 +36,7 @@ is squared off at the end-of-window exit.
 | [Signals](signals.md) | Breakout / reversal / retest triggers, trigger candles and filters, volume participation, time window and trade-count discipline. |
 | [Stops & Positioning](stops-positioning.md) | Initial SL beyond the level cluster, ATR/swing trailing stops, the first-target rule, whole-lot risk sizing, caps, intraday square-off. |
 | [EE+ Studio & Chat Tools](studio.md) | The planned Strategy Studio canvas, signal/stop panel, positioning table, planned API, and the planned `level_map` / `oi_walls` chat tools. |
+| [Strategy Loop, Layers & Hedges](strategy-loop.md) | The generic evaluate / sweep / hedge loop, the six OverlayScene layers and where they render, and the four read-only agent tools. |
 | [Reference & Worked Example](reference.md) | The full parameter reference, declarative configuration example, and a worked session walk-through. |
 
 ## Status summary

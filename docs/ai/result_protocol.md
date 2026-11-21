@@ -75,6 +75,7 @@ defined in `tantra-agent-core/src/result.rs`.
 | `MetricGrid` | `items: [{label, value}]` | Label/value metric cards. |
 | `Chart` | `title`, `chart_type`, `series_ref` | Chart reference; `chart_type` is `candlestick`, `line`, or `sparkline`. `series_ref` points into `data` or `refs`. |
 | `Alert` | `level`, `message` | Status alert; `level` is `info`, `warning`, or `critical`. |
+| `OverlayScene` | `title`, `symbol`, `timeframe`, `scene`, `time_axis?` | A chart scene (`signals`, `bands`, `stops`, `indicators`, `hints`, `hedges`) packaged by `chart_scene_annotate` / `strategy_loop_*`. Clients render it on a chart (web: "Render on Chart"; TUI/CLI: layer-count summary). `time_axis` holds unix seconds index-aligned with the scene. |
 
 ## Data references
 
