@@ -7,7 +7,11 @@ Per workspace rule `.agents/rules/gap-tracking.md`:
 
 ## Active Plans
 
-None currently — 0004 and 0005 are implemented (see below).
+| # | Title | Target Scope | Status |
+|---|-------|--------------|--------|
+| [0006](0006-design-review-2026-11.md) | tantra-docs design review (2026-11): publishing, generated references & operator documentation | `mkdocs.yml`, `.github/workflows/`, `docs/operations/`, `docs/api/`, `docs/gaps/` | Proposed (2026-11-23) |
+
+0004 and 0005 are implemented (see below).
 
 ## Implemented Plans
 
