@@ -52,7 +52,7 @@ export TANTRA_LLM_MODEL=qwen2.5:7b
 export TANTRA_LLM_API_KEY=optional-for-local
 
 tantra serve --data-dir ./bars
-# then connect to ws://127.0.0.1:8000/ws/chat
+# then connect to ws://127.0.0.1:8000/api/v2/ws/chat
 ```
 
 Example client frame:

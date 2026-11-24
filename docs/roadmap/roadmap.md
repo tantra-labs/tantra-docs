@@ -20,7 +20,7 @@
 - [x] Add `docs/architecture/ledger_performance.md` — `tantra-ledger-performance` trade-performance journal (annotations, metrics, edge score, calendar, comparison; plan 0002).
 - [x] Add `docs/architecture/ledger_allocation.md` — `tantra-ledger-allocation` portfolio allocation & optimization engine (mean-variance, risk-parity; plan 0001 Phase 1).
 - [x] Add `docs/architecture/runtime_jobs.md` — `tantra-runtime-jobs` deterministic cron/background job scheduler (plan 0001 Stage 1).
-- [x] Update `docs/api/rest.md` — full endpoint reference including `/trade-journal/*`, `/market-data/symbol-profile/*`, `/market-data/calendar`, `/approval/*`, `/profile/*`, updated `tantra serve` flags.
+- [x] Update `docs/api/rest.md` — full endpoint reference including `/trade-journal/*`, `/instruments/{id}/profile`, `/calendar`, `/approvals`, `/profile/*`, updated `tantra serve` flags.
 - [x] Update `docs/api/python-sdk.md` — typed client methods for all new routes.
 - [x] Update `docs/conformance_matrix.md` — new crates (`tantra-ledger-allocation`, `tantra-ledger-performance`, `tantra-runtime-jobs`), updated statuses (16 IMPLEMENTED, 1 IN-PROGRESS, 1 PLANNED).
 - [x] Update `docs/strategies/index.md` — versioned strategy manifests & baskets (plan 0001: `StrategyManifest`, `BasketManifest`, `PromotionStatus`).

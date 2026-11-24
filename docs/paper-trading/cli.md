@@ -27,7 +27,7 @@ verified by the paper track's tests.)
 ## `tantra paper --mode server`
 
 Prints the instructions for the long-running daemon, pointing at the `paper serve`
-REST `/orders` route and the `/ws/live` WebSocket stream:
+REST `/api/v2/orders` route and the `/api/v2/stream` WebSocket stream:
 
 ```bash
 tantra paper --mode server

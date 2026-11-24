@@ -84,7 +84,7 @@ The jobs crate does **not** write per-run journals. Backtest/sweep run journals 
 | `~/.tantra/jobs.json` (job specs, statuses, budgets, leases) | `FileJobRegistry` (this crate) |
 | `<journals-dir>/<run_id>/manifest.json`, `events.ndjson` | `tantra-runtime-api` contract + `tantra-runtime-api-rest` `run_store.rs` |
 
-See [REST API](../api/rest.md) for `/backtests/*`, `/sweeps/*` and `/journals/{id}`.
+See [REST API](../api/rest.md) for `/backtests/*`, `/sweeps/*` and `/backtests/{id}/journal`.
 
 ## 5. Built-in Jobs
 

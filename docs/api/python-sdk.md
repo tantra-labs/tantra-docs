@@ -33,9 +33,9 @@ except NotFoundApiError as err:
 | `bars(instrument_id, *, tf=None, from_=None, to=None)` | `GET /bars/{id}` | `list[Bar]` |
 | `quotes(symbols, *, venue=None, as_of=None)` | `GET /quotes` | `list[QuoteTick]` |
 | `depth(instrument_id, *, levels=None)` | `GET /depth/{id}` | `Depth` |
-| `symbol_profile(instrument_id)` | `GET /market-data/symbol-profile/{id}` | `SymbolProfile` (Plan 0003 Phase 3) |
-| `market_calendar(*, from_=None, to=None, category=None)` | `GET /market-data/calendar` | `list[CalendarEvent]` (Plan 0003 Phase 3) |
-| `screener_scan(universe, filters=None, *, tf=None, as_of=None)` | `GET /screener/scan` | `list[ScreenerResultRow]` |
+| `symbol_profile(instrument_id)` | `GET /api/v2/instruments/{id}/profile` | `SymbolProfile` (Plan 0003 Phase 3) |
+| `market_calendar(*, from_=None, to=None, category=None)` | `GET /api/v2/calendar` | `list[CalendarEvent]` (Plan 0003 Phase 3) |
+| `screener_scan(universe, filters=None, *, tf=None, as_of=None)` | `GET /api/v2/screener/scans` | `list[ScreenerResultRow]` |
 | `verify_strategy(manifest)` | `POST /strategies/verify` | `dict` (the IR) |
 | `strategies()` | `GET /strategies` | `list[CompiledStrategy]` |
 | `compile_strategy(manifest)` | `POST /strategies` | `CompiledStrategy` |
@@ -79,8 +79,15 @@ Ignore unknown fields so a newer server still parses:
 
 `CompiledStrategy` has `id` (string, `sha256:<hex>`) and `ir` (dict, the verified IR).
 
-Constructors: `Client.http(base_url, **options)` (options go to `HttpTransport`),
-`Client.inproc(data_dir)`, or `Client(transport)` for any `Transport`.
+Constructors: `Client.http(url, token=...)` (extra options go to `HttpTransport`),
+`Client.from_config()` (reads the `runtime` block of `tantra.jsonc`: `url` and `token`,
+where `token` accepts `{env:VAR}` / `{file:path}`),
+`Client.inproc(data_dir, *, token=None, journals_dir=None, profiles_dir=None, portfolios_dir=None, tokens_file=None)`,
+or `Client(transport)` for any `Transport`. `inproc` runs the runtime's `/api/v2`
+router inside the wheel with the same envelope and errors; use it as a context
+manager (closing drains run workers). Against a server started with
+`--tokens-file`, every route needs a bearer token with the route's scope, so pass
+`token=`.
 
 ## Capabilities and schema
 

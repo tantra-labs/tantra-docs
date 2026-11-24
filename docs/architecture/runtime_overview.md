@@ -8,7 +8,7 @@
 
 1. **Supervised Tokio actor pipeline** (`tantra-runtime-actors`) — the live/paper event loop: `MarketDataActor → StrategyActor → (PositionSizingActor) → RiskActor → ExecutionActor`, plus a standalone `PortfolioActor` and a Python-isolated `PythonStrategyActor`. See [Actor Runtime & Event Loop](event_loop.md).
 2. **Deterministic backtester + enhancer** (`tantra-runtime-backtest`, `tantra-runtime-enhancer`) — the research engine with exact parity to live: L2 fills, latency/slippage, statutory costs, MIS square-off, then GA/TPE/WFO/DSR optimization. See [Strategy Tester & Enhancer](strategy_tester_and_enhancer.md).
-3. **Headless REST/WS gateway** (`tantra-runtime-api`, `tantra-runtime-api-rest`) — the `tantra serve` control plane: `/api/v1` + `/api/v2` routes, run journals + SSE, order gate + approval queue, profile/portfolio stores, and the chat agent WebSocket. See [REST API](../api/rest.md) and [Runtime chat agent](runtime_chat.md).
+3. **Headless REST/WS gateway** (`tantra-runtime-api`, `tantra-runtime-api-rest`) — the `tantra serve` control plane: `/api/v2` routes, run journals + SSE, order gate + approval queue, profile/portfolio stores, and the chat agent WebSocket. See [REST API](../api/rest.md) and [Runtime chat agent](runtime_chat.md).
 4. **Job scheduler + persistence** (`tantra-runtime-jobs`, `tantra-runtime-persistence`) — cron/background jobs with budgets and fencing, and the SQLite/PostgreSQL stores + SEBI audit ledger. See [Runtime Job Scheduler](runtime_jobs.md).
 
 All four surfaces speak the same wire contract (`schema_version`, `api_version`) and the same domain types from `tantra-core`.

@@ -37,7 +37,7 @@ Indian markets. Implemented capabilities (gaps 0001–0003 closed):
 | Parquet catalog coverage | `tantra_data.store.parquet` | ✅ Closed |
 | Calendar data (earnings, dividends, splits, IPOs) | `tantra_data.store.calendar` | Stubbed pending vendor decision |
 
-These feed the `/market-data/calendar` and `/market-data/symbol-profile/{id}`
+These feed the `/api/v2/calendar` and `/api/v2/instruments/{id}/profile`
 REST endpoints in `tantra-runtime-api-rest` (Plan 0003 Phase 3 — currently
 serving illustrative sample data pending the `tantra-data` → Rust FFI bridge).
 

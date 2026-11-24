@@ -18,14 +18,16 @@ paper serve --tape <bars-json>
 
 ## Endpoints
 
+All paths are relative to `/api/v2`.
+
 | Method | Path | Purpose |
 |--------|------|---------|
 | `POST` | `/orders` | Place an order (returns order id + client order id) |
-| `DELETE` | `/orders/{id}` | Cancel a working order |
-| `POST` | `/positions/close` | Close all open positions |
-| `GET` | `/positions` | Current open positions |
+| `POST` | `/orders/{id}/cancel` | Cancel a working order |
+| `POST` | `/portfolio/positions/close` | Close all open positions |
+| `GET` | `/portfolio/positions` | Current open positions |
 | `GET` | `/portfolio` | Cash, equity, margin utilization, FIFO trade history |
-| `WS` | `/ws/live` | Bidirectional order / fill / depth / position push |
+| `WS` | `/stream` | Bidirectional order / fill / depth / position push |
 
 ### Place an order
 
@@ -65,7 +67,7 @@ Fills are reported with these fields:
 Prices and quantities are decimal strings — the daemon is zero-float end to end,
 and every fill carries its own explicit `timestamp`.
 
-### WebSocket `/ws/live`
+### WebSocket `/stream`
 
 The live stream pushes order and market events to connected clients. The event
 kinds are:
@@ -89,4 +91,4 @@ The stream is bidirectional — clients can also send orders over the same socke
 > `tantra-runtime/docs/plans/0005`.
 
 See [Python SDK](python.md) for the same engine from a script, or
-[Web & TUI](web.md) for the panel that projects `/ws/live` onto a UI.
+[Web & TUI](web.md) for the panel that projects `/stream` onto a UI.

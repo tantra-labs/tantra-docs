@@ -18,7 +18,7 @@ then come back here for the day-to-day workflow.
 | Surface | What it is | Reach for it when |
 |:--------|:-----------|:------------------|
 | **`tantra` CLI** | The single native binary (built by `tantra-ui`) with ~17 subcommands | You want an answer, a scan, a backtest, a paper session, or a scheduled job from a terminal or a script. |
-| **REST / WebSocket API** | `tantra serve` and `paper-serve` — a headless HTTP server with OpenAPI 3.1, SSE, and `/ws/live` streaming | You are building a client, a dashboard, a webhook, or any other process that talks to Tantra over HTTP. |
+| **REST / WebSocket API** | `tantra serve` and `paper-serve` — a headless HTTP server with OpenAPI 3.1, SSE, and `/api/v2/stream` streaming | You are building a client, a dashboard, a webhook, or any other process that talks to Tantra over HTTP. |
 | **Python SDK** | The `tantra` PyPI wheel (`tantra-ffi`, PyO3) — strategies, `Tantra.backtest`, indicators, paper sessions, adapters | You are authoring strategies, running research, or scripting backtests in Python. |
 | **AI / MCP gateway** | `tantra ask` / `tantra chat`, the 22-tool quantitative MCP gateway, autonomous `tantra jobs` | You want an AI agent to research, screen, and run strategies — or to drive Tantra from Claude Code, Cursor, VS Code, or Gemini CLI. |
 
@@ -37,7 +37,7 @@ or Python.
 | Run your first backtest | Python | [First Backtest](../getting-started/first-backtest.md) |
 | Backtest a strategy | Python / CLI / REST | `Tantra.backtest(...).run()` · `tantra strategy run` · `POST /backtests` |
 | Optimize parameters | CLI | `tantra strategy tune` / `tantra strategy suggest` |
-| Screen a universe | CLI / REST | `tantra scan "query"` · `GET /screener/scan` |
+| Screen a universe | CLI / REST | `tantra scan "query"` · `GET /api/v2/screener/scans` |
 | Paper trade | CLI / REST / Python | [Paper Trading](../paper-trading/index.md) |
 | Serve market data + API | CLI | `tantra serve --data-dir ./bars` |
 | Ask the AI agent | CLI | `tantra ask "..."` / `tantra chat` |
@@ -53,7 +53,7 @@ or Python.
 1. **[The `tantra` CLI](cli.md)** — every subcommand, organized by the job you
    actually want to do.
 2. **[REST API Workflows](rest-api.md)** — boot `tantra serve`, hit the
-   endpoints with `curl`, and stream `/ws/live`.
+   endpoints with `curl`, and stream `/api/v2/stream`.
 3. **[Python SDK](python.md)** — authoring strategies and running backtests
    in Python.
 4. **[AI & Automation](ai.md)** — the headless AI agent, the MCP gateway, and
@@ -64,7 +64,7 @@ or Python.
 
 Paper trading is covered by its own dedicated guide —
 [Paper Trading Exchange](../paper-trading/index.md) — with the CLI session,
-the `paper-serve` daemon, the REST `/orders` + `/ws/live` surfaces, and the
+the `paper-serve` daemon, the REST `/api/v2/orders` + `/api/v2/stream` surfaces, and the
 Python `PaperSession`.
 
 ## What This Guide Does Not Cover

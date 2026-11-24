@@ -8,7 +8,7 @@ two modes:
 - **Embedded** — runs an in-browser `PaperExchange` session: zero server, works
   offline. Every order and fill is simulated locally by the same engine used
   everywhere else; the panel is a thin UI over it.
-- **Server** — connects to a `paper serve` daemon and projects the `/ws/live`
+- **Server** — connects to a `paper serve` daemon and projects the `/api/v2/stream`
   `ClientEvent`s (fills, positions, working orders) onto the panel. Same UI, live
   server state.
 

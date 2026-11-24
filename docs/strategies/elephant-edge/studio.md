@@ -44,7 +44,7 @@ The Studio is designed to consume these endpoints (built from `tantra-core` type
 - `GET /level-map/{date}` — the session `LevelMap` with confluence scores.
 - `GET /signals/{date}` — the session's `StrategySignal` log.
 - `GET /option-chain/walls/{instrument}` — OI-wall and max-pain data.
-- `WS /ws/live` — streaming `StopUpdate` and fill events.
+- `WS /api/v2/stream` — streaming `StopUpdate` and fill events.
 
 ## Chat tools (planned)
 

@@ -52,7 +52,7 @@ every embedding. Replaying the same tape with the same seed produces
  Python SDK                REST + WS     CLI                  Web / TUI
  tantra.paper              paper serve  tantra paper          PaperPanel
  PaperSession              /orders      --mode embedded       (embedded or
-                           /ws/live     --mode server         server) ·
+                           /api/v2/stream --mode server         server) ·
                                                                tantra-tui
                                                                /positions
 ```
@@ -60,7 +60,7 @@ every embedding. Replaying the same tape with the same seed produces
 | Embedding | Surface | When to reach for it |
 |-----------|---------|----------------------|
 | Python SDK | `tantra.paper.PaperSession` — scripts, notebooks, tests | Strategy prototyping, deterministic smoke tests, research loops |
-| REST + WebSocket | `paper serve` — `/orders`, `/positions`, `/portfolio`, `/ws/live` | Headless daemons, dashboards, multi-client setups |
+| REST + WebSocket | `paper serve` — `/api/v2/orders`, `/api/v2/portfolio/positions`, `/api/v2/portfolio`, `/api/v2/stream` | Headless daemons, dashboards, multi-client setups |
 | CLI | `tantra paper --mode embedded` | A five-second sanity check that the paper engine round-trips |
 | Web / TUI | `PaperPanel` (embedded or server mode), `tantra-tui` `/positions` | Interactive, zero-install exploration |
 

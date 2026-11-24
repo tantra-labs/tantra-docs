@@ -1,6 +1,6 @@
 # REST Read API and `tantra serve`
 
-`tantra serve` exposes a full HTTP/WebSocket API. It boots `tantra-runtime-api-rest` as a standalone server over a directory of Parquet bar files plus optional profile, portfolio, journal, and token stores.
+`tantra serve` exposes a full HTTP/WebSocket API. The runtime serves **only** `/api/v2/...` (plus the Swagger UI at `/docs`); earlier un-prefixed and v1 paths were removed. It boots `tantra-runtime-api-rest` as a standalone server over a directory of Parquet bar files plus optional profile, portfolio, journal, and token stores.
 
 ```bash
 tantra serve --data-dir ./bars                      # 127.0.0.1:8000
@@ -16,8 +16,8 @@ The data directory holds `SYMBOL.EXCHANGE.parquet` files and is loaded **once** 
 | `--data-dir` | required | Directory of Parquet bar files (`SYMBOL.EXCHANGE.parquet`) |
 | `--addr` | `127.0.0.1:8000` | Listen address |
 | `--cors-origin <origin>` | none | Allow this browser origin (repeatable) |
-| `--profiles-dir` | `data/profiles` | Directory holding one JSON profile per user (`/profile` routes) |
-| `--portfolios-dir` | `data/portfolios` | Directory holding one JSON portfolio per user (`/portfolio` routes) |
+| `--profiles-dir` | `data/profiles` | Directory holding one JSON profile per user (`/api/v2/profile` routes) |
+| `--portfolios-dir` | `data/portfolios` | Directory holding one JSON portfolio per user (`/api/v2/portfolio` routes) |
 | `--journals-dir` | `data/journals` | Directory holding one sub-directory per backtest/run journal |
 | `--tokens-file` | none | Bearer-token file (TOML); enables auth when set |
 
@@ -26,103 +26,25 @@ The data directory holds `SYMBOL.EXCHANGE.parquet` files and is loaded **once** 
 - **Loopback by default.** If `--addr` is not loopback, `tantra serve` prints a warning on stderr: the API has no auth or TLS unless `--tokens-file` is set, so anyone who can reach it can read and write data.
 - **No TLS, no rate limiting by default.**
 - **No CORS by default** (no CORS headers are sent). Opt in with `--cors-origin https://app.example` (repeatable). `*` and values that are not valid header values are rejected at start-up.
-- **Auth** (optional): when `--tokens-file` is set, bearer tokens are required on mutating routes (`POST`, `DELETE`, `PUT`, `PATCH`). Read routes remain public.
+- **Auth** (optional, fail-closed): when `--tokens-file` (or a JWT config) is set, **every** route needs a bearer token carrying the route's scope (`read`, `trade`, `admin`, `research`, or any token) — not only mutating routes. Routes without a scope row are rejected, not public. Only `/api/v2/health`, `/api/v2/capabilities`, `/api/v2/openapi.json` and `/docs` are public. Trade-journal data and paper orders are per caller (the caller is the token id).
 
 ## Routes
 
-All routes below are implemented. Routes marked `501` answer `not_implemented` and have no typed client method.
+Every route lives under the base path `/api/v2`. The full, generated route list (method, path, scope, summary) is the [API reference](api-reference.md); the machine-readable contract is `GET /api/v2/openapi.json`, and `/docs` serves the Swagger UI. All paths on this page are relative to `/api/v2`.
 
-| Method | Route | Notes |
-|--------|-------|-------|
-| `GET` | `/capabilities` | API capabilities manifest |
-| `GET` | `/health` | `{"status": "ok"}` |
-| `GET` | `/schema` / `/schema/openapi/v{1,2}.json` | OpenAPI 3.1 document |
-| `GET` | `/docs` | Swagger UI |
-| `GET` | `/instruments` | Filters `exchange`, `symbol`; id order |
-| `GET` | `/instruments/{id}` | `{id}` is `SYMBOL.EXCHANGE`, split on the last dot |
-| `GET` | `/quotes` | `symbols` (comma list), `venue`, `as_of` (inclusive). Each quote optionally carries `last_price`, `day_high`, `day_low`, `prev_close`, `volume` session-summary fields when the live feed has them (gap 0010) |
-| `GET` | `/bars/{id}` | `tf`, `from`, `to`; half-open `[from, to)`, ascending `ts_event` |
-| `POST` | `/bars` | Ingest bars |
-| `GET` | `/depth/{id}` | `depth` 1..=50, default 5 — over bars returns 404 `market_data_unavailable` |
-| `GET` | `/market-data/symbol-profile/{id}` | **Plan 0003 Phase 3** — company fundamentals / symbol profile |
-| `GET` | `/market-data/calendar` | **Plan 0003 Phase 3** — economic/earnings/dividends/splits/IPO events; filter by `from`, `to`, `category` |
-| `GET` | `/screener/scan` | Custom AST-filtered stock scan |
-| `POST` | `/strategies/verify` | Verifies a manifest, returns the IR |
-| `GET` | `/strategies` | Lists compiled strategies of this process |
-| `POST` | `/strategies` | Compiles and stores a manifest; returns `id` and `IR` |
-| `POST` | `/backtests` | Creates a backtest run; returns `run_id` |
-| `GET` | `/backtests` | Lists backtests |
-| `GET` | `/backtests/{id}` | Backtest by ID |
-| `GET` | `/backtests/{id}/journal` | Backtest execution journal |
-| `GET` | `/backtests/{id}/events` | SSE stream of run progress (`text/event-stream`) |
-| `POST` | `/sweeps` | Creates a parameter sweep |
-| `GET` | `/sweeps` | Lists sweeps |
-| `GET` | `/sweeps/{id}` | Sweep by ID |
-| `GET` | `/sweeps/{id}/journal` | Sweep execution journal |
-| `POST` | `/orders` | Places an order (risk-gated, ADR 0018) |
-| `GET` | `/orders` | Lists orders |
-| `DELETE` | `/orders/{id}` | Cancels an order |
-| `GET` | `/orders/{id}/fills` | Order fills |
-| `POST` | `/positions/close` | Emergency close-all |
-| `GET` | `/positions` | Open positions |
-| `GET` | `/positions/audit` | Position audit |
-| `GET` | `/trades` | Portfolio trades (alias of `/portfolio/trades`) |
-| `GET` | `/portfolio` | **501** `not_implemented` (`valuation_engine_mismatch`) — live valuation engine not yet wired |
-| `GET` | `/portfolio/accounts` | **501** `not_implemented` (`valuation_engine_mismatch`) |
-| `GET` | `/portfolio/positions` | **501** `not_implemented` (`valuation_engine_mismatch`) |
-| `GET` | `/portfolio/holdings` | **501** `not_implemented` (`valuation_engine_mismatch`) |
-| `GET` | `/portfolio/trades` | Portfolio trades (implemented) |
-| `GET` | `/portfolio/chart` | Equity curve |
-| `GET` | `/portfolio/concentration` | Concentration risk |
-| `GET` | `/portfolio/wac` | Weighted average cost |
-| `GET` | `/ledger` | Double-entry ledger |
-| `GET` | `/tax/report` | Tax report |
-| `GET` | `/fees` | Fees |
-| `GET` | `/reports/ledger` | Ledger report |
-| `GET` | `/reports/tax` | Tax report |
-| `GET` | `/reports/snapshots` | Portfolio snapshots |
-| `GET` | `/reports/audit` | Position audit |
-| `GET` | `/reports/concentration` | Concentration risk |
-| `GET` | `/reports/wac` | Weighted average cost |
-| `GET` | `/reports/fees` | Fees report |
-| `GET` | `/reports/equity-curve` | Equity curve |
-| `GET` | `/reports/fills/{order_id}` | Order fills |
-| `GET` | `/trade-journal/accounts` | **Plan 0003 Phase 1** — List journal accounts |
-| `POST` | `/trade-journal/accounts` | **Plan 0003 Phase 1** — Create journal account |
-| `GET` | `/trade-journal/overview` | **Plan 0003 Phase 1** — Performance metrics + edge score |
-| `GET` | `/trade-journal/trades` | **Plan 0003 Phase 1** — Closed trades with annotations, cursor-paginated |
-| `PATCH` | `/trade-journal/trades/{id}` | **Plan 0003 Phase 1** — Set trade annotation |
-| `GET` | `/trade-journal/calendar` | **Plan 0003 Phase 2** — Daily P&L heatmap (`?month=YYYY-MM`) |
-| `GET` | `/trade-journal/notes` | **Plan 0003 Phase 2** — Day-keyed journal notes |
-| `POST` | `/trade-journal/notes` | **Plan 0003 Phase 2** — Create/replace day-keyed note |
-| `GET` | `/trade-journal/compare` | **Plan 0003 Phase 2** — Two-sided account comparison |
-| `GET` | `/approval/queue` | Approval queue |
-| `POST` | `/approval/approve` | Approve order |
-| `POST` | `/approval/reject` | Reject order |
-| `GET` | `/trading-state` | Get trading state (operator halt/resume, ADR 0018) |
-| `PUT` | `/trading-state` | Put trading state |
-| `GET` | `/profile` | Get profile |
-| `PUT` | `/profile` | Put profile |
-| `GET` | `/profile/layouts` | Get layouts |
-| `PUT` | `/profile/layouts/{name}` | Put layout |
-| `DELETE` | `/profile/layouts/{name}` | Delete layout |
-| `GET` | `/profile/modules` | Get modules |
-| `PUT` | `/profile/modules/{id}` | Put module |
-| `DELETE` | `/profile/modules/{id}` | Delete module |
-| `GET` | `/ws` | Real-time streaming WebSocket (`WsTick` / `WsDepth` push, `WsClientCommand` subscribe/switch) |
-| `GET` | `/ws/market` | Real-time market streaming WebSocket (same handler as `/ws`) |
-| `GET` | `/ws/chat` | Chat agent WebSocket (`ChatRuntime`); requires `TANTRA_GGUF_PATH` or `TANTRA_LLM_BASE_URL` — see [Runtime chat agent](../architecture/runtime_chat.md) |
-| `GET` | `/journals/{id}` | Run/backtest execution journal |
+Route families: market data (`/instruments`, `/quotes`, `/bars/{id}`, `/depth/{id}`, `/calendar`, `/block-deals`, `/options/chain`), `/screener/scans`, `/strategies`, `/backtests`, `/sweeps`, `/orders` (place, `GET /orders/{id}`, `POST /orders/{id}/cancel`, `/orders/{id}/fills`), `/portfolio/*`, `/reports/*`, `/approvals`, `/alerts` (`GET`/`POST`/`DELETE`), `/trade-journal/*`, `/trading-state`, `/profile/*`, `/studies/*`, and the `/stream` WebSocket.
 
-`POST /orders` is risk-gated (ADR 0018): a refusal is a 422 carrying the `risk_*` code (category `risk`, not retryable); `DELETE /orders/{id}` cancels without a gate and `POST /positions/close` closes without one.
+Envelope: every response is `{api_version: "v2", schema_version, data, error, meta}`. Error statuses follow the error code: validation 422, auth 401/403, not found 404, conflict 409, rate limit 429, unavailable 503 (for example a missing store is `503 service_unavailable`).
+
+`POST /orders` is risk-gated (ADR 0018): a refusal is a 422 carrying the `risk_*` code (category `risk`, not retryable); `POST /orders/{id}/cancel` cancels without a gate and `POST /portfolio/positions/close` closes without one. Placing and cancelling need the `trade` scope.
 
 A request body that does not parse on these routes is still a 422 first.
 
-### `GET /capabilities`
+### `GET /api/v2/capabilities`
 
 The manifest carries `crates`, `market_packs`, `toolsets`, `adapters` and `features`. `endpoints` lists every registry row as `METHOD /path`. The `not_implemented` list names routes that answer 501.
 
-### `GET /screener/scan`
+### `GET /api/v2/screener/scans`
 
 Query: `universe` (JSON array of `SYMBOL.EXCHANGE`, required), `filters` (JSON filter group; omitted matches every instrument), `tf` (default `1d`) and `as_of` (inclusive). The answer is `{rows: [{instrument_id, metrics}]}` in instrument-id order; `metrics` holds the latest value of every metric the filter reads (`null` while warming up). Predicates are evaluated in Rust over the bar dataset. Computable metrics: `open`, `high`, `low`, `close`, `volume`, `price_52_week_high`/`_low` (need 252 bars), `SMA<N>` and `RSI`. Anything else is a 422 `reason = unsupported_metric`, never an empty result; a predicate `timeframe` must equal `tf` (`unsupported_timeframe`). An unknown instrument is a 404. A Parquet data directory holds `1m` bars, so pass `tf=1m` there; the default `1d` is a 404 `market_data_unavailable`.
 
@@ -140,7 +62,7 @@ A request body containing `code` or `source` is rejected with 422 `context.reaso
 
 ### Trade-Performance Journal: `/trade-journal/*` (Plan 0003)
 
-Backed by `tantra-ledger-performance`. These are **distinct** from the existing run/backtest journals (`/journals/{id}`, `/backtests/{id}/journal`, `/sweeps/{id}/journal`) and from `/portfolio/accounts`.
+Backed by `tantra-ledger-performance`. These are **distinct** from the existing run/backtest journals (`/backtests/{id}/journal`, `/sweeps/{id}/journal`) and from `/portfolio/accounts`.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
@@ -156,18 +78,19 @@ Backed by `tantra-ledger-performance`. These are **distinct** from the existing 
 
 All monetary values are serialized as strings (Decimal exactness preserved).
 
-### Market Reference Data: `/market-data/*` (Plan 0003 Phase 3)
+### Market Reference Data: `/instruments/{id}/profile`, `/calendar` (Plan 0003 Phase 3)
 
 Backed by `tantra-data` (symbol profile, economic calendar) — currently serves **illustrative sample data** pending the `tantra-data` → Rust FFI bridge. The owning gaps are tracked in `tantra-data/docs/gaps/`: `0002-company-fundamentals-symbol-profile.md` (symbol profile ingestion) and `0001-economic-calendar-ingestion.md` / `0003-calendar-stubbed-data.md` (calendar). Sample-data stubs in `tantra-runtime` cite these gaps in code comments.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| `GET` | `/market-data/symbol-profile/{id}` | `SymbolProfileDto`: symbol, name, description, sector, industry, market_cap, exchange, country, ipo_date, etc. |
-| `GET` | `/market-data/calendar` | `CalendarEventDto`: instrument, scheduled_at, category, event_name, impact_level, actual, forecast, prior |
+| `GET` | `/instruments/{id}/profile` | `SymbolProfileDto`: symbol, name, description, sector, industry, market_cap, exchange, country, ipo_date, etc. |
+| `GET` | `/calendar` | `CalendarEventDto`: instrument, scheduled_at, category, event_name, impact_level, actual, forecast, prior |
+| `GET` | `/block-deals` | Block deals |
 
-### Streaming & Chat: `/ws`, `/ws/market`, `/ws/chat`, SSE
+### Streaming & Chat: `/stream`, `/ws/chat`, SSE
 
-* `/ws` and `/ws/market` share one command-driven handler: the server pushes `WsTick` (instrument, bid/ask/last, prev close) and `WsDepth {bids, asks}` frames as data arrives; the client sends `WsClientCommand` subscribe/switch actions. No polling.
+* `/api/v2/stream` is the one authenticated WebSocket for market data, orders and fills. Client frames are JSON tagged by `op`: `{"op":"subscribe","channel":"quotes|depth|orders|fills|portfolio","ids":["RELIANCE.NSE"]}` (empty `ids` means all, allowed for `orders`/`fills`/`portfolio`), `unsubscribe` (same shape), `{"op":"ping"}`, `{"op":"place_order","request_id":"r1","order":{...}}`, `{"op":"cancel_order","request_id":"r2","order_id":"..."}` and `{"op":"close"}`. Server frames are tagged by `type`: `ack`, `event` (`{"type":"event","channel":"fills","data":{...}}`), `result` (the reply to place/cancel, carrying `request_id`), `error`, `lagged` and `pong`. Place and cancel need the `trade` scope on each message. Each caller only receives its own `orders`/`fills` events; `portfolio` snapshots are still one shared paper account (runtime gap 0017).
 * `/backtests/{id}/events` is an SSE stream replayed from the run's line-indexed `events.ndjson`; pass `resume_from_seq=N` to resume after a reconnect without gaps or duplicates.
 * `/ws/chat` connects the [runtime chat agent](../architecture/runtime_chat.md) (`ChatRuntime`). It needs an LLM backend in the environment — `TANTRA_GGUF_PATH` (local Candle-GGUF, takes priority) or `TANTRA_LLM_BASE_URL`/`TANTRA_LLM_MODEL`/`TANTRA_LLM_API_KEY` (OpenAI/Ollama-compatible); without either, the socket answers with a clear `chat not configured` message. Sessions are in-memory (`InMemorySessionStore`) and lost on restart; alerts persist on the user profile.
 

@@ -89,7 +89,7 @@ tantra scan "close > sma20" --server http://127.0.0.1:8000 --universe '["RELIANC
 ```
 
 Without `--server` the scan runs against the offline fixture universe. With
-`--server` it evaluates the same query on the live `GET /screener/scan`
+`--server` it evaluates the same query on the live `GET /api/v2/screener/scans`
 endpoint of a running `tantra serve` (see
 [REST API Workflows](rest-api.md)).
 
